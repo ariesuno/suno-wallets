@@ -4,6 +4,7 @@ import (
 	"suno-wallets/src/api/controllers"
 	"suno-wallets/src/api/middlewares"
 	"suno-wallets/src/application/usecases"
+	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/config"
 
@@ -26,6 +27,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 
 	// Configurar Swagger
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Configurar métricas Prometheus
+	observability.RegisterMetricsRoute(router)
 
 	// Inicializar dependências
 	walletRepo := repositories.NewWalletRepository(db)
