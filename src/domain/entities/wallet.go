@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -29,31 +30,31 @@ const (
 // Wallet representa uma carteira digital no sistema
 type Wallet struct {
 	// Identificação primária
-	ID       uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID       uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	TenantID uuid.UUID `json:"tenant_id" gorm:"type:uuid;not null;index"`
 
 	// Informações da carteira
 	Name        string       `json:"name" gorm:"type:varchar(255);not null"`
 	Description string       `json:"description" gorm:"type:text"`
-	Type        WalletType   `json:"type" gorm:"type:varchar(50);not null;default:'personal'"`
-	Status      WalletStatus `json:"status" gorm:"type:varchar(50);not null;default:'active'"`
+	Type        WalletType   `json:"type" gorm:"type:varchar(50);not null"`
+	Status      WalletStatus `json:"status" gorm:"type:varchar(50);not null"`
 
 	// Informações financeiras
-	Balance   int64  `json:"balance" gorm:"type:bigint;not null;default:0"` // Em centavos
-	Currency  string `json:"currency" gorm:"type:varchar(3);not null;default:'BRL'"`
-	IsDefault bool   `json:"is_default" gorm:"type:boolean;not null;default:false"`
+	Balance   int64  `json:"balance" gorm:"type:bigint;not null"` // Em centavos
+	Currency  string `json:"currency" gorm:"type:varchar(3);not null"`
+	IsDefault bool   `json:"is_default" gorm:"type:boolean;not null"`
 
 	// Informações do proprietário
 	OwnerID   uuid.UUID `json:"owner_id" gorm:"type:uuid;not null;index"`
-	OwnerType string    `json:"owner_type" gorm:"type:varchar(50);not null;default:'user'"` // user, business, etc.
+	OwnerType string    `json:"owner_type" gorm:"type:varchar(50);not null"` // user, business, etc.
 
 	// Configurações
 	DailyLimit   *int64 `json:"daily_limit,omitempty" gorm:"type:bigint"`   // Em centavos
 	MonthlyLimit *int64 `json:"monthly_limit,omitempty" gorm:"type:bigint"` // Em centavos
-	AllowDebit   bool   `json:"allow_debit" gorm:"type:boolean;not null;default:true"`
+	AllowDebit   bool   `json:"allow_debit" gorm:"type:boolean;not null"`
 
 	// Metadados (JSON para flexibilidade)
-	Metadata map[string]interface{} `json:"metadata,omitempty" gorm:"type:jsonb"`
+	Metadata datatypes.JSON `json:"metadata,omitempty"`
 
 	// Campos de auditoria obrigatórios
 	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`

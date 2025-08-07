@@ -21,6 +21,10 @@ func AutoMigrate(db *gorm.DB) error {
 
 	// Executar migrações
 	for _, model := range models {
+		if err := db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";").Error; err != nil {
+			helpers.LogError("Falha ao garantir extensão uuid-ossp", err, map[string]interface{}{})
+			return err
+		}
 		if err := db.AutoMigrate(model); err != nil {
 			helpers.LogError("Falha na migração", err, map[string]interface{}{
 				"model": fmt.Sprintf("%T", model),

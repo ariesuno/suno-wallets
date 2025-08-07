@@ -86,6 +86,7 @@ Após iniciar a aplicação, acesse:
 
 - **Swagger UI**: http://localhost:8080/swagger/index.html
 - **Health Check**: http://localhost:8080/health
+ - **Metrics (Prometheus)**: http://localhost:8080/metrics
 
 ## 🧪 Executando Testes
 
@@ -98,6 +99,9 @@ go test -v ./tests/...
 
 # Executar testes de uma pasta específica
 go test ./tests/unit/...
+
+# Executar testes de infraestrutura
+go test ./tests/infrastructure/...
 
 # Executar testes com coverage
 go test -cover ./tests/...
@@ -213,6 +217,10 @@ test(wallet): adiciona testes unitários
    # Verificar se PostgreSQL está rodando
    docker-compose logs postgres
    ```
+
+4. **Prometheus/Grafana (opcional)**
+   - Exponha `/metrics` para coleta Prometheus
+   - Configure Grafana para apontar para sua instância do Prometheus
 
 2. **Porta já em uso**
    ```bash
