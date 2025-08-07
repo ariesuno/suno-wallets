@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"suno-wallets/src/domain/entities"
-	"suno-wallets/src/domain/repositories"
+	domaininterfaces "suno-wallets/src/domain/interfaces"
 	"suno-wallets/src/shared/helpers"
 
 	"github.com/google/uuid"
@@ -18,7 +18,7 @@ type walletRepositoryImpl struct {
 }
 
 // NewWalletRepository cria uma nova instância do repositório de carteiras
-func NewWalletRepository(db *gorm.DB) repositories.WalletRepository {
+func NewWalletRepository(db *gorm.DB) domaininterfaces.WalletRepository {
 	return &walletRepositoryImpl{
 		db: db,
 	}
@@ -189,7 +189,7 @@ func (r *walletRepositoryImpl) Delete(ctx context.Context, id, tenantID uuid.UUI
 }
 
 // List lista carteiras com paginação e filtros
-func (r *walletRepositoryImpl) List(ctx context.Context, params repositories.ListWalletParams) ([]*entities.Wallet, int64, error) {
+func (r *walletRepositoryImpl) List(ctx context.Context, params domaininterfaces.ListWalletParams) ([]*entities.Wallet, int64, error) {
 	var wallets []*entities.Wallet
 	var total int64
 

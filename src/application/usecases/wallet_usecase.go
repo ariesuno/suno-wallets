@@ -5,7 +5,7 @@ import (
 
 	"suno-wallets/src/application/dtos"
 	"suno-wallets/src/domain/entities"
-	"suno-wallets/src/domain/repositories"
+	domaininterfaces "suno-wallets/src/domain/interfaces"
 	"suno-wallets/src/shared/helpers"
 
 	"github.com/google/uuid"
@@ -23,11 +23,11 @@ type WalletUseCase interface {
 
 // walletUseCaseImpl implementação dos casos de uso de carteiras
 type walletUseCaseImpl struct {
-	walletRepo repositories.WalletRepository
+	walletRepo domaininterfaces.WalletRepository
 }
 
 // NewWalletUseCase cria uma nova instância do caso de uso de carteiras
-func NewWalletUseCase(walletRepo repositories.WalletRepository) WalletUseCase {
+func NewWalletUseCase(walletRepo domaininterfaces.WalletRepository) WalletUseCase {
 	return &walletUseCaseImpl{
 		walletRepo: walletRepo,
 	}
@@ -216,7 +216,7 @@ func (uc *walletUseCaseImpl) ListWallets(ctx context.Context, req *dtos.ListWall
 	}
 
 	// Converter para parâmetros do repositório
-	params := repositories.ListWalletParams{
+	params := domaininterfaces.ListWalletParams{
 		TenantID: req.TenantID,
 		OwnerID:  req.OwnerID,
 		Status:   req.Status,

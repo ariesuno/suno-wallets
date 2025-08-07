@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"suno-wallets/src/domain/entities"
-	"suno-wallets/src/domain/repositories"
+	domaininterfaces "suno-wallets/src/domain/interfaces"
 	"suno-wallets/src/infrastructure/database"
 	"suno-wallets/src/infrastructure/migration"
 	infraRepos "suno-wallets/src/infrastructure/repositories"
@@ -22,7 +22,7 @@ import (
 type WalletIntegrationTestSuite struct {
 	suite.Suite
 	db         *gorm.DB
-	repository repositories.WalletRepository
+	repository domaininterfaces.WalletRepository
 	ctx        context.Context
 	tenantID   uuid.UUID
 	ownerID    uuid.UUID
