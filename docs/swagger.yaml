@@ -1,0 +1,511 @@
+basePath: /api/v1
+definitions:
+  controllers.HealthResponse:
+    properties:
+      services:
+        additionalProperties:
+          type: string
+        type: object
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  dtos.CreateWalletRequest:
+    properties:
+      allow_debit:
+        type: boolean
+      created_by:
+        type: string
+      currency:
+        type: string
+      daily_limit:
+        type: integer
+      description:
+        type: string
+      is_default:
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      monthly_limit:
+        type: integer
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      owner_id:
+        type: string
+      owner_type:
+        type: string
+      tenant_id:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/entities.WalletType'
+        enum:
+        - personal
+        - business
+        - corporate
+    required:
+    - created_by
+    - currency
+    - name
+    - owner_id
+    - owner_type
+    - tenant_id
+    - type
+    type: object
+  dtos.ListWalletsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dtos.WalletResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/dtos.PaginationMeta'
+    type: object
+  dtos.PaginationMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dtos.UpdateWalletRequest:
+    properties:
+      allow_debit:
+        type: boolean
+      daily_limit:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      is_default:
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      monthly_limit:
+        type: integer
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/entities.WalletStatus'
+      tenant_id:
+        type: string
+      updated_by:
+        type: string
+    required:
+    - id
+    - tenant_id
+    type: object
+  dtos.WalletResponse:
+    properties:
+      allow_debit:
+        type: boolean
+      balance:
+        type: integer
+      balance_in_reais:
+        type: number
+      created_at:
+        type: string
+      created_by:
+        type: string
+      currency:
+        type: string
+      daily_limit:
+        type: integer
+      daily_limit_reais:
+        type: number
+      description:
+        type: string
+      id:
+        type: string
+      is_default:
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      monthly_limit:
+        type: integer
+      monthly_limit_reais:
+        type: number
+      name:
+        type: string
+      owner_id:
+        type: string
+      owner_type:
+        type: string
+      status:
+        $ref: '#/definitions/entities.WalletStatus'
+      tenant_id:
+        type: string
+      type:
+        $ref: '#/definitions/entities.WalletType'
+      updated_at:
+        type: string
+      updated_by:
+        type: string
+    type: object
+  entities.WalletStatus:
+    enum:
+    - active
+    - inactive
+    - blocked
+    - suspended
+    type: string
+    x-enum-varnames:
+    - WalletStatusActive
+    - WalletStatusInactive
+    - WalletStatusBlocked
+    - WalletStatusSuspended
+  entities.WalletType:
+    enum:
+    - personal
+    - business
+    - corporate
+    type: string
+    x-enum-varnames:
+    - WalletTypePersonal
+    - WalletTypeBusiness
+    - WalletTypeCorporate
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: Suporte API
+    url: http://www.swagger.io/support
+  description: Sistema de carteiras digitais multi-tenant desenvolvido em Go
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Suno Wallets API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: Verifica se a aplicação e seus serviços dependentes estão funcionando
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.HealthResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/controllers.HealthResponse'
+      summary: Health check
+      tags:
+      - health
+  /live:
+    get:
+      description: Verifica se a aplicação está viva (para Kubernetes)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Liveness check
+      tags:
+      - health
+  /ready:
+    get:
+      description: Verifica se a aplicação está pronta para receber requisições
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Readiness check
+      tags:
+      - health
+  /wallets:
+    get:
+      description: Lista carteiras com filtros opcionais e paginação
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID do proprietário
+        in: query
+        name: owner_id
+        type: string
+      - description: Status da carteira
+        in: query
+        name: status
+        type: string
+      - description: Tipo da carteira
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: Página
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite por página
+        in: query
+        name: limit
+        type: integer
+      - description: Busca por nome
+        in: query
+        name: search
+        type: string
+      - description: Campo para ordenação
+        in: query
+        name: sort_by
+        type: string
+      - description: Ordenação decrescente
+        in: query
+        name: sort_desc
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ListWalletsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Listar carteiras
+      tags:
+      - wallets
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova carteira digital para um usuário
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Dados da carteira
+        in: body
+        name: wallet
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.WalletResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Criar carteira
+      tags:
+      - wallets
+  /wallets/{id}:
+    delete:
+      description: Remove uma carteira (soft delete)
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID da carteira
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Deletar carteira
+      tags:
+      - wallets
+    get:
+      description: Busca uma carteira específica por ID
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID da carteira
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.WalletResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Buscar carteira
+      tags:
+      - wallets
+    put:
+      consumes:
+      - application/json
+      description: Atualiza uma carteira existente
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID da carteira
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: wallet
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.WalletResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Atualizar carteira
+      tags:
+      - wallets
+  /wallets/owner/{owner_id}:
+    get:
+      description: Busca todas as carteiras de um proprietário específico
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID do proprietário
+        in: path
+        name: owner_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.WalletResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Buscar carteiras por proprietário
+      tags:
+      - wallets
+securityDefinitions:
+  TenantID:
+    description: ID do inquilino para multi-tenancy
+    in: header
+    name: X-Tenant-ID
+    type: apiKey
+swagger: "2.0"

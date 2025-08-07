@@ -1,0 +1,273 @@
+{
+    "info": {
+        "name": "Suno Wallets API",
+        "description": "Sistema de carteiras digitais multi-tenant desenvolvido em Go",
+        "version": "1.0.0",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "tenantId",
+            "value": "550e8400-e29b-41d4-a716-446655440001",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Readiness Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/ready",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ready"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Liveness Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/live",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "live"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Wallets",
+            "item": [
+                {
+                    "name": "Create Wallet",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Minha Carteira Principal\",\n  \"description\": \"Carteira para uso pessoal\",\n  \"type\": \"personal\",\n  \"currency\": \"BRL\",\n  \"is_default\": true,\n  \"owner_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"owner_type\": \"user\",\n  \"allow_debit\": true,\n  \"daily_limit\": 100000,\n  \"monthly_limit\": 1000000,\n  \"created_by\": \"550e8400-e29b-41d4-a716-446655440003\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Wallets",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Wallet by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/:walletId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                ":walletId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "walletId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Wallets by Owner",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/owner/:ownerId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                "owner",
+                                ":ownerId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "ownerId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440002"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Wallet",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Carteira Atualizada\",\n  \"description\": \"Nova descrição da carteira\",\n  \"status\": \"active\",\n  \"daily_limit\": 150000,\n  \"allow_debit\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/:walletId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                ":walletId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "walletId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Wallet",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/:walletId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                ":walletId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "walletId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

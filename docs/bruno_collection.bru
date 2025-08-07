@@ -1,0 +1,106 @@
+meta {
+  name: Suno Wallets API
+  type: collection
+}
+
+headers {
+  X-Tenant-ID: 550e8400-e29b-41d4-a716-446655440001
+}
+
+vars {
+  baseUrl: http://localhost:8080
+  tenantId: 550e8400-e29b-41d4-a716-446655440001
+}
+
+folder Health {
+  request Health Check {
+    method: GET
+    url: {{baseUrl}}/health
+  }
+
+  request Readiness Check {
+    method: GET
+    url: {{baseUrl}}/ready
+  }
+
+  request Liveness Check {
+    method: GET
+    url: {{baseUrl}}/live
+  }
+}
+
+folder Wallets {
+  request Create Wallet {
+    method: POST
+    url: {{baseUrl}}/api/v1/wallets
+    headers {
+      Content-Type: application/json
+      X-Tenant-ID: {{tenantId}}
+    }
+    body {
+      {
+        "name": "Minha Carteira Principal",
+        "description": "Carteira para uso pessoal",
+        "type": "personal",
+        "currency": "BRL",
+        "is_default": true,
+        "owner_id": "550e8400-e29b-41d4-a716-446655440002",
+        "owner_type": "user",
+        "allow_debit": true,
+        "daily_limit": 100000,
+        "monthly_limit": 1000000,
+        "created_by": "550e8400-e29b-41d4-a716-446655440003"
+      }
+    }
+  }
+
+  request List Wallets {
+    method: GET
+    url: {{baseUrl}}/api/v1/wallets?page=1&limit=10
+    headers {
+      X-Tenant-ID: {{tenantId}}
+    }
+  }
+
+  request Get Wallet by ID {
+    method: GET
+    url: {{baseUrl}}/api/v1/wallets/550e8400-e29b-41d4-a716-446655440000
+    headers {
+      X-Tenant-ID: {{tenantId}}
+    }
+  }
+
+  request Get Wallets by Owner {
+    method: GET
+    url: {{baseUrl}}/api/v1/wallets/owner/550e8400-e29b-41d4-a716-446655440002
+    headers {
+      X-Tenant-ID: {{tenantId}}
+    }
+  }
+
+  request Update Wallet {
+    method: PUT
+    url: {{baseUrl}}/api/v1/wallets/550e8400-e29b-41d4-a716-446655440000
+    headers {
+      Content-Type: application/json
+      X-Tenant-ID: {{tenantId}}
+    }
+    body {
+      {
+        "name": "Carteira Atualizada",
+        "description": "Nova descrição da carteira",
+        "status": "active",
+        "daily_limit": 150000,
+        "allow_debit": true
+      }
+    }
+  }
+
+  request Delete Wallet {
+    method: DELETE
+    url: {{baseUrl}}/api/v1/wallets/550e8400-e29b-41d4-a716-446655440000
+    headers {
+      X-Tenant-ID: {{tenantId}}
+    }
+  }
+}

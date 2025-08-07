@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Aplicação principal
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=suno_user
+      - DB_PASSWORD=suno_password
+      - DB_NAME=suno_wallets
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GIN_MODE=release
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - suno-network
+    restart: unless-stopped
+
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=suno_wallets
+      - POSTGRES_USER=suno_user
+      - POSTGRES_PASSWORD=suno_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U suno_user -d suno_wallets" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suno-network
+    restart: unless-stopped
+
+  # Redis para cache e sessões
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass suno_redis_password
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - suno-network
+    restart: unless-stopped
+
+  # Adminer para gerenciamento do banco (opcional - apenas desenvolvimento)
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8081:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    depends_on:
+      - postgres
+    networks:
+      - suno-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+
+networks:
+  suno-network:
+    driver: bridge
