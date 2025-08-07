@@ -2,10 +2,11 @@ package migration
 
 import (
 	"fmt"
-	"suno-wallets/src/domain/entities"
-	"suno-wallets/src/shared/helpers"
 
 	"gorm.io/gorm"
+
+	"suno-wallets/src/domain/entities"
+	"suno-wallets/src/shared/helpers"
 )
 
 // AutoMigrate executa as migrações automáticas do GORM

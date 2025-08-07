@@ -74,7 +74,7 @@ func (User) TableName() string {
 }
 
 // BeforeCreate hook executado antes da criação
-func (u *User) BeforeCreate(tx *gorm.DB) error {
+func (u *User) BeforeCreate(_ *gorm.DB) error {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
 	}
@@ -86,7 +86,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 }
 
 // BeforeUpdate hook executado antes da atualização
-func (u *User) BeforeUpdate(tx *gorm.DB) error {
+func (u *User) BeforeUpdate(_ *gorm.DB) error {
 	// Atualizar nome completo
 	u.FullName = u.GetFullName()
 

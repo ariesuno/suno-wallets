@@ -178,17 +178,17 @@ func (ctrl *WalletController) UpdateWallet(c *gin.Context) {
 	}
 
 	var req dtos.UpdateWalletRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
 		helpers.LogWarn("Dados inválidos para atualização de carteira", map[string]interface{}{
 			"tenant_id": tenantID,
 			"wallet_id": walletID,
-			"error":     err.Error(),
+			"error":     bindErr.Error(),
 		})
 
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "INVALID_REQUEST",
 			"message": "Dados de entrada inválidos",
-			"details": err.Error(),
+			"details": bindErr.Error(),
 		})
 		return
 	}

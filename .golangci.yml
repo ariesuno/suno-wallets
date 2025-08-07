@@ -1,0 +1,65 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - errcheck
+  disable:
+    - revive
+    - misspell
+
+linters-settings:
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: suno-wallets
+  revive:
+    min-confidence: 0
+  govet:
+    enable:
+      - assign
+      - atomic
+      - bools
+      - buildtag
+      - copylocks
+      - httpresponse
+      - loopclosure
+      - lostcancel
+      - nilfunc
+      - printf
+      - shift
+      - stdmethods
+      - structtag
+      - tests
+      - unmarshal
+      - unreachable
+      - unsafeptr
+      - unusedresult
+    disable:
+      - fieldalignment
+  misspell:
+    locale: US
+
+issues:
+  exclude-use-default: true
+  max-issues-per-linter: 50
+  max-same-issues: 3
+  exclude:
+    - "should have a package comment"
+    - "exported .* should have comment"
+    - "comment on exported .* should be of the form"
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

@@ -82,7 +82,7 @@ func (Asset) TableName() string {
 }
 
 // BeforeCreate hook executado antes da criação
-func (a *Asset) BeforeCreate(tx *gorm.DB) error {
+func (a *Asset) BeforeCreate(_ *gorm.DB) error {
 	if a.ID == uuid.Nil {
 		a.ID = uuid.New()
 	}

@@ -91,7 +91,7 @@ func (Transaction) TableName() string {
 }
 
 // BeforeCreate hook executado antes da criação
-func (t *Transaction) BeforeCreate(tx *gorm.DB) error {
+func (t *Transaction) BeforeCreate(_ *gorm.DB) error {
 	if t.ID == uuid.Nil {
 		t.ID = uuid.New()
 	}
@@ -119,7 +119,7 @@ func (t *Transaction) BeforeCreate(tx *gorm.DB) error {
 }
 
 // BeforeUpdate hook executado antes da atualização
-func (t *Transaction) BeforeUpdate(tx *gorm.DB) error {
+func (t *Transaction) BeforeUpdate(_ *gorm.DB) error {
 	// Atualizar timestamps de processamento baseado no status
 	now := time.Now()
 

@@ -59,8 +59,9 @@ func (suite *WalletIntegrationTestSuite) SetupSuite() {
 
 // TearDownSuite limpa o ambiente de teste
 func (suite *WalletIntegrationTestSuite) TearDownSuite() {
-	sqlDB, _ := suite.db.DB()
-	sqlDB.Close()
+	if sqlDB, err := suite.db.DB(); err == nil {
+		_ = sqlDB.Close()
+	}
 }
 
 // SetupTest limpa dados antes de cada teste
