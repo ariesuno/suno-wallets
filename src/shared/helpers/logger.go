@@ -3,6 +3,7 @@ package helpers
 import (
 	"encoding/json"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -21,6 +22,9 @@ type LogEntry struct {
 	Timestamp string                 `json:"timestamp"`
 	Level     string                 `json:"level"`
 	Message   string                 `json:"message"`
+	Service   string                 `json:"service,omitempty"`
+	TraceID   string                 `json:"trace_id,omitempty"`
+	SpanID    string                 `json:"span_id,omitempty"`
 	Fields    map[string]interface{} `json:"fields,omitempty"`
 }
 
@@ -114,7 +118,9 @@ func writeLog(level LogLevel, message string, fields map[string]interface{}) {
 			log.Printf("Erro ao converter log para JSON: %v", err)
 			return
 		}
-		log.Println(string(jsonData))
+		// mascarar campos sensíveis básicos
+		masked := strings.ReplaceAll(string(jsonData), "\"cpf\":\"", "\"cpf\":\"***")
+		log.Println(masked)
 	} else {
 		// Formato simples para desenvolvimento
 		if len(fields) > 0 {

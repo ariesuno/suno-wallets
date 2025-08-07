@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // NewAsynqClient cria um cliente Asynq conectado ao Redis
@@ -26,6 +28,37 @@ func NewAsynqServer(redisAddr, password string, db int) *asynq.Server {
 			},
 		},
 	)
+}
+
+// HandleWithMetrics registra handler de task com coleta de métricas
+func HandleWithMetrics(mux *asynq.ServeMux, taskType string, handler func(context.Context, *asynq.Task) error) {
+	jobDuration := promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "asynq_job_duration_seconds",
+			Help:    "Duração dos jobs Asynq",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"type", "status"},
+	)
+	jobTotal := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "asynq_jobs_total",
+			Help: "Total de execuções de jobs Asynq",
+		},
+		[]string{"type", "status"},
+	)
+
+	mux.HandleFunc(taskType, func(ctx context.Context, t *asynq.Task) error {
+		start := time.Now()
+		err := handler(ctx, t)
+		status := "success"
+		if err != nil {
+			status = "error"
+		}
+		jobTotal.WithLabelValues(taskType, status).Inc()
+		jobDuration.WithLabelValues(taskType, status).Observe(time.Since(start).Seconds())
+		return err
+	})
 }
 
 // EnqueueExample enfileira um job de exemplo
