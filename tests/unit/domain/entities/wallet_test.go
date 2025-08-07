@@ -17,8 +17,8 @@ func TestWallet_Validate(t *testing.T) {
 		expectError bool
 		errorMsg    string
 	}{
-		{
-			name: "Carteira válida",
+        {
+            name: "Valid wallet",
 			wallet: &entities.Wallet{
 				TenantID:  uuid.New(),
 				Name:      "Minha Carteira",
@@ -30,8 +30,8 @@ func TestWallet_Validate(t *testing.T) {
 			},
 			expectError: false,
 		},
-		{
-			name: "TenantID obrigatório",
+        {
+            name: "TenantID required",
 			wallet: &entities.Wallet{
 				TenantID: uuid.Nil,
 				Name:     "Carteira Teste",
@@ -39,8 +39,8 @@ func TestWallet_Validate(t *testing.T) {
 			expectError: true,
 			errorMsg:    "tenant_id é obrigatório",
 		},
-		{
-			name: "Nome obrigatório",
+        {
+            name: "Name required",
 			wallet: &entities.Wallet{
 				TenantID: uuid.New(),
 				Name:     "",
@@ -49,8 +49,8 @@ func TestWallet_Validate(t *testing.T) {
 			expectError: true,
 			errorMsg:    "nome da carteira é obrigatório",
 		},
-		{
-			name: "OwnerID obrigatório",
+        {
+            name: "OwnerID required",
 			wallet: &entities.Wallet{
 				TenantID: uuid.New(),
 				Name:     "Carteira Teste",
@@ -59,8 +59,8 @@ func TestWallet_Validate(t *testing.T) {
 			expectError: true,
 			errorMsg:    "owner_id é obrigatório",
 		},
-		{
-			name: "Tipo de carteira inválido",
+        {
+            name: "Invalid wallet type",
 			wallet: &entities.Wallet{
 				TenantID: uuid.New(),
 				Name:     "Carteira Teste",
@@ -70,8 +70,8 @@ func TestWallet_Validate(t *testing.T) {
 			expectError: true,
 			errorMsg:    "tipo de carteira inválido",
 		},
-		{
-			name: "Status inválido",
+        {
+            name: "Invalid status",
 			wallet: &entities.Wallet{
 				TenantID: uuid.New(),
 				Name:     "Carteira Teste",
@@ -82,8 +82,8 @@ func TestWallet_Validate(t *testing.T) {
 			expectError: true,
 			errorMsg:    "status da carteira inválido",
 		},
-		{
-			name: "Moeda com formato incorreto",
+        {
+            name: "Invalid currency format",
 			wallet: &entities.Wallet{
 				TenantID: uuid.New(),
 				Name:     "Carteira Teste",
@@ -116,15 +116,15 @@ func TestWallet_Validate(t *testing.T) {
 }
 
 func TestWallet_IsActive(t *testing.T) {
-	tests := []struct {
+    tests := []struct {
 		name     string
 		status   entities.WalletStatus
 		expected bool
 	}{
-		{"Carteira ativa", entities.WalletStatusActive, true},
-		{"Carteira inativa", entities.WalletStatusInactive, false},
-		{"Carteira bloqueada", entities.WalletStatusBlocked, false},
-		{"Carteira suspensa", entities.WalletStatusSuspended, false},
+        {"Active wallet", entities.WalletStatusActive, true},
+        {"Inactive wallet", entities.WalletStatusInactive, false},
+        {"Blocked wallet", entities.WalletStatusBlocked, false},
+        {"Suspended wallet", entities.WalletStatusSuspended, false},
 	}
 
 	for _, tt := range tests {
@@ -136,16 +136,16 @@ func TestWallet_IsActive(t *testing.T) {
 }
 
 func TestWallet_CanDebit(t *testing.T) {
-	tests := []struct {
+    tests := []struct {
 		name       string
 		status     entities.WalletStatus
 		allowDebit bool
 		expected   bool
 	}{
-		{"Carteira ativa com débito permitido", entities.WalletStatusActive, true, true},
-		{"Carteira ativa com débito não permitido", entities.WalletStatusActive, false, false},
-		{"Carteira inativa com débito permitido", entities.WalletStatusInactive, true, false},
-		{"Carteira bloqueada com débito permitido", entities.WalletStatusBlocked, true, false},
+        {"Active wallet with debit allowed", entities.WalletStatusActive, true, true},
+        {"Active wallet with debit not allowed", entities.WalletStatusActive, false, false},
+        {"Inactive wallet with debit allowed", entities.WalletStatusInactive, true, false},
+        {"Blocked wallet with debit allowed", entities.WalletStatusBlocked, true, false},
 	}
 
 	for _, tt := range tests {
@@ -162,15 +162,15 @@ func TestWallet_CanDebit(t *testing.T) {
 func TestWallet_HasSufficientBalance(t *testing.T) {
 	wallet := &entities.Wallet{Balance: 10000} // R$ 100,00 em centavos
 
-	tests := []struct {
+    tests := []struct {
 		name     string
 		amount   int64
 		expected bool
 	}{
-		{"Saldo suficiente", 5000, true},
-		{"Saldo exato", 10000, true},
-		{"Saldo insuficiente", 15000, false},
-		{"Valor zero", 0, true},
+        {"Sufficient balance", 5000, true},
+        {"Exact balance", 10000, true},
+        {"Insufficient balance", 15000, false},
+        {"Zero amount", 0, true},
 	}
 
 	for _, tt := range tests {
@@ -181,16 +181,16 @@ func TestWallet_HasSufficientBalance(t *testing.T) {
 }
 
 func TestWallet_GetBalanceInReais(t *testing.T) {
-	tests := []struct {
+    tests := []struct {
 		name            string
 		balanceInCents  int64
 		expectedInReais float64
 	}{
-		{"R$ 100,00", 10000, 100.00},
-		{"R$ 50,50", 5050, 50.50},
-		{"R$ 0,01", 1, 0.01},
-		{"R$ 0,00", 0, 0.00},
-		{"R$ 1.234,56", 123456, 1234.56},
+        {"BRL 100.00", 10000, 100.00},
+        {"BRL 50.50", 5050, 50.50},
+        {"BRL 0.01", 1, 0.01},
+        {"BRL 0.00", 0, 0.00},
+        {"BRL 1,234.56", 123456, 1234.56},
 	}
 
 	for _, tt := range tests {
@@ -202,7 +202,7 @@ func TestWallet_GetBalanceInReais(t *testing.T) {
 }
 
 func TestWallet_GetLimitInReais(t *testing.T) {
-	t.Run("Limite diário definido", func(t *testing.T) {
+    t.Run("Daily limit defined", func(t *testing.T) {
 		limit := int64(50000) // R$ 500,00
 		wallet := &entities.Wallet{DailyLimit: &limit}
 
@@ -211,14 +211,14 @@ func TestWallet_GetLimitInReais(t *testing.T) {
 		assert.Equal(t, 500.00, *result)
 	})
 
-	t.Run("Limite diário não definido", func(t *testing.T) {
+    t.Run("Daily limit not defined", func(t *testing.T) {
 		wallet := &entities.Wallet{DailyLimit: nil}
 
 		result := wallet.GetDailyLimitInReais()
 		assert.Nil(t, result)
 	})
 
-	t.Run("Limite mensal definido", func(t *testing.T) {
+    t.Run("Monthly limit defined", func(t *testing.T) {
 		limit := int64(200000) // R$ 2.000,00
 		wallet := &entities.Wallet{MonthlyLimit: &limit}
 
@@ -227,7 +227,7 @@ func TestWallet_GetLimitInReais(t *testing.T) {
 		assert.Equal(t, 2000.00, *result)
 	})
 
-	t.Run("Limite mensal não definido", func(t *testing.T) {
+    t.Run("Monthly limit not defined", func(t *testing.T) {
 		wallet := &entities.Wallet{MonthlyLimit: nil}
 
 		result := wallet.GetMonthlyLimitInReais()
