@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"suno-wallets/src/domain/entities"
+	"suno-wallets/src/domain/repositories"
 	"suno-wallets/src/infrastructure/database"
 	"suno-wallets/src/infrastructure/migration"
-	"suno-wallets/src/infrastructure/repositories"
+	infraRepos "suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/config"
 
 	"github.com/google/uuid"
@@ -49,7 +50,7 @@ func (suite *WalletIntegrationTestSuite) SetupSuite() {
 	require.NoError(suite.T(), err)
 
 	suite.db = db
-	suite.repository = repositories.NewWalletRepository(db)
+	suite.repository = infraRepos.NewWalletRepository(db)
 	suite.ctx = context.Background()
 	suite.tenantID = uuid.New()
 	suite.ownerID = uuid.New()

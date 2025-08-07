@@ -117,7 +117,7 @@ func writeLog(level LogLevel, message string, fields map[string]interface{}) {
 		log.Println(string(jsonData))
 	} else {
 		// Formato simples para desenvolvimento
-		if fields != nil && len(fields) > 0 {
+		if len(fields) > 0 {
 			fieldsJSON, _ := json.Marshal(fields)
 			log.Printf("[%s] %s %s - %s", entry.Timestamp, entry.Level, entry.Message, string(fieldsJSON))
 		} else {
