@@ -3,6 +3,8 @@ package entities
 import (
 	"time"
 
+	"suno-wallets/src/shared/helpers"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -145,25 +147,15 @@ func (w *Wallet) Validate() error {
 
 	// Validar tipo de carteira
 	validTypes := []WalletType{WalletTypePersonal, WalletTypeBusiness, WalletTypeCorporate}
-	if !contains(validTypes, w.Type) {
+	if !helpers.Contains(validTypes, w.Type) {
 		return NewValidationError("tipo de carteira inválido")
 	}
 
 	// Validar status
 	validStatuses := []WalletStatus{WalletStatusActive, WalletStatusInactive, WalletStatusBlocked, WalletStatusSuspended}
-	if !contains(validStatuses, w.Status) {
+	if !helpers.Contains(validStatuses, w.Status) {
 		return NewValidationError("status da carteira inválido")
 	}
 
 	return nil
-}
-
-// contains verifica se um slice contém um valor
-func contains[T comparable](slice []T, item T) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
