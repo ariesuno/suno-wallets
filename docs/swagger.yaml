@@ -296,6 +296,36 @@ info:
   title: Suno Wallets API
   version: "1.0"
 paths:
+  /b3/client/last-sync:
+    get:
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - description: CPF
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Últimos marcos de sync por CPF
+      tags:
+      - B3 Sync
   /b3/client/status:
     get:
       parameters:
@@ -491,8 +521,8 @@ paths:
       - B3 Data
   /b3/health/auth:
     get:
-      description: Verifica se as variáveis de ambiente de auth estão presentes (não
-        valida contra B3)
+      description: Controlado por flag OBS_ALLOW_B3_AUTH_HEALTH. Quando habilitado,
+        checa presença de configuração de OAuth/mTLS (sem vazar segredos).
       produces:
       - application/json
       responses:
@@ -500,6 +530,12 @@ paths:
           description: OK
           schema:
             additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
             type: object
       summary: B3 auth health
       tags:

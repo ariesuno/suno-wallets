@@ -4,19 +4,20 @@ import (
 	"context"
 	"suno-wallets/src/api/controllers"
 	b3controllers "suno-wallets/src/api/controllers/b3"
+	obsctl "suno-wallets/src/api/controllers/observability"
 	"suno-wallets/src/api/middlewares"
-	appsync "suno-wallets/src/application/b3/sync"
 	ingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	possvc "suno-wallets/src/application/b3/positions"
+	appsync "suno-wallets/src/application/b3/sync"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	"suno-wallets/src/application/usecases"
 	b3client "suno-wallets/src/infrastructure/b3/client"
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
 	b3cfg "suno-wallets/src/infrastructure/b3/config"
 	normrepo "suno-wallets/src/infrastructure/b3/normalize"
-	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/b3/persistence"
+	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/config"
@@ -24,6 +25,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
@@ -54,6 +56,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	// Inicializar controllers
 	healthController := controllers.NewHealthController(db)
 	b3Controller := controllers.NewB3Controller()
+
+	// Observability health (liveness/readiness/details) sem tenant
+	var redisClient *redis.Client
+	obsHealth := obsctl.NewHealthController(db, redisClient)
 	// B3 client + service
 	b3Conf := &b3cfg.B3Config{
 		URLData:        cfg.B3URLData,
@@ -101,6 +107,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		healthGroup.GET("health", healthController.HealthCheck)
 		healthGroup.GET("ready", healthController.ReadinessCheck)
 		healthGroup.GET("live", healthController.LivenessCheck)
+		// novos endpoints p/ orquestradores
+		healthGroup.GET("health/live", obsHealth.Live)
+		healthGroup.GET("health/ready", obsHealth.Ready)
+		healthGroup.GET("health/details", obsHealth.Details)
 	}
 
 	// Grupo de rotas da API com middleware de tenant

@@ -18,6 +18,51 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/b3/client/last-sync": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Sync"
+                ],
+                "summary": "Últimos marcos de sync por CPF",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do inquilino",
+                        "name": "X-Tenant-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CPF",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/b3/client/status": {
             "get": {
                 "produces": [
@@ -297,7 +342,7 @@
         },
         "/b3/health/auth": {
             "get": {
-                "description": "Verifica se as variáveis de ambiente de auth estão presentes (não valida contra B3)",
+                "description": "Controlado por flag OBS_ALLOW_B3_AUTH_HEALTH. Quando habilitado, checa presença de configuração de OAuth/mTLS (sem vazar segredos).",
                 "produces": [
                     "application/json"
                 ],
@@ -311,6 +356,15 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
