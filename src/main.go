@@ -35,7 +35,7 @@ import (
 
 func main() {
 	// Carregar variáveis de ambiente
-    if err := godotenv.Overload(); err != nil {
+	if err := godotenv.Overload(); err != nil {
 		helpers.LogInfo("Arquivo .env não encontrado, usando variáveis de sistema", map[string]interface{}{})
 	}
 

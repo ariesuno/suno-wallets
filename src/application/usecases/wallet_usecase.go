@@ -1,16 +1,16 @@
 package usecases
 
 import (
-    "context"
-    "encoding/json"
+	"context"
+	"encoding/json"
 
-    "suno-wallets/src/application/dtos"
-    "suno-wallets/src/domain/entities"
-    domaininterfaces "suno-wallets/src/domain/interfaces"
-    "suno-wallets/src/shared/helpers"
+	"suno-wallets/src/application/dtos"
+	"suno-wallets/src/domain/entities"
+	domaininterfaces "suno-wallets/src/domain/interfaces"
+	"suno-wallets/src/shared/helpers"
 
-    "github.com/google/uuid"
-    "gorm.io/datatypes"
+	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 // WalletUseCase interface para casos de uso de carteiras
@@ -43,15 +43,15 @@ func (uc *walletUseCaseImpl) CreateWallet(ctx context.Context, req *dtos.CreateW
 	}
 
 	// Converter DTO para entidade
-    // Converter metadata (map -> JSON)
-    var metadataJSON datatypes.JSON
-    if req.Metadata != nil {
-        if raw, err := json.Marshal(req.Metadata); err == nil {
-            metadataJSON = datatypes.JSON(raw)
-        }
-    }
+	// Converter metadata (map -> JSON)
+	var metadataJSON datatypes.JSON
+	if req.Metadata != nil {
+		if raw, err := json.Marshal(req.Metadata); err == nil {
+			metadataJSON = datatypes.JSON(raw)
+		}
+	}
 
-    wallet := &entities.Wallet{
+	wallet := &entities.Wallet{
 		TenantID:     req.TenantID,
 		Name:         req.Name,
 		Description:  req.Description,
@@ -65,7 +65,7 @@ func (uc *walletUseCaseImpl) CreateWallet(ctx context.Context, req *dtos.CreateW
 		DailyLimit:   req.DailyLimit,
 		MonthlyLimit: req.MonthlyLimit,
 		AllowDebit:   req.AllowDebit,
-        Metadata:     metadataJSON,
+		Metadata:     metadataJSON,
 		CreatedBy:    req.CreatedBy,
 	}
 
@@ -158,11 +158,11 @@ func (uc *walletUseCaseImpl) UpdateWallet(ctx context.Context, req *dtos.UpdateW
 	if req.AllowDebit != nil {
 		wallet.AllowDebit = *req.AllowDebit
 	}
-    if req.Metadata != nil {
-        if raw, err := json.Marshal(req.Metadata); err == nil {
-            wallet.Metadata = datatypes.JSON(raw)
-        }
-    }
+	if req.Metadata != nil {
+		if raw, err := json.Marshal(req.Metadata); err == nil {
+			wallet.Metadata = datatypes.JSON(raw)
+		}
+	}
 	if req.UpdatedBy != nil {
 		wallet.UpdatedBy = req.UpdatedBy
 	}

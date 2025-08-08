@@ -44,7 +44,7 @@ type Config struct {
 	AllowedHeaders []string
 
 	// Configurações B3 (OAuth2 + mTLS)
-	B3URLOptIn      string
+	B3URLOptIn       string
 	B3URLData        string
 	B3OAuthTokenURL  string
 	B3ClientID       string
@@ -91,7 +91,7 @@ func Load() *Config {
 		AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Tenant-ID"},
 
 		// B3
-		B3URLOptIn:      getEnv("B3_URL_OPTIN", ""),
+		B3URLOptIn:       getEnv("B3_URL_OPTIN", ""),
 		B3URLData:        getEnv("B3_URL_DATA", ""),
 		B3OAuthTokenURL:  getEnv("B3_OAUTH_TOKEN_URL", ""),
 		B3ClientID:       getEnv("B3_CLIENT_ID", ""),

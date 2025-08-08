@@ -1,29 +1,29 @@
 package dtos
 
 import (
-    "encoding/json"
-    "time"
+	"encoding/json"
+	"time"
 
-    "suno-wallets/src/domain/entities"
+	"suno-wallets/src/domain/entities"
 
-    "github.com/google/uuid"
+	"github.com/google/uuid"
 )
 
 // CreateWalletRequest DTO para criação de carteira
 type CreateWalletRequest struct {
-	TenantID     uuid.UUID           `json:"tenant_id" validate:"required"`
-	Name         string              `json:"name" validate:"required,min=1,max=255"`
-	Description  string              `json:"description,omitempty"`
-	Type         entities.WalletType `json:"type" validate:"required,oneof=personal business corporate"`
-	Currency     string              `json:"currency" validate:"required,len=3"`
-	IsDefault    bool                `json:"is_default"`
-	OwnerID      uuid.UUID           `json:"owner_id" validate:"required"`
-	OwnerType    string              `json:"owner_type" validate:"required"`
-	DailyLimit   *int64              `json:"daily_limit,omitempty"`
-	MonthlyLimit *int64              `json:"monthly_limit,omitempty"`
-	AllowDebit   bool                `json:"allow_debit"`
-    Metadata     map[string]interface{} `json:"metadata,omitempty"`
-	CreatedBy    uuid.UUID           `json:"created_by" validate:"required"`
+	TenantID     uuid.UUID              `json:"tenant_id" validate:"required"`
+	Name         string                 `json:"name" validate:"required,min=1,max=255"`
+	Description  string                 `json:"description,omitempty"`
+	Type         entities.WalletType    `json:"type" validate:"required,oneof=personal business corporate"`
+	Currency     string                 `json:"currency" validate:"required,len=3"`
+	IsDefault    bool                   `json:"is_default"`
+	OwnerID      uuid.UUID              `json:"owner_id" validate:"required"`
+	OwnerType    string                 `json:"owner_type" validate:"required"`
+	DailyLimit   *int64                 `json:"daily_limit,omitempty"`
+	MonthlyLimit *int64                 `json:"monthly_limit,omitempty"`
+	AllowDebit   bool                   `json:"allow_debit"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	CreatedBy    uuid.UUID              `json:"created_by" validate:"required"`
 }
 
 // Validate valida os dados da requisição
@@ -79,7 +79,7 @@ type UpdateWalletRequest struct {
 	DailyLimit   *int64                 `json:"daily_limit,omitempty"`
 	MonthlyLimit *int64                 `json:"monthly_limit,omitempty"`
 	AllowDebit   *bool                  `json:"allow_debit,omitempty"`
-    Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
 	UpdatedBy    *uuid.UUID             `json:"updated_by,omitempty"`
 }
 
@@ -149,28 +149,28 @@ func (r *ListWalletsRequest) Validate() error {
 
 // WalletResponse DTO para resposta de carteira
 type WalletResponse struct {
-	ID                uuid.UUID             `json:"id"`
-	TenantID          uuid.UUID             `json:"tenant_id"`
-	Name              string                `json:"name"`
-	Description       string                `json:"description"`
-	Type              entities.WalletType   `json:"type"`
-	Status            entities.WalletStatus `json:"status"`
-	Balance           int64                 `json:"balance"`
-	BalanceInReais    float64               `json:"balance_in_reais"`
-	Currency          string                `json:"currency"`
-	IsDefault         bool                  `json:"is_default"`
-	OwnerID           uuid.UUID             `json:"owner_id"`
-	OwnerType         string                `json:"owner_type"`
-	DailyLimit        *int64                `json:"daily_limit,omitempty"`
-	DailyLimitReais   *float64              `json:"daily_limit_reais,omitempty"`
-	MonthlyLimit      *int64                `json:"monthly_limit,omitempty"`
-	MonthlyLimitReais *float64              `json:"monthly_limit_reais,omitempty"`
-	AllowDebit        bool                  `json:"allow_debit"`
-    Metadata          map[string]interface{} `json:"metadata,omitempty"`
-	CreatedAt         time.Time             `json:"created_at"`
-	UpdatedAt         time.Time             `json:"updated_at"`
-	CreatedBy         uuid.UUID             `json:"created_by"`
-	UpdatedBy         *uuid.UUID            `json:"updated_by,omitempty"`
+	ID                uuid.UUID              `json:"id"`
+	TenantID          uuid.UUID              `json:"tenant_id"`
+	Name              string                 `json:"name"`
+	Description       string                 `json:"description"`
+	Type              entities.WalletType    `json:"type"`
+	Status            entities.WalletStatus  `json:"status"`
+	Balance           int64                  `json:"balance"`
+	BalanceInReais    float64                `json:"balance_in_reais"`
+	Currency          string                 `json:"currency"`
+	IsDefault         bool                   `json:"is_default"`
+	OwnerID           uuid.UUID              `json:"owner_id"`
+	OwnerType         string                 `json:"owner_type"`
+	DailyLimit        *int64                 `json:"daily_limit,omitempty"`
+	DailyLimitReais   *float64               `json:"daily_limit_reais,omitempty"`
+	MonthlyLimit      *int64                 `json:"monthly_limit,omitempty"`
+	MonthlyLimitReais *float64               `json:"monthly_limit_reais,omitempty"`
+	AllowDebit        bool                   `json:"allow_debit"`
+	Metadata          map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt         time.Time              `json:"created_at"`
+	UpdatedAt         time.Time              `json:"updated_at"`
+	CreatedBy         uuid.UUID              `json:"created_by"`
+	UpdatedBy         *uuid.UUID             `json:"updated_by,omitempty"`
 }
 
 // ListWalletsResponse DTO para resposta de listagem de carteiras
@@ -193,11 +193,11 @@ func WalletToResponse(wallet *entities.Wallet) *WalletResponse {
 		return nil
 	}
 
-    // Converter metadata JSON (datatypes.JSON) para map para o DTO
-    var metadata map[string]interface{}
-    if len(wallet.Metadata) > 0 {
-        _ = json.Unmarshal(wallet.Metadata, &metadata)
-    }
+	// Converter metadata JSON (datatypes.JSON) para map para o DTO
+	var metadata map[string]interface{}
+	if len(wallet.Metadata) > 0 {
+		_ = json.Unmarshal(wallet.Metadata, &metadata)
+	}
 
 	response := &WalletResponse{
 		ID:             wallet.ID,
@@ -213,7 +213,7 @@ func WalletToResponse(wallet *entities.Wallet) *WalletResponse {
 		OwnerID:        wallet.OwnerID,
 		OwnerType:      wallet.OwnerType,
 		AllowDebit:     wallet.AllowDebit,
-        Metadata:       metadata,
+		Metadata:       metadata,
 		CreatedAt:      wallet.CreatedAt,
 		UpdatedAt:      wallet.UpdatedAt,
 		CreatedBy:      wallet.CreatedBy,
