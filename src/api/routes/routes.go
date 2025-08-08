@@ -5,6 +5,7 @@ import (
 	"suno-wallets/src/api/controllers"
 	b3controllers "suno-wallets/src/api/controllers/b3"
 	"suno-wallets/src/api/middlewares"
+    appnorm "suno-wallets/src/application/b3/normalize"
 	ingest "suno-wallets/src/application/b3/ingest"
 	possvc "suno-wallets/src/application/b3/positions"
 	b3svc "suno-wallets/src/application/b3/transactions"
@@ -12,6 +13,7 @@ import (
 	b3client "suno-wallets/src/infrastructure/b3/client"
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
 	b3cfg "suno-wallets/src/infrastructure/b3/config"
+    normrepo "suno-wallets/src/infrastructure/b3/normalize"
 	"suno-wallets/src/infrastructure/b3/persistence"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/infrastructure/repositories"
@@ -78,9 +80,13 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	positionsService := possvc.NewPositionsService(b3Cli)
 	positionsController := b3controllers.NewPositionsController(positionsService)
 	// Ingest (RAW persistence)
-	rawRepo := persistence.NewRawRepository(db)
-	ingestSvc := ingest.NewService(b3Cli, rawRepo)
-	ingestController := b3controllers.NewIngestController(ingestSvc)
+    rawRepo := persistence.NewRawRepository(db)
+    ingestSvc := ingest.NewService(b3Cli, rawRepo)
+    ingestController := b3controllers.NewIngestController(ingestSvc)
+    // Normalize
+    normRepo := normrepo.NewNormalizedRepository(db)
+    normSvc := appnorm.NewService(normRepo)
+    normController := b3controllers.NewNormalizeController(normSvc)
 	walletController := controllers.NewWalletController(walletUseCase)
 
 	// Rotas de saúde (sem middleware de tenant)
@@ -121,8 +127,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			})
 			// Preview de posições v3 (equity)
 			b3Group.GET("/fetch/positions/preview", positionsController.FetchPositionsPreview)
-			// RAW historical ingest
-			b3Group.POST("/fetch/historical", ingestController.PostHistorical)
+            // RAW historical ingest
+            b3Group.POST("/fetch/historical", ingestController.PostHistorical)
+            // Normalization run
+            b3Group.POST("/normalize/run", normController.Run)
 		}
 	}
 

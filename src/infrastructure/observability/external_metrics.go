@@ -65,37 +65,37 @@ var (
 		[]string{"asset_type", "result"},
 	)
 
-    // Métricas do módulo de persistência RAW (1.9)
-    b3RawSavedTotal = promauto.NewCounter(
-        prometheus.CounterOpts{
-            Name: "b3_raw_saved_total",
-            Help: "Total de registros RAW salvos",
-        },
-    )
-    b3RawSkippedTotal = promauto.NewCounter(
-        prometheus.CounterOpts{
-            Name: "b3_raw_skipped_total",
-            Help: "Total de registros/mês pulados por cobertura",
-        },
-    )
-    b3RawErrorsTotal = promauto.NewCounter(
-        prometheus.CounterOpts{
-            Name: "b3_raw_errors_total",
-            Help: "Total de erros durante ingestão RAW",
-        },
-    )
-    b3RawPagesProcessedTotal = promauto.NewCounter(
-        prometheus.CounterOpts{
-            Name: "b3_raw_pages_processed_total",
-            Help: "Total de páginas processadas na ingestão RAW",
-        },
-    )
-    b3RawMonthsCompletedTotal = promauto.NewCounter(
-        prometheus.CounterOpts{
-            Name: "b3_raw_months_completed_total",
-            Help: "Total de meses concluídos na ingestão RAW",
-        },
-    )
+	// Métricas do módulo de persistência RAW (1.9)
+	b3RawSavedTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "b3_raw_saved_total",
+			Help: "Total de registros RAW salvos",
+		},
+	)
+	b3RawSkippedTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "b3_raw_skipped_total",
+			Help: "Total de registros/mês pulados por cobertura",
+		},
+	)
+	b3RawErrorsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "b3_raw_errors_total",
+			Help: "Total de erros durante ingestão RAW",
+		},
+	)
+	b3RawPagesProcessedTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "b3_raw_pages_processed_total",
+			Help: "Total de páginas processadas na ingestão RAW",
+		},
+	)
+	b3RawMonthsCompletedTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "b3_raw_months_completed_total",
+			Help: "Total de meses concluídos na ingestão RAW",
+		},
+	)
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
@@ -125,8 +125,28 @@ func ObservePositionsPreview(assetType, result string, pages int) {
 }
 
 // Funções para o módulo RAW
-func IncRawSaved(n int)                   { if n > 0 { b3RawSavedTotal.Add(float64(n)) } }
-func IncRawSkipped(n int)                 { if n > 0 { b3RawSkippedTotal.Add(float64(n)) } }
-func IncRawErrors(n int)                  { if n > 0 { b3RawErrorsTotal.Add(float64(n)) } }
-func IncRawPagesProcessed(n int)          { if n > 0 { b3RawPagesProcessedTotal.Add(float64(n)) } }
-func IncRawMonthsCompleted(n int)         { if n > 0 { b3RawMonthsCompletedTotal.Add(float64(n)) } }
+func IncRawSaved(n int) {
+	if n > 0 {
+		b3RawSavedTotal.Add(float64(n))
+	}
+}
+func IncRawSkipped(n int) {
+	if n > 0 {
+		b3RawSkippedTotal.Add(float64(n))
+	}
+}
+func IncRawErrors(n int) {
+	if n > 0 {
+		b3RawErrorsTotal.Add(float64(n))
+	}
+}
+func IncRawPagesProcessed(n int) {
+	if n > 0 {
+		b3RawPagesProcessedTotal.Add(float64(n))
+	}
+}
+func IncRawMonthsCompleted(n int) {
+	if n > 0 {
+		b3RawMonthsCompletedTotal.Add(float64(n))
+	}
+}

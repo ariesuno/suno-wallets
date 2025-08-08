@@ -18,14 +18,14 @@ type IngestController struct{ svc *ingest.Service }
 func NewIngestController(svc *ingest.Service) *IngestController { return &IngestController{svc: svc} }
 
 type ingestRequest struct {
-    CPF       string `json:"cpf" binding:"required"`
-    DataType  string `json:"dataType" binding:"required"` // transactions|positions
-    AssetType string `json:"assetType"`                     // default: equity
-    Start     string `json:"start" binding:"required"`
-    End       string `json:"end" binding:"required"`
-    FetchAll  bool   `json:"fetchAllPages"`
-    Force     bool   `json:"force"`
-    DryRun    bool   `json:"dryRun"`
+	CPF       string `json:"cpf" binding:"required"`
+	DataType  string `json:"dataType" binding:"required"` // transactions|positions
+	AssetType string `json:"assetType"`                   // default: equity
+	Start     string `json:"start" binding:"required"`
+	End       string `json:"end" binding:"required"`
+	FetchAll  bool   `json:"fetchAllPages"`
+	Force     bool   `json:"force"`
+	DryRun    bool   `json:"dryRun"`
 }
 
 // PostHistorical godoc
@@ -49,15 +49,17 @@ func (c *IngestController) PostHistorical(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-    if err := validation.ValidateCPF(req.CPF); err != nil {
+	if err := validation.ValidateCPF(req.CPF); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-    if req.DataType != "transactions" && req.DataType != "positions" {
-        ctx.JSON(http.StatusBadRequest, gin.H{"error": "dataType must be transactions or positions"})
-        return
-    }
-    if req.AssetType == "" { req.AssetType = "equity" }
+	if req.DataType != "transactions" && req.DataType != "positions" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "dataType must be transactions or positions"})
+		return
+	}
+	if req.AssetType == "" {
+		req.AssetType = "equity"
+	}
 	if err := validation.ValidateDateYMD(req.Start); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -92,14 +94,14 @@ func (c *IngestController) PostHistorical(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-    ctx.JSON(http.StatusOK, gin.H{
-        "saved": sum.Saved,
-        "skipped": sum.Skipped,
-        "errors": sum.Errors,
-        "monthsProcessed": sum.MonthsProcessed,
-        "pagesProcessed": sum.PagesProcessed,
-        "dryRun": sum.DryRun,
-        "force": sum.Force,
-        "tenantId": tenantUUID,
-    })
+	ctx.JSON(http.StatusOK, gin.H{
+		"saved":           sum.Saved,
+		"skipped":         sum.Skipped,
+		"errors":          sum.Errors,
+		"monthsProcessed": sum.MonthsProcessed,
+		"pagesProcessed":  sum.PagesProcessed,
+		"dryRun":          sum.DryRun,
+		"force":           sum.Force,
+		"tenantId":        tenantUUID,
+	})
 }
