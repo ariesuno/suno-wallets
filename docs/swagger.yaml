@@ -48,6 +48,35 @@ definitions:
     - end
     - start
     type: object
+  b3.runRequest:
+    properties:
+      assetTypes:
+        example:
+        - equity
+        items:
+          type: string
+        type: array
+      cpf:
+        example: "12345678901"
+        type: string
+      dataTypes:
+        example:
+        - transactions
+        - positions
+        items:
+          type: string
+        type: array
+      dryRun:
+        type: boolean
+      force:
+        type: boolean
+      limit:
+        example: 100
+        type: integer
+      scope:
+        example: single|tenant
+        type: string
+    type: object
   controllers.HealthResponse:
     properties:
       services:
@@ -267,6 +296,36 @@ info:
   title: Suno Wallets API
   version: "1.0"
 paths:
+  /b3/client/status:
+    get:
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - description: CPF
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Consulta estado de sync por CPF
+      tags:
+      - B3 Sync
   /b3/fetch/historical:
     post:
       consumes:
@@ -480,6 +539,39 @@ paths:
       summary: Normalização de RAW (transactions v2 / positions v3)
       tags:
       - B3 Data (Normalization)
+  /b3/sync/run:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do inquilino
+        in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - description: Parâmetros
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/b3.runRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Executa sync incremental (diário)
+      tags:
+      - B3 Sync
   /health:
     get:
       description: Verifica se a aplicação e seus serviços dependentes estão funcionando

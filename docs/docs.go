@@ -24,6 +24,51 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/b3/client/status": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Sync"
+                ],
+                "summary": "Consulta estado de sync por CPF",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do inquilino",
+                        "name": "X-Tenant-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CPF",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/b3/fetch/historical": {
             "post": {
                 "description": "Busca e persiste RAW por janelas mensais, evitando duplicidade por hash",
@@ -318,6 +363,56 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Requisição inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/sync/run": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Sync"
+                ],
+                "summary": "Executa sync incremental (diário)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do inquilino",
+                        "name": "X-Tenant-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Parâmetros",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/b3.runRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -853,6 +948,48 @@ const docTemplate = `{
                 },
                 "start": {
                     "type": "string"
+                }
+            }
+        },
+        "b3.runRequest": {
+            "type": "object",
+            "properties": {
+                "assetTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "equity"
+                    ]
+                },
+                "cpf": {
+                    "type": "string",
+                    "example": "12345678901"
+                },
+                "dataTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "transactions",
+                        "positions"
+                    ]
+                },
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "scope": {
+                    "type": "string",
+                    "example": "single|tenant"
                 }
             }
         },

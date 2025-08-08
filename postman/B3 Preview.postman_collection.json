@@ -181,6 +181,44 @@
           "raw": "{\n  \"cpf\": \"12345678901\",\n  \"dataType\": \"transactions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2023-01-01\",\n  \"end\": \"2023-01-31\",\n  \"force\": false,\n  \"dryRun\": true\n}"
         }
       }
+    },
+    {
+      "name": "Sync Run",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "http://localhost:8080/api/v1/b3/sync/run",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api","v1","b3","sync","run"]
+        },
+        "header": [
+          {"key": "X-Tenant-Id", "value": "<TENANT_ID>"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scope\": \"single\",\n  \"cpf\": \"12345678901\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"force\": false,\n  \"dryRun\": true,\n  \"limit\": 100\n}"
+        }
+      }
+    },
+    {
+      "name": "Client Status",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/v1/b3/client/status?cpf=12345678901",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api","v1","b3","client","status"],
+          "query": [{"key": "cpf", "value": "12345678901"}]
+        },
+        "header": [
+          {"key": "X-Tenant-Id", "value": "<TENANT_ID>"}
+        ]
+      }
     }
   ]
 }
