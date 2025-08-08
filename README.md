@@ -99,6 +99,20 @@ Após iniciar a aplicação, acesse:
   - **Grafana**: http://localhost:3000
   - **Prometheus**: http://localhost:9090
 
+### Collections (Postman e Bruno)
+
+- **Postman**: arquivo `postman/B3 Preview.postman_collection.json`
+- **Bruno**: arquivos `.bru` em `bruno/b3/`
+  - `bruno/b3/transactions_preview.bru`
+  - `bruno/b3/positions_preview.bru`
+
+Exemplo (Bruno CLI):
+
+```bash
+bru run bruno/b3/transactions_preview.bru
+bru run bruno/b3/positions_preview.bru
+```
+
 ## 🧪 Executando Testes
 
 ```bash
