@@ -146,6 +146,41 @@
           "raw": "{\n  \"cpf\": \"12345678901\",\n  \"dataType\": \"positions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2024-01-01\",\n  \"end\": \"2024-03-31\",\n  \"fetchAllPages\": true,\n  \"force\": false,\n  \"dryRun\": true\n}"
         }
       }
+    },
+    {
+      "name": "Normalization Run",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "http://localhost:8080/api/v1/b3/normalize/run",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "b3",
+            "normalize",
+            "run"
+          ]
+        },
+        "header": [
+          {
+            "key": "X-Tenant-Id",
+            "value": "<TENANT_ID>"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpf\": \"12345678901\",\n  \"dataType\": \"transactions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2023-01-01\",\n  \"end\": \"2023-01-31\",\n  \"force\": false,\n  \"dryRun\": true\n}"
+        }
+      }
     }
   ]
 }

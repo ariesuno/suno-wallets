@@ -1,0 +1,26 @@
+meta {
+  name: Normalize Run
+  type: http
+}
+
+request {
+  method: POST
+  url: http://localhost:8080/api/v1/b3/normalize/run
+
+  headers: {
+    X-Tenant-Id: <TENANT_ID>
+    Content-Type: application/json
+  }
+
+  body: json {
+    cpf: "12345678901"
+    dataType: "transactions"
+    assetType: "equity"
+    start: "2023-01-01"
+    end: "2023-01-31"
+    force: false
+    dryRun: true
+  }
+}
+
+

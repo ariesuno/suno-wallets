@@ -31,12 +31,14 @@ type normalizeRequest struct {
 
 // Run godoc
 // @Summary Normalização de RAW (transactions v2 / positions v3)
+// @Description Converte payloads RAW em registros normalizados, mantendo linhagem (raw_id/sequence), com idempotência.
 // @Tags B3 Data (Normalization)
 // @Accept json
 // @Produce json
-// @Param request body normalizeRequest true "Parâmetros"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
+// @Param X-Tenant-Id header string true "ID do inquilino (UUID)"
+// @Param request body normalizeRequest true "Parâmetros de normalização"
+// @Success 200 {object} map[string]interface{} "Sumário: inserted, updated, skipped, errors, rawProcessed"
+// @Failure 400 {object} map[string]string "Requisição inválida"
 // @Router /b3/normalize/run [post]
 func (c *NormalizeController) Run(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)

@@ -277,6 +277,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/b3/normalize/run": {
+            "post": {
+                "description": "Converte payloads RAW em registros normalizados, mantendo linhagem (raw_id/sequence), com idempotência.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Data (Normalization)"
+                ],
+                "summary": "Normalização de RAW (transactions v2 / positions v3)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do inquilino (UUID)",
+                        "name": "X-Tenant-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Parâmetros de normalização",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/b3.normalizeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sumário: inserted, updated, skipped, errors, rawProcessed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Verifica se a aplicação e seus serviços dependentes estão funcionando",
@@ -764,6 +815,38 @@ const docTemplate = `{
                 },
                 "fetchAllPages": {
                     "type": "boolean"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
+        },
+        "b3.normalizeRequest": {
+            "type": "object",
+            "required": [
+                "cpf",
+                "dataType",
+                "end",
+                "start"
+            ],
+            "properties": {
+                "assetType": {
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "dataType": {
+                    "type": "string"
+                },
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "end": {
+                    "type": "string"
                 },
                 "force": {
                     "type": "boolean"

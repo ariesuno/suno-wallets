@@ -26,6 +26,28 @@ definitions:
     - end
     - start
     type: object
+  b3.normalizeRequest:
+    properties:
+      assetType:
+        type: string
+      cpf:
+        type: string
+      dataType:
+        type: string
+      dryRun:
+        type: boolean
+      end:
+        type: string
+      force:
+        type: boolean
+      start:
+        type: string
+    required:
+    - cpf
+    - dataType
+    - end
+    - start
+    type: object
   controllers.HealthResponse:
     properties:
       services:
@@ -423,6 +445,41 @@ paths:
       summary: B3 auth health
       tags:
       - B3
+  /b3/normalize/run:
+    post:
+      consumes:
+      - application/json
+      description: Converte payloads RAW em registros normalizados, mantendo linhagem
+        (raw_id/sequence), com idempotência.
+      parameters:
+      - description: ID do inquilino (UUID)
+        in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - description: Parâmetros de normalização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/b3.normalizeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Sumário: inserted, updated, skipped, errors, rawProcessed'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Requisição inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Normalização de RAW (transactions v2 / positions v3)
+      tags:
+      - B3 Data (Normalization)
   /health:
     get:
       description: Verifica se a aplicação e seus serviços dependentes estão funcionando
