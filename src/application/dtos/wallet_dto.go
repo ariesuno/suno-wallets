@@ -1,12 +1,12 @@
 package dtos
 
 import (
-	"time"
+    "encoding/json"
+    "time"
 
-	"suno-wallets/src/domain/entities"
+    "suno-wallets/src/domain/entities"
 
-	"github.com/google/uuid"
-	"gorm.io/datatypes"
+    "github.com/google/uuid"
 )
 
 // CreateWalletRequest DTO para criação de carteira
@@ -22,7 +22,7 @@ type CreateWalletRequest struct {
 	DailyLimit   *int64              `json:"daily_limit,omitempty"`
 	MonthlyLimit *int64              `json:"monthly_limit,omitempty"`
 	AllowDebit   bool                `json:"allow_debit"`
-	Metadata     datatypes.JSON      `json:"metadata,omitempty"`
+    Metadata     map[string]interface{} `json:"metadata,omitempty"`
 	CreatedBy    uuid.UUID           `json:"created_by" validate:"required"`
 }
 
@@ -79,7 +79,7 @@ type UpdateWalletRequest struct {
 	DailyLimit   *int64                 `json:"daily_limit,omitempty"`
 	MonthlyLimit *int64                 `json:"monthly_limit,omitempty"`
 	AllowDebit   *bool                  `json:"allow_debit,omitempty"`
-	Metadata     datatypes.JSON         `json:"metadata,omitempty"`
+    Metadata     map[string]interface{} `json:"metadata,omitempty"`
 	UpdatedBy    *uuid.UUID             `json:"updated_by,omitempty"`
 }
 
@@ -166,7 +166,7 @@ type WalletResponse struct {
 	MonthlyLimit      *int64                `json:"monthly_limit,omitempty"`
 	MonthlyLimitReais *float64              `json:"monthly_limit_reais,omitempty"`
 	AllowDebit        bool                  `json:"allow_debit"`
-	Metadata          datatypes.JSON        `json:"metadata,omitempty"`
+    Metadata          map[string]interface{} `json:"metadata,omitempty"`
 	CreatedAt         time.Time             `json:"created_at"`
 	UpdatedAt         time.Time             `json:"updated_at"`
 	CreatedBy         uuid.UUID             `json:"created_by"`
@@ -193,6 +193,12 @@ func WalletToResponse(wallet *entities.Wallet) *WalletResponse {
 		return nil
 	}
 
+    // Converter metadata JSON (datatypes.JSON) para map para o DTO
+    var metadata map[string]interface{}
+    if len(wallet.Metadata) > 0 {
+        _ = json.Unmarshal(wallet.Metadata, &metadata)
+    }
+
 	response := &WalletResponse{
 		ID:             wallet.ID,
 		TenantID:       wallet.TenantID,
@@ -207,7 +213,7 @@ func WalletToResponse(wallet *entities.Wallet) *WalletResponse {
 		OwnerID:        wallet.OwnerID,
 		OwnerType:      wallet.OwnerType,
 		AllowDebit:     wallet.AllowDebit,
-		Metadata:       wallet.Metadata,
+        Metadata:       metadata,
 		CreatedAt:      wallet.CreatedAt,
 		UpdatedAt:      wallet.UpdatedAt,
 		CreatedBy:      wallet.CreatedBy,

@@ -191,6 +191,21 @@ info:
   title: Suno Wallets API
   version: "1.0"
 paths:
+  /b3/health/auth:
+    get:
+      description: Verifica se as variáveis de ambiente de auth estão presentes (não
+        valida contra B3)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: B3 auth health
+      tags:
+      - B3
   /health:
     get:
       description: Verifica se a aplicação e seus serviços dependentes estão funcionando

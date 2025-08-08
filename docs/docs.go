@@ -24,6 +24,27 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/b3/health/auth": {
+            "get": {
+                "description": "Verifica se as variáveis de ambiente de auth estão presentes (não valida contra B3)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3"
+                ],
+                "summary": "B3 auth health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Verifica se a aplicação e seus serviços dependentes estão funcionando",
