@@ -5,6 +5,7 @@ import (
 	"suno-wallets/src/api/controllers"
 	b3controllers "suno-wallets/src/api/controllers/b3"
 	"suno-wallets/src/api/middlewares"
+	appsync "suno-wallets/src/application/b3/sync"
 	ingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	possvc "suno-wallets/src/application/b3/positions"
@@ -14,6 +15,7 @@ import (
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
 	b3cfg "suno-wallets/src/infrastructure/b3/config"
 	normrepo "suno-wallets/src/infrastructure/b3/normalize"
+	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/b3/persistence"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/infrastructure/repositories"
@@ -87,6 +89,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	normRepo := normrepo.NewNormalizedRepository(db)
 	normSvc := appnorm.NewService(normRepo)
 	normController := b3controllers.NewNormalizeController(normSvc)
+	// Sync diário
+	syncRepo := syncrepo.NewRepository(db)
+	syncSvc := appsync.NewService(syncRepo, ingestSvc)
+	syncController := b3controllers.NewSyncController(syncSvc)
 	walletController := controllers.NewWalletController(walletUseCase)
 
 	// Rotas de saúde (sem middleware de tenant)
@@ -131,6 +137,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			b3Group.POST("/fetch/historical", ingestController.PostHistorical)
 			// Normalization run
 			b3Group.POST("/normalize/run", normController.Run)
+			// Sync endpoints
+			b3Group.POST("/sync/run", syncController.Run)
+			b3Group.GET("/client/status", syncController.Status)
 		}
 	}
 
