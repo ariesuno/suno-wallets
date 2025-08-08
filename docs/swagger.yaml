@@ -1,5 +1,31 @@
 basePath: /api/v1
 definitions:
+  b3.ingestRequest:
+    properties:
+      assetType:
+        description: 'default: equity'
+        type: string
+      cpf:
+        type: string
+      dataType:
+        description: transactions|positions
+        type: string
+      dryRun:
+        type: boolean
+      end:
+        type: string
+      fetchAllPages:
+        type: boolean
+      force:
+        type: boolean
+      start:
+        type: string
+    required:
+    - cpf
+    - dataType
+    - end
+    - start
+    type: object
   controllers.HealthResponse:
     properties:
       services:
@@ -219,6 +245,36 @@ info:
   title: Suno Wallets API
   version: "1.0"
 paths:
+  /b3/fetch/historical:
+    post:
+      consumes:
+      - application/json
+      description: Busca e persiste RAW por janelas mensais, evitando duplicidade
+        por hash
+      parameters:
+      - description: Parâmetros
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/b3.ingestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Ingestão histórica de RAW (transactions v2 / positions v3)
+      tags:
+      - B3 Data (Persistence)
   /b3/fetch/positions/preview:
     get:
       description: Busca posições por período e tipo de ativo na B3 e retorna o payload

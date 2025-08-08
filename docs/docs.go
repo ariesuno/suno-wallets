@@ -24,6 +24,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/b3/fetch/historical": {
+            "post": {
+                "description": "Busca e persiste RAW por janelas mensais, evitando duplicidade por hash",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Data (Persistence)"
+                ],
+                "summary": "Ingestão histórica de RAW (transactions v2 / positions v3)",
+                "parameters": [
+                    {
+                        "description": "Parâmetros",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/b3.ingestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/b3/fetch/positions/preview": {
             "get": {
                 "description": "Busca posições por período e tipo de ativo na B3 e retorna o payload bruto (consolidado), sem persistir.",
@@ -692,6 +736,43 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "b3.ingestRequest": {
+            "type": "object",
+            "required": [
+                "cpf",
+                "dataType",
+                "end",
+                "start"
+            ],
+            "properties": {
+                "assetType": {
+                    "description": "default: equity",
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "dataType": {
+                    "description": "transactions|positions",
+                    "type": "string"
+                },
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "fetchAllPages": {
+                    "type": "boolean"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
+        },
         "controllers.HealthResponse": {
             "type": "object",
             "properties": {
