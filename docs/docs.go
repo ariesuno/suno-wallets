@@ -37,6 +37,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "12345678901",
                         "description": "CPF (11 dígitos)",
                         "name": "cpf",
                         "in": "query",
@@ -44,6 +45,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "2024-01-01",
                         "description": "Data inicial (YYYY-MM-DD)",
                         "name": "start",
                         "in": "query",
@@ -51,6 +53,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "2024-01-31",
                         "description": "Data final (YYYY-MM-DD)",
                         "name": "end",
                         "in": "query",
@@ -58,18 +61,21 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "equity",
                         "description": "Tipo de ativo (equity...) — somente equity implementado agora",
                         "name": "assetType",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Página inicial (\u003e= 1), padrão 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
+                        "example": false,
                         "description": "Se true, pagina até o fim",
                         "name": "fetchAllPages",
                         "in": "query"
@@ -77,13 +83,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Exemplo de sucesso",
                         "schema": {
                             "$ref": "#/definitions/dto.PositionsPreviewResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Parâmetros inválidos",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -107,6 +113,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "12345678901",
                         "description": "CPF (11 dígitos)",
                         "name": "cpf",
                         "in": "query",
@@ -114,6 +121,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "2024-01-01",
                         "description": "Data inicial (YYYY-MM-DD)",
                         "name": "start",
                         "in": "query",
@@ -121,6 +129,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "2024-01-31",
                         "description": "Data final (YYYY-MM-DD)",
                         "name": "end",
                         "in": "query",
@@ -128,18 +137,21 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "equity",
                         "description": "Tipo de ativo (equity|fii|bdr|...) — somente equity implementado agora",
                         "name": "assetType",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Página inicial (\u003e= 1), padrão 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
+                        "example": false,
                         "description": "Se true, pagina até o fim",
                         "name": "fetchAllPages",
                         "in": "query"
@@ -147,13 +159,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Exemplo de sucesso",
                         "schema": {
                             "$ref": "#/definitions/dto.TransactionsPreviewResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Parâmetros inválidos",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

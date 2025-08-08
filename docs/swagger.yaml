@@ -225,29 +225,35 @@ paths:
         bruto (consolidado), sem persistir.
       parameters:
       - description: CPF (11 dígitos)
+        example: "12345678901"
         in: query
         name: cpf
         required: true
         type: string
       - description: Data inicial (YYYY-MM-DD)
+        example: "2024-01-01"
         in: query
         name: start
         required: true
         type: string
       - description: Data final (YYYY-MM-DD)
+        example: "2024-01-31"
         in: query
         name: end
         required: true
         type: string
       - description: Tipo de ativo (equity...) — somente equity implementado agora
+        example: equity
         in: query
         name: assetType
         type: string
       - description: Página inicial (>= 1), padrão 1
+        example: 1
         in: query
         name: page
         type: integer
       - description: Se true, pagina até o fim
+        example: false
         in: query
         name: fetchAllPages
         type: boolean
@@ -255,11 +261,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Exemplo de sucesso
           schema:
             $ref: '#/definitions/dto.PositionsPreviewResponse'
         "400":
-          description: Bad Request
+          description: Parâmetros inválidos
           schema:
             additionalProperties:
               type: string
@@ -273,30 +279,36 @@ paths:
         payload bruto (consolidado), sem persistir.
       parameters:
       - description: CPF (11 dígitos)
+        example: "12345678901"
         in: query
         name: cpf
         required: true
         type: string
       - description: Data inicial (YYYY-MM-DD)
+        example: "2024-01-01"
         in: query
         name: start
         required: true
         type: string
       - description: Data final (YYYY-MM-DD)
+        example: "2024-01-31"
         in: query
         name: end
         required: true
         type: string
       - description: Tipo de ativo (equity|fii|bdr|...) — somente equity implementado
           agora
+        example: equity
         in: query
         name: assetType
         type: string
       - description: Página inicial (>= 1), padrão 1
+        example: 1
         in: query
         name: page
         type: integer
       - description: Se true, pagina até o fim
+        example: false
         in: query
         name: fetchAllPages
         type: boolean
@@ -304,11 +316,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Exemplo de sucesso
           schema:
             $ref: '#/definitions/dto.TransactionsPreviewResponse'
         "400":
-          description: Bad Request
+          description: Parâmetros inválidos
           schema:
             additionalProperties:
               type: string
