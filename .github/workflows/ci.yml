@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [ developer, main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: suno_user
+          POSTGRES_PASSWORD: suno_password
+          POSTGRES_DB: suno_wallets
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U suno_user" --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Wait for services
+        run: |
+          until pg_isready -h localhost -p 5432 -U suno_user; do echo 'waiting for postgres'; sleep 2; done
+          until (echo PING | nc -w 1 localhost 6379); do echo 'waiting for redis'; sleep 2; done
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build
+        run: go build ./...
+
+      - name: Run tests
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: '6379'
+          REDIS_PASSWORD: ''
+        run: go test ./... -count=1 -v
+
+
