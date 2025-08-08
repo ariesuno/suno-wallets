@@ -13,6 +13,20 @@ definitions:
       version:
         type: string
     type: object
+  dto.TransactionsPreviewResponse:
+    properties:
+      asset_type:
+        type: string
+      end:
+        type: string
+      pages:
+        type: integer
+      payloads:
+        items: {}
+        type: array
+      start:
+        type: string
+    type: object
   dtos.CreateWalletRequest:
     properties:
       allow_debit:
@@ -191,6 +205,55 @@ info:
   title: Suno Wallets API
   version: "1.0"
 paths:
+  /b3/fetch/transactions/preview:
+    get:
+      description: Busca transações por período e tipo de ativo na B3 e retorna o
+        payload bruto (consolidado), sem persistir.
+      parameters:
+      - description: CPF (11 dígitos)
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: Data inicial (YYYY-MM-DD)
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: Data final (YYYY-MM-DD)
+        in: query
+        name: end
+        required: true
+        type: string
+      - description: Tipo de ativo (equity|fii|bdr|...) — somente equity implementado
+          agora
+        in: query
+        name: assetType
+        type: string
+      - description: Página inicial (>= 1), padrão 1
+        in: query
+        name: page
+        type: integer
+      - description: Se true, pagina até o fim
+        in: query
+        name: fetchAllPages
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TransactionsPreviewResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Preview de transações v2 (sem persistência)
+      tags:
+      - B3 Data
   /b3/health/auth:
     get:
       description: Verifica se as variáveis de ambiente de auth estão presentes (não

@@ -24,6 +24,76 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/b3/fetch/transactions/preview": {
+            "get": {
+                "description": "Busca transações por período e tipo de ativo na B3 e retorna o payload bruto (consolidado), sem persistir.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Data"
+                ],
+                "summary": "Preview de transações v2 (sem persistência)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CPF (11 dígitos)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Data inicial (YYYY-MM-DD)",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Data final (YYYY-MM-DD)",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tipo de ativo (equity|fii|bdr|...) — somente equity implementado agora",
+                        "name": "assetType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Página inicial (\u003e= 1), padrão 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Se true, pagina até o fim",
+                        "name": "fetchAllPages",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TransactionsPreviewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/b3/health/auth": {
             "get": {
                 "description": "Verifica se as variáveis de ambiente de auth estão presentes (não valida contra B3)",
@@ -520,6 +590,27 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TransactionsPreviewResponse": {
+            "type": "object",
+            "properties": {
+                "asset_type": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "payloads": {
+                    "type": "array",
+                    "items": {}
+                },
+                "start": {
                     "type": "string"
                 }
             }
