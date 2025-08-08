@@ -144,6 +144,14 @@ func (w *Wallet) Validate() error {
 		return NewValidationError("moeda deve ter exatamente 3 caracteres")
 	}
 
+	// Atribuir defaults quando ausentes
+	if w.Type == "" {
+		w.Type = WalletTypePersonal
+	}
+	if w.Status == "" {
+		w.Status = WalletStatusActive
+	}
+
 	// Validar tipo de carteira
 	validTypes := []WalletType{WalletTypePersonal, WalletTypeBusiness, WalletTypeCorporate}
 	if !contains(validTypes, w.Type) {

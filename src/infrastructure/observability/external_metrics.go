@@ -24,10 +24,22 @@ var (
 		},
 		[]string{"provider", "endpoint", "status"},
 	)
+
+	b3RetriesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_retries_total",
+			Help: "Total de retries efetuados ao chamar B3",
+		},
+		[]string{"endpoint"},
+	)
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
 func ObserveExternalAPI(provider, endpoint, status string, start time.Time) {
 	externalAPITotal.WithLabelValues(provider, endpoint, status).Inc()
 	externalAPIDuration.WithLabelValues(provider, endpoint, status).Observe(time.Since(start).Seconds())
+}
+
+func IncB3Retries(endpoint string) {
+	b3RetriesTotal.WithLabelValues(endpoint).Inc()
 }

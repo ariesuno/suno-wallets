@@ -21,10 +21,6 @@ func AutoMigrate(db *gorm.DB) error {
 
 	// Executar migrações
 	for _, model := range models {
-		if err := db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";").Error; err != nil {
-			helpers.LogError("Falha ao garantir extensão uuid-ossp", err, map[string]interface{}{})
-			return err
-		}
 		if err := db.AutoMigrate(model); err != nil {
 			helpers.LogError("Falha na migração", err, map[string]interface{}{
 				"model": fmt.Sprintf("%T", model),
@@ -37,6 +33,39 @@ func AutoMigrate(db *gorm.DB) error {
 		"models_count": len(models),
 	})
 
+	return nil
+}
+
+// EnsureSchema cria a tabela wallets se não existir (útil para testes/inicialização)
+func EnsureSchema(db *gorm.DB) error {
+	helpers.LogInfo("Garantindo schema base (wallets)", map[string]interface{}{})
+	create := `
+CREATE TABLE IF NOT EXISTS wallets (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL,
+  name varchar(255) NOT NULL,
+  description text,
+  type varchar(50) NOT NULL,
+  status varchar(50) NOT NULL,
+  balance bigint NOT NULL DEFAULT 0,
+  currency varchar(3) NOT NULL,
+  is_default boolean NOT NULL DEFAULT false,
+  owner_id uuid NOT NULL,
+  owner_type varchar(50) NOT NULL,
+  daily_limit bigint,
+  monthly_limit bigint,
+  allow_debit boolean NOT NULL DEFAULT true,
+  metadata jsonb,
+  created_at timestamptz,
+  updated_at timestamptz,
+  deleted_at timestamptz,
+  created_by uuid,
+  updated_by uuid
+);`
+	if err := db.Exec(create).Error; err != nil {
+		helpers.LogError("Falha ao criar tabela wallets", err, map[string]interface{}{})
+		return err
+	}
 	return nil
 }
 

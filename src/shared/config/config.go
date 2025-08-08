@@ -42,6 +42,19 @@ type Config struct {
 	AllowedOrigins []string
 	AllowedMethods []string
 	AllowedHeaders []string
+
+	// Configurações B3 (OAuth2 + mTLS)
+	B3URLData        string
+	B3OAuthTokenURL  string
+	B3ClientID       string
+	B3ClientSecret   string
+	B3CertP12Path    string
+	B3CertPassphrase string
+	B3LegacyCertPath string
+	B3TimeoutSeconds int
+	B3MaxRetries     int
+	B3InitialBackoff int // ms
+	B3MaxBackoff     int // ms
 }
 
 // Load carrega as configurações do ambiente
@@ -53,8 +66,8 @@ func Load() *Config {
 
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "suno_user"),
-		DBPassword: getEnv("DB_PASSWORD", "suno_password"),
+		DBUser:     getEnv("DB_USER", ""),
+		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", "suno_wallets"),
 		DBSSLMode:  getEnv("DB_SSL_MODE", "disable"),
 
@@ -74,6 +87,19 @@ func Load() *Config {
 		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:8080"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Tenant-ID"},
+
+		// B3
+		B3URLData:        getEnv("B3_URL_DATA", ""),
+		B3OAuthTokenURL:  getEnv("B3_OAUTH_TOKEN_URL", ""),
+		B3ClientID:       getEnv("B3_CLIENT_ID", ""),
+		B3ClientSecret:   getEnv("B3_CLIENT_SECRET", ""),
+		B3CertP12Path:    getEnv("B3_CERT_P12_PATH", "certs/b3_certificate12filepath.p12"),
+		B3CertPassphrase: getEnv("B3_CERT_PASSPHRASE", ""),
+		B3LegacyCertPath: getEnv("B3_LEGACY_CERT_PATH", "certs/b3_certificatefilepath.cer"),
+		B3TimeoutSeconds: getEnvInt("B3_TIMEOUT_SECONDS", 10),
+		B3MaxRetries:     getEnvInt("B3_MAX_RETRIES", 3),
+		B3InitialBackoff: getEnvInt("B3_INITIAL_BACKOFF_MS", 200),
+		B3MaxBackoff:     getEnvInt("B3_MAX_BACKOFF_MS", 2000),
 	}
 }
 

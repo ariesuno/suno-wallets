@@ -2,6 +2,8 @@ package integration_test
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"testing"
 
 	"suno-wallets/src/domain/entities"
@@ -10,6 +12,8 @@ import (
 	"suno-wallets/src/infrastructure/migration"
 	infraRepos "suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/config"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -39,14 +43,17 @@ func (suite *WalletIntegrationTestSuite) SetupSuite() {
 		DBPassword: "suno_password",
 		DBName:     "suno_wallets_test",
 		DBSSLMode:  "disable",
-		LogLevel:   "error",
+		LogLevel:   "debug",
 	}
+
+	// Garantir criação do banco de teste de forma automática (próximo ao prod, porém isolado)
+	ensureTestDatabase(suite.T(), cfg)
 
 	db, err := database.Connect(cfg)
 	require.NoError(suite.T(), err)
 
-	// Executar migrações
-	err = migration.AutoMigrate(db)
+	// Executar migração mínima (schema garantido)
+	err = migration.EnsureSchema(db)
 	require.NoError(suite.T(), err)
 
 	suite.db = db
@@ -55,6 +62,24 @@ func (suite *WalletIntegrationTestSuite) SetupSuite() {
 	suite.tenantID = uuid.New()
 	suite.ownerID = uuid.New()
 	suite.createdBy = uuid.New()
+}
+
+// ensureTestDatabase cria o DB de testes caso não exista
+func ensureTestDatabase(t *testing.T, cfg *config.Config) {
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=%s",
+		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBSSLMode,
+	)
+	db, err := sql.Open("pgx", dsn)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+
+	var exists bool
+	row := db.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname=$1)", cfg.DBName)
+	require.NoError(t, row.Scan(&exists))
+	if !exists {
+		_, err = db.Exec("CREATE DATABASE " + cfg.DBName)
+		require.NoError(t, err)
+	}
 }
 
 // TearDownSuite limpa o ambiente de teste

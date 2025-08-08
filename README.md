@@ -86,7 +86,9 @@ Após iniciar a aplicação, acesse:
 
 - **Swagger UI**: http://localhost:8080/swagger/index.html
 - **Health Check**: http://localhost:8080/health
- - **Metrics (Prometheus)**: http://localhost:8080/metrics
+  - **Metrics (Prometheus)**: http://localhost:8080/metrics
+  - **Grafana**: http://localhost:3000
+  - **Prometheus**: http://localhost:9090
 
 ## 🧪 Executando Testes
 
@@ -100,8 +102,9 @@ go test -v ./tests/...
 # Executar testes de uma pasta específica
 go test ./tests/unit/...
 
-# Executar testes de infraestrutura
+# Executar testes de infraestrutura e observabilidade
 go test ./tests/infrastructure/...
+go test ./tests/integration/observability/...
 
 # Executar testes com coverage
 go test -cover ./tests/...
@@ -180,7 +183,7 @@ Todas as entidades incluem:
 ### Monitoramento
 
 - Health check endpoint: `/health`
-- Métricas (a implementar): `/metrics`
+- Métricas: `/metrics`
 
 ## 🤝 Contribuição
 
@@ -218,9 +221,47 @@ test(wallet): adiciona testes unitários
    docker-compose logs postgres
    ```
 
-4. **Prometheus/Grafana (opcional)**
-   - Exponha `/metrics` para coleta Prometheus
-   - Configure Grafana para apontar para sua instância do Prometheus
+4. **Prometheus/Grafana**
+   - Stack via docker-compose (Prometheus, Grafana, Loki, Promtail, node-exporter, cadvisor)
+   - Métricas em `/metrics`
+   - Dashboards via Grafana (datasource Prometheus)
+
+## 🏦 B3 Official Client
+- Certificados esperados em `certs/`:
+  - `b3_certificate12filepath.p12`
+  - `b3_certificatefilepath.cer` (opcional)
+- Variáveis:
+  - `B3_URL_DATA`, `B3_OAUTH_TOKEN_URL`, `B3_CLIENT_ID`, `B3_CLIENT_SECRET`, `B3_CERT_P12_PATH`, `B3_CERT_PASSPHRASE`
+- Exemplo:
+  ```go
+  cfg := &b3cfg.B3Config{URLData: os.Getenv("B3_URL_DATA"), CertP12Path: os.Getenv("B3_CERT_P12_PATH"), CertPassphrase: os.Getenv("B3_CERT_PASSPHRASE"), Timeout: 5*time.Second}
+  cli, _ := b3client.NewB3OfficialClient(cfg, getBearer)
+  resp, err := cli.MakeRequest(ctx, http.MethodGet, "/position/v3/...", q, cpf, true)
+  _ = resp; _ = err
+  ```
+
+### cURL (exemplos)
+- Posições v3 (exige OAuth e CPF):
+```bash
+curl -H "Authorization: Bearer $ACCESS_TOKEN" \
+     -H "X-Investor-CPF: 12345678901" \
+     -H "Content-Type: application/json" \
+     "$B3_URL_DATA/position/v3/equities/investors/12345678901?referenceStartDate=2024-01-01&referenceEndDate=2024-01-31&page=1"
+```
+
+- Transações v2:
+```bash
+curl -H "Authorization: Bearer $ACCESS_TOKEN" \
+     -H "X-Investor-CPF: 12345678901" \
+     -H "Content-Type: application/json" \
+     "$B3_URL_DATA/assets-trading/v2/equity/12345678901?referenceStartDate=2024-01-01&referenceEndDate=2024-01-31&page=1"
+```
+
+### Injeção de Tokens PKCE
+- O cliente aceita função `getBearer(ctx)` para injetar tokens obtidos via consentimento externo (PKCE/ALF).
+
+### Health
+- Endpoint opcional: `GET /api/v1/b3/health/auth` (não valida contra B3; apenas verifica presença de configuração)
 
 2. **Porta já em uso**
    ```bash

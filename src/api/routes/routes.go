@@ -38,6 +38,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 
 	// Inicializar controllers
 	healthController := controllers.NewHealthController(db)
+	b3Controller := controllers.NewB3Controller()
 	walletController := controllers.NewWalletController(walletUseCase)
 
 	// Rotas de saúde (sem middleware de tenant)
@@ -61,6 +62,11 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			walletsGroup.PUT("/:id", walletController.UpdateWallet)
 			walletsGroup.DELETE("/:id", walletController.DeleteWallet)
 			walletsGroup.GET("/owner/:owner_id", walletController.GetWalletsByOwner)
+		}
+		// B3
+		b3Group := apiV1.Group("/b3")
+		{
+			b3Group.GET("/health/auth", b3Controller.HealthAuth)
 		}
 	}
 

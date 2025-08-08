@@ -1,0 +1,7 @@
+
+# Local env (not committed)
+.env
+
+# Certificates (sensitive)
+certs/*
+!certs/.gitkeep

@@ -6,8 +6,11 @@ services:
     build: .
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     volumes:
       - ./logs:/var/log/app
+      - ./certs:/app/certs:ro
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
