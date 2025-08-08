@@ -270,6 +270,30 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Não autorizado / Token inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado / Sem permissão
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "429":
+          description: Limite de requisições excedido (Retry-After)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Preview de posições v3 (sem persistência)
       tags:
       - B3 Data
