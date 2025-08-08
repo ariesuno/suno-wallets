@@ -6,15 +6,16 @@ Este diretório contém instruções para executar Prometheus, Grafana, Loki e T
 - Métricas: `http://localhost:8080/metrics`
 - Health: `http://localhost:8080/health`
 
-## Executando stack (docker-compose)
-Adicionaremos serviços no `docker-compose.yml`:
-- Prometheus (aponta para `app:8080/metrics`)
-- Grafana (dashboards)
-- Loki e Promtail (coleta de logs da app)
-- Tempo (rastreamento; opcional)
+## Stack (docker-compose)
+Serviços no `docker-compose.yml`:
+- Prometheus (config em `misc/prometheus.yml`, alertas em `misc/alert.rules.yml`)
+- Grafana (acesso: `http://localhost:3000`)
+- Loki + Promtail (coleta de logs em `./logs` -> Loki)
+- Node Exporter e cAdvisor (métricas de host/containers)
+  
+Prometheus scrapa `app:8080/metrics`.
 
 ## Testes
-Rode:
 ```
-go test ./tests/observability/... -v
+go test ./tests/integration/observability/... -v
 ```

@@ -49,6 +49,13 @@ services:
     depends_on:
       - prometheus
 
+  tempo:
+    image: grafana/tempo:latest
+    ports:
+      - "3200:3200"
+    networks:
+      - suno-network
+
   loki:
     image: grafana/loki:2.9.0
     ports:
