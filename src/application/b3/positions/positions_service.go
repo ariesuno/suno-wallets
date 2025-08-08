@@ -106,7 +106,7 @@ func (s *serviceImpl) PreviewPositions(ctx context.Context, req *dto.PositionsPr
 	}
 
 	q := map[string]string{"referenceStartDate": req.Start, "referenceEndDate": req.End, "page": fmt.Sprintf("%d", req.Page)}
-	httpResp, err := s.client.MakeRequest(ctx, http.MethodGet, path, q, req.CPF, true)
+    httpResp, err := s.client.MakeRequest(ctx, http.MethodGet, path, q, req.CPF, true)
 	if err != nil {
 		observability.ObservePositionsPreview(assetType, "error", 0)
 		return nil, err

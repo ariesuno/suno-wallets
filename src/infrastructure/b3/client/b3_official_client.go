@@ -116,7 +116,7 @@ func (c *B3OfficialClient) MakeRequest(ctx context.Context, method, path string,
 	var err error
 	statusLabel := "success"
 
-	for {
+    for {
 		// montar request
 		req, e := http.NewRequestWithContext(ctx, method, url, nil)
 		if e != nil {
@@ -138,7 +138,7 @@ func (c *B3OfficialClient) MakeRequest(ctx context.Context, method, path string,
 			req.Header.Set("Authorization", "Bearer "+token)
 		}
 
-		resp, err = c.httpClient.Do(req)
+        resp, err = c.httpClient.Do(req)
 		if err != nil {
 			statusLabel = "network_error"
 		} else if resp.StatusCode == 429 || resp.StatusCode >= 500 {
@@ -155,6 +155,9 @@ func (c *B3OfficialClient) MakeRequest(ctx context.Context, method, path string,
 				}
 				continue
 			}
+        } else if resp.StatusCode >= 400 {
+            // erros não-retriáveis (400/401/403 etc.)
+            statusLabel = fmt.Sprintf("http_%d", resp.StatusCode)
 		}
 		break
 	}
@@ -178,10 +181,13 @@ func (c *B3OfficialClient) MakeRequest(ctx context.Context, method, path string,
 		"cpf_masked": maskCPF(cpf),
 	})
 
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+    if err != nil {
+        return nil, err
+    }
+    if resp != nil && resp.StatusCode >= 400 {
+        return nil, b3err.NewB3Error(resp.StatusCode, "b3 http error")
+    }
+    return resp, nil
 }
 
 // maskCPF mascara CPF mantendo apenas últimos 2 dígitos

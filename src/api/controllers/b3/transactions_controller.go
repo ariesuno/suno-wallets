@@ -25,14 +25,14 @@ func NewTransactionsController(service transactions.TransactionsService) *Transa
 // @Description Busca transações por período e tipo de ativo na B3 e retorna o payload bruto (consolidado), sem persistir.
 // @Tags B3 Data
 // @Produce json
-// @Param cpf query string true "CPF (11 dígitos)"
-// @Param start query string true "Data inicial (YYYY-MM-DD)"
-// @Param end query string true "Data final (YYYY-MM-DD)"
-// @Param assetType query string false "Tipo de ativo (equity|fii|bdr|...) — somente equity implementado agora"
-// @Param page query int false "Página inicial (>= 1), padrão 1"
-// @Param fetchAllPages query bool false "Se true, pagina até o fim"
-// @Success 200 {object} dto.TransactionsPreviewResponse
-// @Failure 400 {object} map[string]string
+// @Param cpf query string true "CPF (11 dígitos)" example(12345678901)
+// @Param start query string true "Data inicial (YYYY-MM-DD)" example(2024-01-01)
+// @Param end query string true "Data final (YYYY-MM-DD)" example(2024-01-31)
+// @Param assetType query string false "Tipo de ativo (equity|fii|bdr|...) — somente equity implementado agora" example(equity)
+// @Param page query int false "Página inicial (>= 1), padrão 1" example(1)
+// @Param fetchAllPages query bool false "Se true, pagina até o fim" example(false)
+// @Success 200 {object} dto.TransactionsPreviewResponse "Exemplo de sucesso"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos"
 // @Router /b3/fetch/transactions/preview [get]
 func (c *TransactionsController) FetchTransactionsPreview(ctx *gin.Context) {
 	var req dto.TransactionsPreviewRequest
