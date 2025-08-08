@@ -96,6 +96,39 @@ var (
 			Help: "Total de meses concluídos na ingestão RAW",
 		},
 	)
+
+  // Métricas do Sync diário (1.11)
+  b3SyncClientsTotal = promauto.NewCounter(
+    prometheus.CounterOpts{
+      Name: "b3_sync_clients_total",
+      Help: "Total de clientes avaliados no sync",
+    },
+  )
+  b3SyncSuccessTotal = promauto.NewCounter(
+    prometheus.CounterOpts{
+      Name: "b3_sync_success_total",
+      Help: "Total de clientes sincronizados com sucesso",
+    },
+  )
+  b3SyncFailedTotal = promauto.NewCounter(
+    prometheus.CounterOpts{
+      Name: "b3_sync_failed_total",
+      Help: "Total de clientes com falha no sync",
+    },
+  )
+  b3SyncNewRawTotal = promauto.NewCounter(
+    prometheus.CounterOpts{
+      Name: "b3_sync_new_raw_total",
+      Help: "Total de novos registros RAW detectados no sync",
+    },
+  )
+  b3SyncDuration = promauto.NewHistogram(
+    prometheus.HistogramOpts{
+      Name:    "b3_sync_duration_seconds",
+      Help:    "Duração do sync por execução (segundos)",
+      Buckets: prometheus.DefBuckets,
+    },
+  )
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
@@ -149,4 +182,13 @@ func IncRawMonthsCompleted(n int) {
 	if n > 0 {
 		b3RawMonthsCompletedTotal.Add(float64(n))
 	}
+}
+
+// Funções do Sync diário
+func ObserveSync(clients, success, failed, newRaw int, startedAt time.Time) {
+  if clients > 0 { b3SyncClientsTotal.Add(float64(clients)) }
+  if success > 0 { b3SyncSuccessTotal.Add(float64(success)) }
+  if failed > 0 { b3SyncFailedTotal.Add(float64(failed)) }
+  if newRaw > 0 { b3SyncNewRawTotal.Add(float64(newRaw)) }
+  b3SyncDuration.Observe(time.Since(startedAt).Seconds())
 }

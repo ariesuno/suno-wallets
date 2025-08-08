@@ -7,6 +7,9 @@ import (
     "github.com/google/uuid"
     ingest "suno-wallets/src/application/b3/ingest"
     syncrepo "suno-wallets/src/infrastructure/b3/sync"
+    "suno-wallets/src/infrastructure/observability"
+    "suno-wallets/src/shared/helpers"
+    "strings"
 )
 
 // Comentários em pt-BR: serviço de sincronismo diário (incremental)
@@ -54,6 +57,7 @@ type RunSummary struct {
 
 func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
     sum := &RunSummary{}
+    start := time.Now()
     var targets []syncrepo.SyncState
     if p.Scope == "single" {
         st, err := s.repo.GetByTenantCPF(ctx, p.TenantID, p.CPF)
@@ -79,7 +83,7 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
                 start := dayStart(nextTimeOrEpoch(t.LastTxSyncAt))
                 end := now
                 if start.Before(end) {
-                    _, err := s.ingest.Ingest(ctx, ingest.IngestParams{
+                    res, err := s.ingest.Ingest(ctx, ingest.IngestParams{
                         TenantID:  p.TenantID.String(),
                         CPF:       t.CPF,
                         DataType:  "transactions",
@@ -90,13 +94,13 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
                         Force:     p.Force,
                         DryRun:    p.DryRun,
                     })
-                    if err != nil { ok = false; se := err.Error(); lastErr = &se } else { needsReprocess = true; txSyncAt = &now }
+                    if err != nil { ok = false; se := err.Error(); lastErr = &se } else { if res != nil && res.Saved > 0 { sum.NewRAW += res.Saved; needsReprocess = true }; txSyncAt = &now }
                 }
             case "positions":
                 start := dayStart(nextTimeOrEpoch(t.LastPosSyncAt))
                 end := now
                 if start.Before(end) {
-                    _, err := s.ingest.Ingest(ctx, ingest.IngestParams{
+                    res, err := s.ingest.Ingest(ctx, ingest.IngestParams{
                         TenantID:  p.TenantID.String(),
                         CPF:       t.CPF,
                         DataType:  "positions",
@@ -107,13 +111,18 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
                         Force:     p.Force,
                         DryRun:    p.DryRun,
                     })
-                    if err != nil { ok = false; se := err.Error(); lastErr = &se } else { needsReprocess = true; posSyncAt = &now }
+                    if err != nil { ok = false; se := err.Error(); lastErr = &se } else { if res != nil && res.Saved > 0 { sum.NewRAW += res.Saved; needsReprocess = true }; posSyncAt = &now }
                 }
             }
         }
         if ok { sum.Success++ } else { sum.Failed++ }
         _ = s.repo.MarkResult(ctx, t.ID, ok, needsReprocess, tern(ok, "OK", "ERROR"), lastErr, txSyncAt, posSyncAt)
+        helpers.LogInfo("B3 daily sync processed", map[string]interface{}{
+            "tenant_id": p.TenantID.String(), "cpf_masked": maskCPFLocal(t.CPF),
+            "success": ok, "needs_reprocess": needsReprocess,
+        })
     }
+    observability.ObserveSync(sum.Clients, sum.Success, sum.Failed, sum.NewRAW, start)
     return sum, nil
 }
 
@@ -124,5 +133,12 @@ func nextTimeOrEpoch(t *time.Time) time.Time {
 func dayStart(t time.Time) time.Time { return time.Date(t.Year(), t.Month(), t.Day(), 0,0,0,0, time.UTC) }
 func firstOrDefault(list []string, def string) string { if len(list)==0 || list[0]=="" { return def }; return list[0] }
 func tern[T any](cond bool, a, b T) T { if cond { return a }; return b }
+
+// máscara simples de CPF (apenas últimos 2 dígitos visíveis)
+func maskCPFLocal(cpf string) string {
+    n := len(cpf)
+    if n <= 2 { return "**" }
+    return strings.Repeat("*", n-2) + cpf[n-2:]
+}
 
 

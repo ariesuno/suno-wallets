@@ -140,6 +140,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			// Sync endpoints
 			b3Group.POST("/sync/run", syncController.Run)
 			b3Group.GET("/client/status", syncController.Status)
+			b3Group.GET("/client/last-sync", syncController.LastSync)
 		}
 	}
 

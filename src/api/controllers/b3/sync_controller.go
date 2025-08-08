@@ -48,6 +48,26 @@ func (c *SyncController) Run(ctx *gin.Context) {
     ctx.JSON(http.StatusOK, gin.H{"clients": sum.Clients, "success": sum.Success, "failed": sum.Failed, "newRaw": sum.NewRAW})
 }
 
+// LastSync godoc
+// @Summary Últimos marcos de sync por CPF
+// @Tags B3 Sync
+// @Produce json
+// @Param X-Tenant-Id header string true "ID do inquilino"
+// @Param cpf query string true "CPF"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Router /b3/client/last-sync [get]
+func (c *SyncController) LastSync(ctx *gin.Context) {
+    tenantID, ok := middlewares.GetTenantID(ctx)
+    if !ok { return }
+    cpf := ctx.Query("cpf")
+    if err := validation.ValidateCPF(cpf); err != nil { ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return }
+    st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID, cpf)
+    if err != nil { ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return }
+    if st == nil { ctx.JSON(http.StatusOK, gin.H{"status": "not_found"}); return }
+    ctx.JSON(http.StatusOK, gin.H{"lastTxSyncAt": st.LastTxSyncAt, "lastPosSyncAt": st.LastPosSyncAt})
+}
+
 // Status godoc
 // @Summary Consulta estado de sync por CPF
 // @Tags B3 Sync
