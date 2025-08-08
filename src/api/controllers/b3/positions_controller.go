@@ -1,15 +1,15 @@
 package b3
 
 import (
-    "errors"
-    "net/http"
+	"errors"
+	"net/http"
 
-    positions "suno-wallets/src/application/b3/positions"
-    b3errors "suno-wallets/src/infrastructure/b3/errors"
-    "suno-wallets/src/shared/dto"
-    "suno-wallets/src/shared/validation"
+	positions "suno-wallets/src/application/b3/positions"
+	b3errors "suno-wallets/src/infrastructure/b3/errors"
+	"suno-wallets/src/shared/dto"
+	"suno-wallets/src/shared/validation"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 // Comentários em pt-BR: controller de preview de posições v3 (equities)
@@ -57,29 +57,29 @@ func (c *PositionsController) FetchPositionsPreview(ctx *gin.Context) {
 		return
 	}
 
-    resp, err := c.service.PreviewPositions(ctx, &req)
-    if err != nil {
-        var b3Err *b3errors.B3Error
-        if errors.As(err, &b3Err) {
-            switch b3Err.Status {
-            case http.StatusUnauthorized:
-                ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed, please renew credentials"})
-                return
-            case http.StatusForbidden:
-                ctx.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-                return
-            case http.StatusTooManyRequests:
-                ctx.JSON(http.StatusTooManyRequests, gin.H{"error": "Too many requests, please try again later"})
-                return
-            default:
-                if b3Err.IsInternal() {
-                    ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal B3 API error"})
-                    return
-                }
-            }
-        }
-        ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	resp, err := c.service.PreviewPositions(ctx, &req)
+	if err != nil {
+		var b3Err *b3errors.B3Error
+		if errors.As(err, &b3Err) {
+			switch b3Err.Status {
+			case http.StatusUnauthorized:
+				ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed, please renew credentials"})
+				return
+			case http.StatusForbidden:
+				ctx.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+				return
+			case http.StatusTooManyRequests:
+				ctx.JSON(http.StatusTooManyRequests, gin.H{"error": "Too many requests, please try again later"})
+				return
+			default:
+				if b3Err.IsInternal() {
+					ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal B3 API error"})
+					return
+				}
+			}
+		}
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	ctx.JSON(http.StatusOK, resp)
 }
