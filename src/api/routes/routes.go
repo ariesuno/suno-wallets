@@ -5,6 +5,7 @@ import (
 	"suno-wallets/src/api/controllers"
 	b3controllers "suno-wallets/src/api/controllers/b3"
 	"suno-wallets/src/api/middlewares"
+	possvc "suno-wallets/src/application/b3/positions"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	"suno-wallets/src/application/usecases"
 	b3client "suno-wallets/src/infrastructure/b3/client"
@@ -72,6 +73,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	b3Cli, _ := b3client.NewB3OfficialClient(b3Conf, getBearer)
 	transactionsService := b3svc.NewTransactionsService(b3Cli)
 	transactionsController := b3controllers.NewTransactionsController(transactionsService)
+	positionsService := possvc.NewPositionsService(b3Cli)
+	positionsController := b3controllers.NewPositionsController(positionsService)
 	walletController := controllers.NewWalletController(walletUseCase)
 
 	// Rotas de saúde (sem middleware de tenant)
@@ -110,6 +113,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 				c.Request.URL.RawQuery = q.Encode()
 				transactionsController.FetchTransactionsPreview(c)
 			})
+			// Preview de posições v3 (equity)
+			b3Group.GET("/fetch/positions/preview", positionsController.FetchPositionsPreview)
 		}
 	}
 
