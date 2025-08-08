@@ -1,0 +1,26 @@
+groups:
+  - name: suno-alerts
+    rules:
+      - alert: HighHTTPLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latência p95 em {{ $labels.route }}"
+      - alert: HighHTTPErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (route) / sum(rate(http_requests_total[5m])) by (route) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Erro 5xx > 5% em {{ $labels.route }}"
+      - alert: AsynqJobFailures
+        expr: sum(rate(asynq_jobs_total{status="error"}[5m])) by (type) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Falhas em jobs Asynq {{ $labels.type }}"
+
+

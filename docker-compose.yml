@@ -6,6 +6,8 @@ services:
     build: .
     ports:
       - "8080:8080"
+    volumes:
+      - ./logs:/var/log/app
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -23,6 +25,62 @@ services:
     networks:
       - suno-network
     restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./misc/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./misc/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+    depends_on:
+      - app
+      - node-exporter
+      - cadvisor
+    networks:
+      - suno-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - suno-network
+    depends_on:
+      - prometheus
+
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    networks:
+      - suno-network
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - ./misc/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ./logs:/var/log/app
+    command: ["--config.file=/etc/promtail/config.yml"]
+    networks:
+      - suno-network
+    depends_on:
+      - loki
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - suno-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8082:8080"
+    networks:
+      - suno-network
 
   # Banco de dados PostgreSQL
   postgres:
@@ -79,6 +137,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  logs:
 
 
 networks:
