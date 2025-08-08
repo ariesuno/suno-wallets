@@ -80,6 +80,15 @@ go mod download
 go run src/main.go
 ```
 
+### 🔑 Variáveis de ambiente (.env) e precedência
+
+- Local (go run): usamos `godotenv.Overload()`, então variáveis do `.env` têm precedência sobre variáveis já exportadas no ambiente.
+- Docker Compose: usamos `env_file: .env` no serviço `app`, então o container recebe as variáveis do `.env` automaticamente.
+- Certificados B3: no container os arquivos são montados em `/app/certs` (volume read-only). Ajuste os caminhos no `.env` quando rodar em container, por exemplo:
+  - `B3_CERT_P12_PATH=/app/certs/b3_certificatep12filepath.p12`
+  - `B3_LEGACY_CERT_PATH=/app/certs/b3_certificatefilepath.cer`
+  - Em execução local direta (sem Docker), use `certs/...`.
+
 ## 📚 Documentação da API
 
 Após iniciar a aplicação, acesse:
