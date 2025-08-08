@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	b3client "suno-wallets/src/infrastructure/b3/client"
+	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/shared/dto"
 	"suno-wallets/src/shared/helpers"
 	"suno-wallets/src/shared/validation"
@@ -23,12 +23,18 @@ type TransactionsService interface {
 }
 
 type transactionsServiceImpl struct {
-	client *b3client.B3OfficialClient
+	client B3Client
 }
 
 // NewTransactionsService cria uma nova instância do serviço
-func NewTransactionsService(client *b3client.B3OfficialClient) TransactionsService {
+func NewTransactionsService(client B3Client) TransactionsService {
 	return &transactionsServiceImpl{client: client}
+}
+
+// B3Client descreve as operações necessárias do cliente B3 (para facilitar testes/mocks)
+type B3Client interface {
+	MakeRequest(ctx context.Context, method, path string, query map[string]string, cpf string, needsAuth bool) (*http.Response, error)
+	Paginate(ctx context.Context, method, path string, baseQuery map[string]string, cpf string, needsAuth bool, fetch func(*http.Response) (hasNext bool, nextPage int, err error)) error
 }
 
 func (s *transactionsServiceImpl) PreviewTransactions(ctx context.Context, req *dto.TransactionsPreviewRequest) (*dto.TransactionsPreviewResponse, error) {
@@ -69,18 +75,18 @@ func (s *transactionsServiceImpl) PreviewTransactions(ctx context.Context, req *
 	resp := &dto.TransactionsPreviewResponse{AssetType: assetType, Start: req.Start, End: req.End}
 
 	// Função para coletar payload e decidir próxima página
-    fetch := func(httpResp *http.Response) (hasNext bool, nextPage int, err error) {
+	fetch := func(httpResp *http.Response) (hasNext bool, nextPage int, err error) {
 		body, e := io.ReadAll(httpResp.Body)
 		if e != nil {
 			return false, 0, e
 		}
-        // anexar payload deserializado genericamente
-        var generic interface{}
-        _ = json.Unmarshal(body, &generic)
-        if generic == nil {
-            generic = map[string]interface{}{"raw": string(body)}
-        }
-        resp.Payloads = append(resp.Payloads, generic)
+		// anexar payload deserializado genericamente
+		var generic interface{}
+		_ = json.Unmarshal(body, &generic)
+		if generic == nil {
+			generic = map[string]interface{}{"raw": string(body)}
+		}
+		resp.Payloads = append(resp.Payloads, generic)
 
 		// heurística: procurar por campo nextPage (inteiro) ou links
 		var meta struct {
@@ -109,9 +115,11 @@ func (s *transactionsServiceImpl) PreviewTransactions(ctx context.Context, req *
 		// Paginar usando helper do cliente
 		err := s.client.Paginate(ctx, http.MethodGet, path, baseQuery, req.CPF, true, fetch)
 		if err != nil {
+			observability.ObserveTransactionsPreview(assetType, "error", 0)
 			return nil, err
 		}
 		resp.Pages = len(resp.Payloads)
+		observability.ObserveTransactionsPreview(assetType, "success", resp.Pages)
 		return resp, nil
 	}
 
@@ -123,20 +131,22 @@ func (s *transactionsServiceImpl) PreviewTransactions(ctx context.Context, req *
 	}
 	httpResp, err := s.client.MakeRequest(ctx, http.MethodGet, path, q, req.CPF, true)
 	if err != nil {
+		observability.ObserveTransactionsPreview(assetType, "error", 0)
 		return nil, err
 	}
 	defer httpResp.Body.Close()
-    body, err := io.ReadAll(httpResp.Body)
+	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {
 		return nil, err
 	}
-    var generic interface{}
-    _ = json.Unmarshal(body, &generic)
-    if generic == nil {
-        generic = map[string]interface{}{"raw": string(body)}
-    }
-    resp.Payloads = append(resp.Payloads, generic)
+	var generic interface{}
+	_ = json.Unmarshal(body, &generic)
+	if generic == nil {
+		generic = map[string]interface{}{"raw": string(body)}
+	}
+	resp.Payloads = append(resp.Payloads, generic)
 	resp.Pages = 1
+	observability.ObserveTransactionsPreview(assetType, "success", resp.Pages)
 
 	helpers.LogInfo("B3 transactions preview fetched", map[string]interface{}{
 		"asset_type": assetType,

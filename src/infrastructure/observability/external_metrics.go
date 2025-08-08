@@ -32,6 +32,22 @@ var (
 		},
 		[]string{"endpoint"},
 	)
+
+	// Métricas específicas do preview de transações
+	b3TransactionsPagesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_transactions_pages_processed_total",
+			Help: "Total de páginas processadas no preview de transações",
+		},
+		[]string{"asset_type"},
+	)
+	b3TransactionsRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_transactions_preview_requests_total",
+			Help: "Total de requisições de preview de transações",
+		},
+		[]string{"asset_type", "result"},
+	)
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
@@ -42,4 +58,12 @@ func ObserveExternalAPI(provider, endpoint, status string, start time.Time) {
 
 func IncB3Retries(endpoint string) {
 	b3RetriesTotal.WithLabelValues(endpoint).Inc()
+}
+
+// ObserveTransactionsPreview registra métricas do preview
+func ObserveTransactionsPreview(assetType, result string, pages int) {
+	b3TransactionsRequestsTotal.WithLabelValues(assetType, result).Inc()
+	if pages > 0 {
+		b3TransactionsPagesTotal.WithLabelValues(assetType).Add(float64(pages))
+	}
 }

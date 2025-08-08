@@ -56,7 +56,15 @@ func (c *TransactionsController) FetchTransactionsPreview(ctx *gin.Context) {
 
 	resp, err := c.service.PreviewTransactions(ctx, &req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// mapeamento simples de status
+		code := http.StatusBadRequest
+		switch err.Error() {
+		case "invalid cpf: must be 11 digits":
+			code = http.StatusBadRequest
+		default:
+			// manter 400 por padrão
+		}
+		ctx.JSON(code, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, resp)

@@ -102,6 +102,14 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			b3Group.GET("/health/auth", b3Controller.HealthAuth)
 			// Preview de transações v2 (equity)
 			b3Group.GET("/fetch/transactions/preview", transactionsController.FetchTransactionsPreview)
+			// Alias compatível com v_p_1_7 (sem persistência, apenas proxy/preview)
+			b3Group.GET("/transactions/:cpf", func(c *gin.Context) {
+				// mapear path param para query param
+				q := c.Request.URL.Query()
+				q.Set("cpf", c.Param("cpf"))
+				c.Request.URL.RawQuery = q.Encode()
+				transactionsController.FetchTransactionsPreview(c)
+			})
 		}
 	}
 

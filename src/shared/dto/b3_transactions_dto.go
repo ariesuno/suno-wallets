@@ -12,9 +12,9 @@ type TransactionsPreviewRequest struct {
 }
 
 type TransactionsPreviewResponse struct {
-	AssetType string            `json:"asset_type"`
-	Start     string            `json:"start"`
-	End       string            `json:"end"`
-    Pages     int               `json:"pages"`
-    Payloads  []interface{}     `json:"payloads"`
+	AssetType string        `json:"asset_type"`
+	Start     string        `json:"start"`
+	End       string        `json:"end"`
+	Pages     int           `json:"pages"`
+	Payloads  []interface{} `json:"payloads"`
 }
