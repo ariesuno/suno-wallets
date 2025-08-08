@@ -44,10 +44,12 @@ type Config struct {
 	AllowedHeaders []string
 
 	// Configurações B3 (OAuth2 + mTLS)
+	B3URLOptIn      string
 	B3URLData        string
 	B3OAuthTokenURL  string
 	B3ClientID       string
 	B3ClientSecret   string
+	B3Scope          string
 	B3CertP12Path    string
 	B3CertPassphrase string
 	B3LegacyCertPath string
@@ -89,10 +91,12 @@ func Load() *Config {
 		AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Tenant-ID"},
 
 		// B3
+		B3URLOptIn:      getEnv("B3_URL_OPTIN", ""),
 		B3URLData:        getEnv("B3_URL_DATA", ""),
 		B3OAuthTokenURL:  getEnv("B3_OAUTH_TOKEN_URL", ""),
 		B3ClientID:       getEnv("B3_CLIENT_ID", ""),
 		B3ClientSecret:   getEnv("B3_CLIENT_SECRET", ""),
+		B3Scope:          getEnv("B3_SCOPE", ""),
 		B3CertP12Path:    getEnv("B3_CERT_P12_PATH", "certs/b3_certificate12filepath.p12"),
 		B3CertPassphrase: getEnv("B3_CERT_PASSPHRASE", ""),
 		B3LegacyCertPath: getEnv("B3_LEGACY_CERT_PATH", "certs/b3_certificatefilepath.cer"),
