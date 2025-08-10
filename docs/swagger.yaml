@@ -1621,6 +1621,341 @@ paths:
       summary: Buscar carteiras por proprietário
       tags:
       - wallets
+
+  /b3/reconciliation/auto-fix:
+    post:
+      tags: [B3 Reconciliation]
+      summary: Auto-fix de inconsistências (admin-only)
+      consumes: [application/json]
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Admin-Secret
+        required: false
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            cpf: { type: string }
+            dryRun: { type: boolean }
+            maxFixes: { type: integer }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /b3/reconciliation/auto-fix/{id}:
+    post:
+      tags: [B3 Reconciliation]
+      summary: Auto-fix de inconsistência específica (admin-only)
+      consumes: [application/json]
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Admin-Secret
+        required: false
+        type: string
+      - in: path
+        name: id
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            dryRun: { type: boolean }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+        "404": { description: Not Found }
+
+  /ops/manual/{id}:
+    put:
+      tags: [Manual Ops]
+      summary: Atualiza operação manual
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: path
+        name: id
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            ticker: { type: string }
+            quantity: { type: number }
+            unitPrice: { type: number }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "404": { description: Not Found }
+    delete:
+      tags: [Manual Ops]
+      summary: Soft delete de operação manual
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "404": { description: Not Found }
+
+  /ops/manual:
+    get:
+      tags: [Manual Ops]
+      summary: Lista operações manuais
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: query
+        name: cpf
+        type: string
+      - in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+
+  /ops/dedup/resolve:
+    post:
+      tags: [Ops Dedup]
+      summary: Resolve candidatos de deduplicação (admin-only)
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Admin-Secret
+        required: false
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            candidateId: { type: string }
+            action: { type: string, enum: [MERGE, OVERRIDE, IGNORE] }
+            reason: { type: string }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/profile:
+    get:
+      tags: [Backoffice Admin]
+      summary: Perfil operacional agregado
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/search:
+    get:
+      tags: [Backoffice Admin]
+      summary: Busca CPFs por critério
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      - in: query
+        name: query
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/actions:
+    get:
+      tags: [Backoffice Admin]
+      summary: Lista ações administrativas
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/actions/{id}:
+    get:
+      tags: [Backoffice Admin]
+      summary: Detalhe de ação administrativa
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      - in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "404": { description: Not Found }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/export/ledger:
+    get:
+      tags: [Backoffice Admin]
+      summary: Export do ledger unificado
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      - in: query
+        name: format
+        type: string
+        enum: [csv, json]
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/actions/request:
+    post:
+      tags: [Backoffice Admin]
+      summary: Solicita ação administrativa
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            actionType: { type: string }
+            cpf: { type: string }
+            params: { type: object }
+      responses:
+        "201": { description: Created }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /admin/backoffice/actions/confirm:
+    post:
+      tags: [Backoffice Admin]
+      summary: Confirma e executa ação administrativa
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: header
+        name: X-Role
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            actionId: { type: string }
+            confirmToken: { type: string }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /b3/transactions/{cpf}:
+    get:
+      tags: [B3 Data]
+      summary: Alias compatível para transactions preview
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: path
+        name: cpf
+        required: true
+        type: string
+      - in: query
+        name: assetType
+        type: string
+      - in: query
+        name: start
+        type: string
+      - in: query
+        name: end
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+
 securityDefinitions:
   TenantID:
     description: ID do inquilino para multi-tenancy
