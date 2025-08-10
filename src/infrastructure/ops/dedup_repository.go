@@ -1,13 +1,13 @@
 package ops
 
 import (
-	"context"
-	"encoding/json"
-	appops "suno-wallets/src/application/ops"
-	"time"
+    "context"
+    "encoding/json"
+    appops "suno-wallets/src/application/ops"
+    "time"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+    "github.com/google/uuid"
+    "gorm.io/gorm"
 )
 
 // Comentários em pt-BR: repository de dedup candidates e resoluções
@@ -70,14 +70,71 @@ func (r *DedupRepo) ListCandidates(ctx context.Context, tenantID uuid.UUID, cpf 
 }
 
 func (r *DedupRepo) ResolveMerge(ctx context.Context, tenantID uuid.UUID, candidateIDs []uuid.UUID, prefer string) error {
-    // implementar merge: escolher operação preferida e inativar a outra no ledger
-    // Nota: simplificado aqui; detalhamento de supersedes pode ser expandido
-    if err := r.db.WithContext(ctx).Exec(`UPDATE dedup_candidates SET status = 'CONFIRMED_MERGE' WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Error; err != nil { return err }
-    return nil
+    tx := r.db.WithContext(ctx).Begin()
+    defer func() { _ = tx.Rollback() }()
+    type pair struct{ ID uuid.UUID; Primary uuid.UUID; Candidate uuid.UUID }
+    var pairs []pair
+    if err := tx.Raw(`SELECT id, primary_operation_id, candidate_operation_id FROM dedup_candidates WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Scan(&pairs).Error; err != nil {
+        return err
+    }
+    type opRow struct{ ID uuid.UUID; Source string }
+    for _, p := range pairs {
+        var ops []opRow
+        if err := tx.Raw(`SELECT id, source FROM b3_operations_ledger WHERE tenant_id = ? AND id IN (?,?)`, tenantID, p.Primary, p.Candidate).Scan(&ops).Error; err != nil {
+            return err
+        }
+        var preferred, suppressed uuid.UUID
+        // default
+        preferred = p.Primary
+        suppressed = p.Candidate
+        if len(ops) == 2 {
+            // escolher conforme prefer
+            if prefer == "USER_MANUAL" {
+                // achar manual
+                if ops[0].Source == "USER_MANUAL" { preferred, suppressed = ops[0].ID, ops[1].ID } else if ops[1].Source == "USER_MANUAL" { preferred, suppressed = ops[1].ID, ops[0].ID }
+            } else if prefer == "B3_RAW" {
+                if ops[0].Source == "B3_RAW" { preferred, suppressed = ops[0].ID, ops[1].ID } else if ops[1].Source == "B3_RAW" { preferred, suppressed = ops[1].ID, ops[0].ID }
+            }
+        }
+        if err := tx.Exec(`UPDATE b3_operations_ledger SET is_active = false, superseded_by_operation_id = ?, updated_by = 'dedup:merge', updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ? AND id = ?`, preferred, tenantID, suppressed).Error; err != nil {
+            return err
+        }
+        if err := tx.Exec(`UPDATE dedup_candidates SET status = 'CONFIRMED_MERGE', resolved_at = CURRENT_TIMESTAMP, resolved_by = 'dedup:merge' WHERE tenant_id = ? AND id = ?`, tenantID, p.ID).Error; err != nil {
+            return err
+        }
+    }
+    return tx.Commit().Error
 }
 
 func (r *DedupRepo) ResolveOverride(ctx context.Context, tenantID uuid.UUID, candidateIDs []uuid.UUID) error {
-    return r.db.WithContext(ctx).Exec(`UPDATE dedup_candidates SET status = 'OVERRIDDEN' WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Error
+    tx := r.db.WithContext(ctx).Begin()
+    defer func() { _ = tx.Rollback() }()
+    type pair struct{ ID uuid.UUID; Primary uuid.UUID; Candidate uuid.UUID }
+    var pairs []pair
+    if err := tx.Raw(`SELECT id, primary_operation_id, candidate_operation_id FROM dedup_candidates WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Scan(&pairs).Error; err != nil {
+        return err
+    }
+    type opRow struct{ ID uuid.UUID; Source string }
+    for _, p := range pairs {
+        var ops []opRow
+        if err := tx.Raw(`SELECT id, source FROM b3_operations_ledger WHERE tenant_id = ? AND id IN (?,?)`, tenantID, p.Primary, p.Candidate).Scan(&ops).Error; err != nil {
+            return err
+        }
+        var preferred, suppressed uuid.UUID
+        // preferência do OVERRIDE: USER_MANUAL prevalece quando disponível
+        if len(ops) == 2 {
+            if ops[0].Source == "USER_MANUAL" { preferred, suppressed = ops[0].ID, ops[1].ID } else if ops[1].Source == "USER_MANUAL" { preferred, suppressed = ops[1].ID, ops[0].ID } else { preferred, suppressed = p.Candidate, p.Primary }
+        } else {
+            preferred, suppressed = p.Candidate, p.Primary
+        }
+        if err := tx.Exec(`UPDATE b3_operations_ledger SET is_active = false, superseded_by_operation_id = ?, updated_by = 'dedup:override', updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ? AND id = ?`, preferred, tenantID, suppressed).Error; err != nil {
+            return err
+        }
+        if err := tx.Exec(`UPDATE dedup_candidates SET status = 'OVERRIDDEN', resolved_at = CURRENT_TIMESTAMP, resolved_by = 'dedup:override' WHERE tenant_id = ? AND id = ?`, tenantID, p.ID).Error; err != nil {
+            return err
+        }
+    }
+    return tx.Commit().Error
 }
 
 func (r *DedupRepo) ResolveIgnore(ctx context.Context, tenantID uuid.UUID, candidateIDs []uuid.UUID) error {
