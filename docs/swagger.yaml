@@ -413,6 +413,118 @@ paths:
       responses:
         "200": { description: OK, schema: { type: object, additionalProperties: true } }
         "400": { description: Bad Request, schema: { type: object, additionalProperties: { type: string } } }
+
+  /ops/manual:
+    post:
+      tags: [Manual Ops]
+      summary: Cria operação USER_MANUAL
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema:
+          type: object
+          properties:
+            cpf: { type: string }
+            ticker: { type: string }
+            assetType: { type: string }
+            operationDate: { type: string }
+            operationType: { type: string }
+            quantity: { type: number }
+            unitPrice: { type: number }
+            currency: { type: string }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+    put:
+      tags: [Manual Ops]
+      summary: Atualiza USER_MANUAL ativa
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: path
+        name: id
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema: { type: object }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+    delete:
+      tags: [Manual Ops]
+      summary: Soft delete de USER_MANUAL
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+
+  /ops/dedup/scan:
+    post:
+      tags: [Ops Dedup]
+      summary: Gera candidatos de dedup
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema: { type: object }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+
+  /ops/dedup/resolve:
+    post:
+      tags: [Ops Dedup]
+      summary: Resolve candidatos (MERGE|OVERRIDE|IGNORE)
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: body
+        name: request
+        required: true
+        schema: { type: object }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+
+  /ops/dedup/candidates:
+    get:
+      tags: [Ops Dedup]
+      summary: Lista candidatos
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: query
+        name: cpf
+        type: string
+      - in: query
+        name: status
+        type: string
+      responses:
+        "200": { description: OK }
   /health/live:
     get:
       tags:
