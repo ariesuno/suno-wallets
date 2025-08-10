@@ -1,0 +1,160 @@
+{
+    "info": {
+        "name": "B3 Admin & Reports",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenantId",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "adminSecret",
+            "value": ""
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ],
+    "item": [
+        {
+            "name": "Admin Operations",
+            "item": [
+                {
+                    "name": "Reset and Refetch",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "X-Admin-Secret",
+                                "value": "{{adminSecret}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"startOverride\": \"2024-01-01\",\n  \"endOverride\": \"2024-03-31\",\n  \"force\": false,\n  \"dryRun\": true,\n  \"mode\": \"archive\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/admin/reset-and-refetch",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "admin", "reset-and-refetch"]
+                        }
+                    }
+                },
+                {
+                    "name": "Incremental from Last",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "X-Admin-Secret",
+                                "value": "{{adminSecret}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"since\": null,\n  \"endOverride\": \"2024-03-31\",\n  \"dryRun\": true,\n  \"force\": false,\n  \"concurrency\": 2\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/admin/incremental-from-last",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "admin", "incremental-from-last"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Reports",
+            "item": [
+                {
+                    "name": "RAW Date Range",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/client/raw-date-range?cpf={{cpf}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "client", "raw-date-range"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Summary",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/client/summary?cpf={{cpf}}&from=2024-01-01&to=2024-12-31",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "client", "summary"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "from", "value": "2024-01-01"},
+                                {"key": "to", "value": "2024-12-31"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Tickers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/client/tickers?cpf={{cpf}}&from=2024-01-01&to=2024-12-31&limit=100&offset=0",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "client", "tickers"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "from", "value": "2024-01-01"},
+                                {"key": "to", "value": "2024-12-31"},
+                                {"key": "limit", "value": "100"},
+                                {"key": "offset", "value": "0"}
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

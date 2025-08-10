@@ -1,0 +1,215 @@
+{
+    "info": {
+        "name": "Backoffice Admin",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenantId",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "adminRole",
+            "value": "admin"
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ],
+    "item": [
+        {
+            "name": "Profile",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/profile?cpf={{cpf}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "profile"],
+                    "query": [
+                        {"key": "cpf", "value": "{{cpf}}"}
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Search",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/search?query=123456",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "search"],
+                    "query": [
+                        {"key": "query", "value": "123456"}
+                    ]
+                }
+            }
+        },
+        {
+            "name": "List Actions",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/actions",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "actions"]
+                }
+            }
+        },
+        {
+            "name": "Get Action",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/actions/{{actionId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "actions", "{{actionId}}"]
+                }
+            },
+            "variable": [
+                {
+                    "key": "actionId",
+                    "value": "00000000-0000-0000-0000-000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Export Ledger",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/export/ledger?cpf={{cpf}}&format=csv",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "export", "ledger"],
+                    "query": [
+                        {"key": "cpf", "value": "{{cpf}}"},
+                        {"key": "format", "value": "csv"}
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Request Action",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"actionType\": \"RESET_USER_DATA\",\n  \"cpf\": \"{{cpf}}\",\n  \"params\": {\n    \"mode\": \"archive\",\n    \"confirm\": \"YES\"\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/actions/request",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "actions", "request"]
+                }
+            }
+        },
+        {
+            "name": "Confirm Action",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Role",
+                        "value": "{{adminRole}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"actionId\": \"{{actionId}}\",\n  \"confirmToken\": \"{{confirmToken}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/admin/backoffice/actions/confirm",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["admin", "backoffice", "actions", "confirm"]
+                }
+            },
+            "variable": [
+                {
+                    "key": "actionId",
+                    "value": "00000000-0000-0000-0000-000000000000"
+                },
+                {
+                    "key": "confirmToken",
+                    "value": "confirm-token-123"
+                }
+            ]
+        }
+    ]
+}

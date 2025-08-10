@@ -1,0 +1,242 @@
+{
+    "info": {
+        "name": "B3 Data Operations",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenantId",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ],
+    "item": [
+        {
+            "name": "Preview",
+            "item": [
+                {
+                    "name": "Transactions Preview",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/fetch/transactions/preview?cpf={{cpf}}&assetType=equity&start=2024-01-01&end=2024-01-31",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "fetch", "transactions", "preview"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "assetType", "value": "equity"},
+                                {"key": "start", "value": "2024-01-01"},
+                                {"key": "end", "value": "2024-01-31"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Positions Preview",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/fetch/positions/preview?cpf={{cpf}}&assetType=equity&start=2024-01-01&end=2024-01-31",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "fetch", "positions", "preview"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "assetType", "value": "equity"},
+                                {"key": "start", "value": "2024-01-01"},
+                                {"key": "end", "value": "2024-01-31"}
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Ingest & Normalize",
+            "item": [
+                {
+                    "name": "RAW Historical Ingest",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"dataType\": \"positions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2024-01-01\",\n  \"end\": \"2024-03-31\",\n  \"fetchAllPages\": true,\n  \"force\": false,\n  \"dryRun\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/fetch/historical",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "fetch", "historical"]
+                        }
+                    }
+                },
+                {
+                    "name": "Normalize Run",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"dataType\": \"positions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2024-01-01\",\n  \"end\": \"2024-03-31\",\n  \"force\": false,\n  \"dryRun\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/normalize/run",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "normalize", "run"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sync",
+            "item": [
+                {
+                    "name": "Sync Run",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"scope\": \"single\",\n  \"cpf\": \"{{cpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"force\": false,\n  \"dryRun\": true,\n  \"limit\": 100\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/sync/run",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "sync", "run"]
+                        }
+                    }
+                },
+                {
+                    "name": "Client Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/client/status?cpf={{cpf}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "client", "status"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Client Last Sync",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/client/last-sync?cpf={{cpf}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "client", "last-sync"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sync Window",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/client/sync-window?cpf={{cpf}}&type=transactions&since=2024-01-01",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "client", "sync-window"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "type", "value": "transactions"},
+                                {"key": "since", "value": "2024-01-01"}
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "B3 Health Auth",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/health/auth",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "health", "auth"]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

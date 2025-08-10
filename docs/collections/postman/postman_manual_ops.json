@@ -1,0 +1,221 @@
+{
+    "info": {
+        "name": "Manual Operations & Dedup",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenantId",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "adminSecret",
+            "value": ""
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ],
+    "item": [
+        {
+            "name": "Manual Operations",
+            "item": [
+                {
+                    "name": "Create Manual Op",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"ticker\": \"PETR4\",\n  \"assetType\": \"equity\",\n  \"operationDate\": \"2024-01-15\",\n  \"operationType\": \"BUY\",\n  \"quantity\": 100,\n  \"unitPrice\": 25.50,\n  \"currency\": \"BRL\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/manual",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "manual"]
+                        }
+                    }
+                },
+                {
+                    "name": "List Manual Ops",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/manual?cpf={{cpf}}&pageSize=50",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "manual"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "pageSize", "value": "50"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Manual Op",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"ticker\": \"PETR4\",\n  \"quantity\": 150,\n  \"unitPrice\": 26.00\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/manual/{{operationId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "manual", "{{operationId}}"]
+                        }
+                    },
+                    "variable": [
+                        {
+                            "key": "operationId",
+                            "value": "00000000-0000-0000-0000-000000000000"
+                        }
+                    ]
+                },
+                {
+                    "name": "Delete Manual Op",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/manual/{{operationId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "manual", "{{operationId}}"]
+                        }
+                    },
+                    "variable": [
+                        {
+                            "key": "operationId",
+                            "value": "00000000-0000-0000-0000-000000000000"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Deduplication",
+            "item": [
+                {
+                    "name": "Scan Dedup",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "X-Admin-Secret",
+                                "value": "{{adminSecret}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"scoreThreshold\": 0.8,\n  \"maxCandidates\": 100\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/dedup/scan",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "dedup", "scan"]
+                        }
+                    }
+                },
+                {
+                    "name": "List Candidates",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/dedup/candidates?cpf={{cpf}}&status=PENDING",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "dedup", "candidates"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "status", "value": "PENDING"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Resolve Candidate",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            },
+                            {
+                                "key": "X-Admin-Secret",
+                                "value": "{{adminSecret}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"candidateId\": \"{{candidateId}}\",\n  \"action\": \"MERGE\",\n  \"reason\": \"Operações idênticas confirmadas\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/ops/dedup/resolve",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["ops", "dedup", "resolve"]
+                        }
+                    },
+                    "variable": [
+                        {
+                            "key": "candidateId",
+                            "value": "00000000-0000-0000-0000-000000000000"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

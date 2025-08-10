@@ -1,0 +1,163 @@
+{
+    "info": {
+        "name": "B3 Reconciliation",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenantId",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "adminSecret",
+            "value": ""
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ],
+    "item": [
+        {
+            "name": "Scan",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Admin-Secret",
+                        "value": "{{adminSecret}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"from\": \"2024-01-01\",\n  \"to\": \"2024-12-31\",\n  \"dryRun\": true,\n  \"maxSamplesPerType\": 5,\n  \"concurrency\": 2\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/b3/reconciliation/scan",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["b3", "reconciliation", "scan"]
+                }
+            }
+        },
+        {
+            "name": "List Inconsistencies",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/b3/reconciliation/inconsistencies?cpf={{cpf}}&status=OPEN",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["b3", "reconciliation", "inconsistencies"],
+                    "query": [
+                        {"key": "cpf", "value": "{{cpf}}"},
+                        {"key": "status", "value": "OPEN"}
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Inconsistency",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/b3/reconciliation/inconsistencies/{{inconsistencyId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["b3", "reconciliation", "inconsistencies", "{{inconsistencyId}}"]
+                }
+            },
+            "variable": [
+                {
+                    "key": "inconsistencyId",
+                    "value": "00000000-0000-0000-0000-000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Auto Fix",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Admin-Secret",
+                        "value": "{{adminSecret}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"dryRun\": true,\n  \"maxFixes\": 10\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/b3/reconciliation/auto-fix",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["b3", "reconciliation", "auto-fix"]
+                }
+            }
+        },
+        {
+            "name": "Auto Fix by ID",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenantId}}"
+                    },
+                    {
+                        "key": "X-Admin-Secret",
+                        "value": "{{adminSecret}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"dryRun\": true\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/b3/reconciliation/auto-fix/{{inconsistencyId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["b3", "reconciliation", "auto-fix", "{{inconsistencyId}}"]
+                }
+            },
+            "variable": [
+                {
+                    "key": "inconsistencyId",
+                    "value": "00000000-0000-0000-0000-000000000000"
+                }
+            ]
+        }
+    ]
+}
