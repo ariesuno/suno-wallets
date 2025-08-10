@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "node_modules",
+    ".git"
+  ],
+  "name": "Suno Wallets API",
+  "type": "collection",
+  "version": "1"
+}
