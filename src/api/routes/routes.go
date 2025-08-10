@@ -227,6 +227,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
             // Dedup endpoints
             opsGroup.POST("/dedup/scan", dedupController.Scan)
             opsGroup.POST("/dedup/resolve", dedupController.Resolve)
+            opsGroup.GET("/dedup/candidates", dedupController.List)
 		}
 	}
 

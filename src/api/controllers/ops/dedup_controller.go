@@ -32,4 +32,16 @@ func (c2 *DedupController) Resolve(ctx *gin.Context) {
     ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+// GET /ops/dedup/candidates
+func (c2 *DedupController) List(ctx *gin.Context) {
+    tenantID, ok := middlewares.GetTenantID(ctx)
+    if !ok { ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"}); return }
+    cpf := ctx.Query("cpf")
+    status := ctx.Query("status")
+    page, pageSize := 1, 50
+    items, err := c2.svc.ListCandidates(ctx, tenantID, cpf, status, page, pageSize)
+    if err != nil { ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return }
+    ctx.JSON(http.StatusOK, gin.H{"items": items})
+}
+
 
