@@ -1242,6 +1242,82 @@ paths:
       summary: B3 auth health
       tags:
       - B3
+  /b3/test/connection:
+    get:
+      summary: Testa conexão B3 e retorna relatório de transações/posições
+      tags: [B3 Test]
+      produces: [application/json]
+      parameters:
+      - in: header
+        name: X-Tenant-Id
+        required: true
+        type: string
+      - in: query
+        name: cpf
+        required: true
+        type: string
+        description: CPF do cliente (11 dígitos)
+      - in: query
+        name: yearMonth
+        required: true
+        type: string
+        description: Mês de referência no formato YYYY-MM (ex 2024-01)
+      responses:
+        "200":
+          description: Relatório de teste B3
+          schema:
+            type: object
+            properties:
+              success: { type: boolean }
+              connectionStatus: { type: string }
+              period:
+                type: object
+                properties:
+                  yearMonth: { type: string }
+                  start: { type: string }
+                  end: { type: string }
+              cpf: { type: string }
+              report:
+                type: object
+                properties:
+                  connectionTest:
+                    type: object
+                    properties:
+                      authenticationOK: { type: boolean }
+                      apiReachable: { type: boolean }
+                      responseTime: { type: string }
+                      error: { type: string }
+                  transactions:
+                    type: object
+                    properties:
+                      totalRecords: { type: integer }
+                      totalPages: { type: integer }
+                      sampleRecords: { type: array }
+                      assetTypes: { type: object }
+                      operationTypes: { type: object }
+                      tickers: { type: array }
+                      dateRange: { type: object }
+                      error: { type: string }
+                  positions:
+                    type: object
+                    properties:
+                      totalRecords: { type: integer }
+                      totalPages: { type: integer }
+                      sampleRecords: { type: array }
+                      assetTypes: { type: object }
+                      tickers: { type: array }
+                      dateRange: { type: object }
+                      error: { type: string }
+                  summary:
+                    type: object
+                    properties:
+                      totalTransactions: { type: integer }
+                      totalPositions: { type: integer }
+                      uniqueTickers: { type: array }
+                      testDuration: { type: string }
+                      dataQuality: { type: string }
+        "400": { description: Bad Request }
+        "500": { description: Internal Server Error }
   /b3/normalize/run:
     post:
       consumes:

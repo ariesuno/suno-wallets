@@ -17,6 +17,7 @@ import (
 	possvc "suno-wallets/src/application/b3/positions"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
+	testsvc "suno-wallets/src/application/b3/test"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	cpsvc "suno-wallets/src/application/clientpolicy"
 	opsapp "suno-wallets/src/application/ops"
@@ -106,6 +107,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	transactionsController := b3controllers.NewTransactionsController(transactionsService)
 	positionsService := possvc.NewPositionsService(b3Cli)
 	positionsController := b3controllers.NewPositionsController(positionsService)
+	// Test service para conectividade B3
+	testService := testsvc.NewService(b3Cli)
+	testController := b3controllers.NewTestController(testService)
 	// Ingest (RAW persistence)
 	rawRepo := persistence.NewRawRepository(db)
 	ingestSvc := ingest.NewService(b3Cli, rawRepo)
@@ -211,6 +215,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			// Controller B3 com cfg/creds (para health/auth)
 			b3Controller := controllers.NewB3Controller(b3Conf, creds)
 			b3Group.GET("/health/auth", b3Controller.HealthAuth)
+			// Teste de conectividade B3
+			b3Group.GET("/test/connection", testController.TestConnection)
 			// Preview de transações v2 (equity)
 			b3Group.GET("/fetch/transactions/preview", transactionsController.FetchTransactionsPreview)
 			// Alias compatível com v_p_1_7 (sem persistência, apenas proxy/preview)

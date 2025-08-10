@@ -217,6 +217,32 @@
             ]
         },
         {
+            "name": "Test",
+            "item": [
+                {
+                    "name": "Test B3 Connection",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-Id",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/b3/test/connection?cpf={{cpf}}&yearMonth=2024-01",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["b3", "test", "connection"],
+                            "query": [
+                                {"key": "cpf", "value": "{{cpf}}"},
+                                {"key": "yearMonth", "value": "2024-01"}
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
             "name": "Health",
             "item": [
                 {

@@ -1,0 +1,36 @@
+meta {
+  name: Test B3 Connection
+  type: http
+}
+
+get {
+  url: {{baseUrl}}/b3/test/connection
+  headers: {
+    X-Tenant-Id: {{tenantId}}
+  }
+  params:query {
+    cpf: {{cpf}}
+    yearMonth: 2024-01
+  }
+}
+
+docs {
+  # Teste de Conectividade B3
+
+  Este endpoint testa a conexão com a API da B3 e retorna um relatório detalhado 
+  das transações e posições encontradas para o CPF especificado no mês informado.
+
+  ## Parâmetros:
+  - **cpf**: CPF do cliente (11 dígitos)
+  - **yearMonth**: Mês de referência no formato YYYY-MM (ex: 2024-01)
+
+  ## Resposta:
+  Retorna um relatório completo com:
+  - Status da conexão (autenticação, API reachable, tempo de resposta)
+  - Resumo das transações (total de registros, páginas, amostras, tipos de ativos, operações, tickers)
+  - Resumo das posições (total de registros, páginas, amostras, tipos de ativos, tickers)
+  - Resumo geral (totais, tickers únicos, duração do teste, qualidade dos dados)
+
+  ## Exemplo de uso:
+  GET /api/v1/b3/test/connection?cpf=12345678901&yearMonth=2024-01
+}
