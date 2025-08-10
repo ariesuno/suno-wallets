@@ -1,5 +1,0 @@
-meta { name: Positions Preview (B3 v3) type: http seq: 2 }
-vars { baseUrl: {{baseUrl}} tenantId: {{tenantId}} cpf: 00000000000 }
-request { method: GET url: {{baseUrl}}/api/v1/b3/fetch/positions/preview }
-headers { X-Tenant-Id: {{tenantId}} }
-params { cpf: {{cpf}} start: 2024-01-01 end: 2024-01-31 assetType: equity page: 1 fetchAllPages: false }
