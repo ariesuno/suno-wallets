@@ -1,0 +1,31 @@
+meta {
+  name: Wallets - Create
+  type: http
+  seq: 100
+}
+
+post {
+  url: {{baseUrl}}/wallets
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Minha Carteira Principal",
+    "description": "Carteira para uso pessoal",
+    "type": "personal",
+    "currency": "BRL",
+    "is_default": true,
+    "owner_id": "550e8400-e29b-41d4-a716-446655440002",
+    "owner_type": "user",
+    "allow_debit": true,
+    "daily_limit": 100000,
+    "monthly_limit": 1000000,
+    "created_by": "550e8400-e29b-41d4-a716-446655440003"
+  }
+}

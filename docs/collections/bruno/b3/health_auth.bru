@@ -1,0 +1,17 @@
+meta {
+  name: B3 - Health Auth
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/b3/health/auth
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}
+
+docs {
+  Checks B3 OAuth/mTLS configuration health.
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Wallets - Update
+  type: http
+  seq: 103
+}
+
+put {
+  url: {{baseUrl}}/wallets/{{walletId}}
+  body: json
+}
+
+vars:pre-request {
+  walletId: 550e8400-e29b-41d4-a716-446655440000
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Carteira Atualizada",
+    "description": "Nova descrição da carteira",
+    "status": "active",
+    "daily_limit": 150000,
+    "allow_debit": true
+  }
+}

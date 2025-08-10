@@ -1,0 +1,17 @@
+meta {
+  name: Wallets - Get by Owner
+  type: http
+  seq: 105
+}
+
+get {
+  url: {{baseUrl}}/wallets/owner/{{ownerId}}
+}
+
+vars:pre-request {
+  ownerId: 550e8400-e29b-41d4-a716-446655440002
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

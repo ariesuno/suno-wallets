@@ -1,0 +1,18 @@
+meta {
+  name: Wallets - List
+  type: http
+  seq: 101
+}
+
+get {
+  url: {{baseUrl}}/wallets
+}
+
+params:query {
+  page: 1
+  limit: 10
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}
