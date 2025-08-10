@@ -1,0 +1,29 @@
+meta {
+  name: B3 Admin - Incremental from Last
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{baseUrl}}/b3/admin/incremental-from-last
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  X-Admin-Secret: {{adminSecret}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "dataTypes": ["transactions", "positions"],
+    "assetTypes": ["equity"],
+    "since": null,
+    "endOverride": "2024-03-31",
+    "dryRun": true,
+    "force": false,
+    "concurrency": 2
+  }
+}

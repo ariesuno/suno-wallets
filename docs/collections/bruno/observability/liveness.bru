@@ -1,0 +1,13 @@
+meta {
+  name: Liveness Check
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{baseUrl}}/../../live
+}
+
+docs {
+  Verifies if the application is alive (for Kubernetes).
+}

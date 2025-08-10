@@ -1,0 +1,24 @@
+meta {
+  name: Reconciliation - Auto Fix
+  type: http
+  seq: 63
+}
+
+post {
+  url: {{baseUrl}}/b3/reconciliation/auto-fix
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  X-Admin-Secret: {{adminSecret}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "dryRun": true,
+    "maxFixes": 10
+  }
+}

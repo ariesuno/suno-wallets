@@ -1,0 +1,21 @@
+meta {
+  name: B3 Reports - Tickers
+  type: http
+  seq: 52
+}
+
+get {
+  url: {{baseUrl}}/b3/client/tickers
+}
+
+params:query {
+  cpf: {{cpf}}
+  from: 2024-01-01
+  to: 2024-12-31
+  limit: 100
+  offset: 0
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

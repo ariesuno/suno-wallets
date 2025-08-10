@@ -1,0 +1,28 @@
+meta {
+  name: Manual Ops - Create
+  type: http
+  seq: 70
+}
+
+post {
+  url: {{baseUrl}}/ops/manual
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "ticker": "PETR4",
+    "assetType": "equity",
+    "operationDate": "2024-01-15",
+    "operationType": "BUY",
+    "quantity": 100,
+    "unitPrice": 25.50,
+    "currency": "BRL"
+  }
+}

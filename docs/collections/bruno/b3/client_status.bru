@@ -1,0 +1,17 @@
+meta {
+  name: B3 - Client Status
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/b3/client/status
+}
+
+params:query {
+  cpf: {{cpf}}
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

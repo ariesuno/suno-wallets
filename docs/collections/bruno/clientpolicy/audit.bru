@@ -1,0 +1,17 @@
+meta {
+  name: Client Policy - Audit
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{baseUrl}}/admin/client/policy/audit
+}
+
+params:query {
+  cpf: {{cpf}}
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

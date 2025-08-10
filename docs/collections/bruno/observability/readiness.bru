@@ -1,0 +1,13 @@
+meta {
+  name: Readiness Check
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{baseUrl}}/../../ready
+}
+
+docs {
+  Verifies if the application is ready to receive requests.
+}

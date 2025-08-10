@@ -1,0 +1,17 @@
+meta {
+  name: Reconciliation - Get Inconsistency
+  type: http
+  seq: 62
+}
+
+get {
+  url: {{baseUrl}}/b3/reconciliation/inconsistencies/{{inconsistencyId}}
+}
+
+vars:pre-request {
+  inconsistencyId: 00000000-0000-0000-0000-000000000000
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

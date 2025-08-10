@@ -1,0 +1,18 @@
+meta {
+  name: Manual Ops - List
+  type: http
+  seq: 71
+}
+
+get {
+  url: {{baseUrl}}/ops/manual
+}
+
+params:query {
+  cpf: {{cpf}}
+  pageSize: 50
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

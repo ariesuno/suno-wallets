@@ -1,0 +1,27 @@
+meta {
+  name: Reconciliation - Scan
+  type: http
+  seq: 60
+}
+
+post {
+  url: {{baseUrl}}/b3/reconciliation/scan
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  X-Admin-Secret: {{adminSecret}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "from": "2024-01-01",
+    "to": "2024-12-31",
+    "dryRun": true,
+    "maxSamplesPerType": 5,
+    "concurrency": 2
+  }
+}

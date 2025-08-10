@@ -1,0 +1,27 @@
+meta {
+  name: B3 - Normalize Run
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/b3/normalize/run
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "dataType": "positions",
+    "assetType": "equity",
+    "start": "2024-01-01",
+    "end": "2024-03-31",
+    "force": false,
+    "dryRun": true
+  }
+}

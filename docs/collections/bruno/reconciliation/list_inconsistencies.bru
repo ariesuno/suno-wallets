@@ -1,0 +1,19 @@
+meta {
+  name: Reconciliation - List Inconsistencies
+  type: http
+  seq: 61
+}
+
+get {
+  url: {{baseUrl}}/b3/reconciliation/inconsistencies
+}
+
+params:query {
+  cpf: {{cpf}}
+  status: OPEN
+  type: OPENING_BALANCE_MISSING
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

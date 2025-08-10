@@ -1,0 +1,24 @@
+meta {
+  name: Dedup - Scan
+  type: http
+  seq: 80
+}
+
+post {
+  url: {{baseUrl}}/ops/dedup/scan
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  X-Admin-Secret: {{adminSecret}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "scoreThreshold": 0.8,
+    "maxCandidates": 100
+  }
+}

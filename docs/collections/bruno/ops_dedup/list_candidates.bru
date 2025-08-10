@@ -1,0 +1,18 @@
+meta {
+  name: Dedup - List Candidates
+  type: http
+  seq: 81
+}
+
+get {
+  url: {{baseUrl}}/ops/dedup/candidates
+}
+
+params:query {
+  cpf: {{cpf}}
+  status: PENDING
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

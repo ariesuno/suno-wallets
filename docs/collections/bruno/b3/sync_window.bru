@@ -1,0 +1,19 @@
+meta {
+  name: B3 - Sync Window
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/b3/client/sync-window
+}
+
+params:query {
+  cpf: {{cpf}}
+  type: transactions
+  since: 2024-01-01
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

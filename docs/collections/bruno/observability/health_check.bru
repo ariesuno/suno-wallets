@@ -1,0 +1,14 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{baseUrl}}/../../health
+}
+
+docs {
+  Returns the current health status of the application.
+  This endpoint is used for monitoring and health checks.
+}

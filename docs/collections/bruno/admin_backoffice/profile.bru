@@ -1,0 +1,18 @@
+meta {
+  name: Backoffice - Profile
+  type: http
+  seq: 90
+}
+
+get {
+  url: {{baseUrl}}/admin/backoffice/profile
+}
+
+params:query {
+  cpf: {{cpf}}
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  X-Role: admin
+}

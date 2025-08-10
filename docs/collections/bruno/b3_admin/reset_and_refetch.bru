@@ -1,0 +1,29 @@
+meta {
+  name: B3 Admin - Reset and Refetch
+  type: http
+  seq: 40
+}
+
+post {
+  url: {{baseUrl}}/b3/admin/reset-and-refetch
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  X-Admin-Secret: {{adminSecret}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "assetTypes": ["equity"],
+    "dataTypes": ["transactions", "positions"],
+    "startOverride": "2024-01-01",
+    "endOverride": "2024-03-31",
+    "force": false,
+    "dryRun": true,
+    "mode": "archive"
+  }
+}

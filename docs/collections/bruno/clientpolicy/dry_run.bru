@@ -1,0 +1,22 @@
+meta {
+  name: Client Policy - Dry Run
+  type: http
+  seq: 33
+}
+
+post {
+  url: {{baseUrl}}/admin/client/policy/dry-run
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "newMode": "B3_ONLY"
+  }
+}
