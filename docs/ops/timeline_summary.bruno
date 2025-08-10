@@ -1,0 +1,42 @@
+# Bruno Collection: Ops — Timeline & Summary
+
+meta {
+  name: Ops Timeline & Summary
+  type: http
+  seq: 1
+}
+
+env "local" {
+  var base_url = "http://localhost:8080/api/v1"
+  var tenant_id = "00000000-0000-0000-0000-000000000001"
+  var admin_secret = ""
+  var cpf = "00000000000"
+}
+
+req "Timeline — list" {
+  get: "{{base_url}}/ops/timeline?cpf={{cpf}}&pageSize=100"
+  headers {
+    X-Tenant-Id: "{{tenant_id}}"
+    Content-Type: "application/json"
+  }
+}
+
+req "Timeline — list filtered" {
+  get: "{{base_url}}/ops/timeline?cpf={{cpf}}&tickers=ITSA4,VALE3&sources=B3_RAW,SYSTEM_SYNTHETIC&from=2024-01-01&to=2024-12-31&pageSize=200"
+  headers { X-Tenant-Id: "{{tenant_id}}" }
+}
+
+req "Timeline — export (admin)" {
+  get: "{{base_url}}/ops/timeline/export?cpf={{cpf}}&format=json"
+  headers {
+    X-Tenant-Id: "{{tenant_id}}"
+    X-Admin-Secret: "{{admin_secret}}"
+  }
+}
+
+req "Reconciliation — summary" {
+  get: "{{base_url}}/ops/reconciliation/summary?cpf={{cpf}}"
+  headers { X-Tenant-Id: "{{tenant_id}}" }
+}
+
+

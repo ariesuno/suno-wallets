@@ -77,8 +77,9 @@ type ResolveRequest struct {
 }
 
 type DedupService struct{ repo DedupRepository }
+
 func (s *DedupService) ListCandidates(ctx context.Context, tenantID uuid.UUID, cpf, status string, page, pageSize int) ([]DedupCandidate, error) {
-    return s.repo.ListCandidates(ctx, tenantID, cpf, status, nil, nil, nil, page, pageSize)
+	return s.repo.ListCandidates(ctx, tenantID, cpf, status, nil, nil, nil, page, pageSize)
 }
 
 func NewDedupService(repo DedupRepository) *DedupService { return &DedupService{repo: repo} }
@@ -132,17 +133,17 @@ func (s *DedupService) Scan(ctx context.Context, tenantID uuid.UUID, req ScanReq
 			}
 			cand.PairKey = hashJoin(tenantID.String(), req.CPF, b3.ID.String(), mo.ID.String())
 			cand.DedupeKey = hashJoin(b3.Ticker, b3.OperationType, b3.OperationDate.Format("2006-01-02"), f2s(b3.Quantity), f2s(zeroIfNil(b3.Gross)), mo.OperationType, f2s(mo.Quantity), f2s(zeroIfNil(mo.Gross)))
-            if !req.DryRun {
-                if ok, err := s.repo.UpsertCandidate(ctx, cand); err == nil && ok {
-                    created++
-                } else if err != nil {
-                    obs.ObserveDedupScan("error", started)
-                    return created, err
-                }
-                if score >= policy.AutoMergeThreshold {
-                    _ = s.repo.ResolveMerge(ctx, tenantID, []uuid.UUID{cand.ID}, policy.PreferSource)
-                }
-            }
+			if !req.DryRun {
+				if ok, err := s.repo.UpsertCandidate(ctx, cand); err == nil && ok {
+					created++
+				} else if err != nil {
+					obs.ObserveDedupScan("error", started)
+					return created, err
+				}
+				if score >= policy.AutoMergeThreshold {
+					_ = s.repo.ResolveMerge(ctx, tenantID, []uuid.UUID{cand.ID}, policy.PreferSource)
+				}
+			}
 		}
 	}
 	obs.IncDedupCandidates("OPEN", created)
@@ -210,8 +211,9 @@ func (s *DedupService) scorePair(b3 LedgerOp, mo LedgerOp, p DedupPolicy) (float
 	if mo.OperationType == b3.OperationType {
 		sideMatch = 1.0
 	}
+	// extras: broker/order simples (placeholder: 0)
 	extras := 0.0
-	rationale := map[string]interface{}{"qtyDelta": qtyDelta, "grossDelta": math.Abs(grossMo - grossB3), "side": sideMatch}
+	rationale := map[string]interface{}{"qtyDelta": qtyDelta, "grossDelta": math.Abs(grossMo - grossB3), "side": sideMatch, "weights": map[string]float64{"quantity": 0.45, "gross": 0.35, "side": 0.15, "extras": 0.05}}
 	// pesos
 	score := 0.45*qtyMatch + 0.35*grossMatch + 0.15*sideMatch + 0.05*extras
 	rationale["score"] = score

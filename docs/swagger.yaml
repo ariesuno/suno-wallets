@@ -438,7 +438,8 @@ paths:
             unitPrice: { type: number }
             currency: { type: string }
       responses:
-        "200": { description: OK }
+        "201": { description: Created }
+        "409": { description: Conflict (B3_ONLY policy) }
         "400": { description: Bad Request }
     put:
       tags: [Manual Ops]
@@ -480,6 +481,11 @@ paths:
       summary: Gera candidatos de dedup
       parameters:
       - in: header
+        name: X-Admin-Secret
+        required: false
+        type: string
+      parameters:
+      - in: header
         name: X-Tenant-Id
         required: true
         type: string
@@ -495,6 +501,151 @@ paths:
     post:
       tags: [Ops Dedup]
       summary: Resolve candidatos (MERGE|OVERRIDE|IGNORE)
+  /ops/timeline:
+    get:
+      tags: [Timeline]
+      summary: Lista timeline unificada (keyset)
+      parameters:
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      - in: query
+        name: tickers
+        required: false
+        type: string
+        description: Lista separada por vírgula
+      - in: query
+        name: from
+        type: string
+      - in: query
+        name: to
+        type: string
+      - in: query
+        name: sources
+        type: string
+      - in: query
+        name: assetTypes
+        type: string
+      - in: query
+        name: canonicalize
+        type: boolean
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: cursor
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "5xx": { description: Server Error }
+
+  /ops/timeline/export:
+    get:
+      tags: [Timeline]
+      summary: Export da timeline (admin)
+      parameters:
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      - in: query
+        name: limit
+        required: false
+        type: integer
+      - in: query
+        name: format
+        type: string
+        enum: [csv, json]
+      - in: header
+        name: X-Admin-Secret
+        required: false
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "403": { description: Forbidden }
+
+  /ops/reconciliation/summary:
+    get:
+      tags: [Reconciliation]
+      summary: Snapshot do resumo de reconciliação
+      parameters:
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+        "5xx": { description: Server Error }
+
+  /admin/client/policy:
+    get:
+      tags: [Client Policy]
+      summary: Obtém a policy atual de um CPF
+      parameters:
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+    post:
+      tags: [Client Policy]
+      summary: Upsert da policy (admin)
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            cpf: { type: string }
+            mode: { type: string, enum: [B3_ONLY, MANUAL_ONLY, HYBRID] }
+            reason: { type: string }
+      responses:
+        "201": { description: Created }
+        "400": { description: Bad Request }
+
+  /admin/client/policy/audit:
+    get:
+      tags: [Client Policy]
+      summary: Lista audit log da policy
+      parameters:
+      - in: query
+        name: cpf
+        required: true
+        type: string
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+
+  /admin/client/policy/dry-run:
+    post:
+      tags: [Client Policy]
+      summary: Simula impacto de alteração de policy
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            cpf: { type: string }
+            newMode: { type: string, enum: [B3_ONLY, MANUAL_ONLY, HYBRID] }
+      responses:
+        "200": { description: OK }
+        "400": { description: Bad Request }
+      parameters:
+      - in: header
+        name: X-Admin-Secret
+        required: false
+        type: string
       parameters:
       - in: header
         name: X-Tenant-Id

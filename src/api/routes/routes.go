@@ -4,8 +4,9 @@ import (
 	"context"
 	"suno-wallets/src/api/controllers"
 	b3controllers "suno-wallets/src/api/controllers/b3"
-    opsctl "suno-wallets/src/api/controllers/ops"
+	cpctl "suno-wallets/src/api/controllers/clientpolicy"
 	obsctl "suno-wallets/src/api/controllers/observability"
+	opsctl "suno-wallets/src/api/controllers/ops"
 	"suno-wallets/src/api/middlewares"
 	appe2e "suno-wallets/src/application/b3/e2e"
 	incrsvc "suno-wallets/src/application/b3/incremental"
@@ -14,8 +15,9 @@ import (
 	possvc "suno-wallets/src/application/b3/positions"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
-    opsapp "suno-wallets/src/application/ops"
 	b3svc "suno-wallets/src/application/b3/transactions"
+	cpsvc "suno-wallets/src/application/clientpolicy"
+	opsapp "suno-wallets/src/application/ops"
 	"suno-wallets/src/application/usecases"
 	b3client "suno-wallets/src/infrastructure/b3/client"
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
@@ -27,8 +29,9 @@ import (
 	reprepo "suno-wallets/src/infrastructure/b3/reports"
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	syncrepo2 "suno-wallets/src/infrastructure/b3/sync"
+	cprepo "suno-wallets/src/infrastructure/clientpolicy"
 	"suno-wallets/src/infrastructure/observability"
-    opsinfra "suno-wallets/src/infrastructure/ops"
+	opsinfra "suno-wallets/src/infrastructure/ops"
 	"suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/build"
 	"suno-wallets/src/shared/config"
@@ -44,6 +47,7 @@ import (
 
 // SetupRoutes configura todas as rotas da aplicação
 func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
+	ttlSecondsHelper := func() int { return 60 }
 	// Configurar Gin
 	gin.SetMode(cfg.GinMode)
 	router := gin.New()
@@ -110,28 +114,40 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	repRepo := reprepo.NewRepository(db)
 	repSvc := repsvc.NewService(repRepo)
 	repController := b3controllers.NewReportsController(repSvc)
-    // Reconciliation (1.17) — scan e leitura
-    reconRepo := reconrepo.NewRepository(db)
-    reconController := b3controllers.NewReconciliationController(reconRepo)
-    // Manual Ops (1.19)
-    opsRepo := opsinfra.NewOperationsRepository(db)
-    manualOpsSvc := opsapp.NewManualOperationsService(opsRepo)
-    manualOpsController := opsctl.NewManualOperationsController(manualOpsSvc)
-    // Dedup wiring
-    dedupRepo := opsinfra.NewDedupRepo(db)
-    dedupSvc := opsapp.NewDedupService(dedupRepo)
-    dedupController := opsctl.NewDedupController(dedupSvc)
-    // Auto-fix (1.18)
-    sysRepo := reconrepo.NewSysOpsRepository(db)
-    // price lookup placeholder: nil (serviço pode derivar de posições em iteração futura)
-    autoFixController := b3controllers.NewAutoFixController(sysRepo, nil)
+	// Reconciliation (1.17) — scan e leitura
+	reconRepo := reconrepo.NewRepository(db)
+	reconController := b3controllers.NewReconciliationController(reconRepo)
+	// Manual Ops (1.19)
+	opsRepo := opsinfra.NewOperationsRepository(db)
+	manualOpsSvc := opsapp.NewManualOperationsService(opsRepo)
+	manualOpsController := opsctl.NewManualOperationsController(manualOpsSvc)
+	// Client Policy wiring (1.21)
+	polRepo := cprepo.NewRepository(db)
+	polCache := cprepo.NewInMemoryCache(time.Duration(ttlSecondsHelper()) * time.Second)
+	polSvc := cpsvc.NewService(polRepo, polCache)
+	polCtl := cpctl.NewController(polSvc)
+	// Dedup wiring
+	dedupRepo := opsinfra.NewDedupRepo(db)
+	dedupSvc := opsapp.NewDedupService(dedupRepo)
+	dedupController := opsctl.NewDedupController(dedupSvc)
+	// Timeline & Summary (1.20)
+	timelineRepo := opsinfra.NewTimelineRepo(db)
+	timelineSvc := opsapp.NewTimelineService(timelineRepo)
+	timelineController := opsctl.NewTimelineControllerWithPolicy(timelineSvc, polSvc)
+	reconSumRepo := opsinfra.NewReconRepo(db)
+	reconSumSvc := opsapp.NewReconSummaryService(reconSumRepo)
+	reconSumController := opsctl.NewReconSummaryController(reconSumSvc)
+	// Auto-fix (1.18)
+	sysRepo := reconrepo.NewSysOpsRepository(db)
+	// price lookup placeholder: nil (serviço pode derivar de posições em iteração futura)
+	autoFixController := b3controllers.NewAutoFixController(sysRepo, nil)
 	normController := b3controllers.NewNormalizeController(normSvc)
 	// E2E orchestrator (admin)
 	resetRepo := e2erepo.NewRepository(db)
 	e2eOrch := appe2e.NewOrchestrator(resetRepo, ingestSvc, normSvc)
 	// incremental service wiring
 	syncRepoIncr := syncrepo2.NewRepository(db)
-	incrementalSvc := incrsvc.NewService(syncRepoIncr, ingestSvc, normSvc)
+	incrementalSvc := incrsvc.NewService(syncRepoIncr, ingestSvc, normSvc).WithPolicy(polSvc)
 	adminController := b3controllers.NewAdminController(e2eOrch, incrementalSvc)
 	utilController := b3controllers.NewUtilController(incrementalSvc)
 	// Sync diário
@@ -156,6 +172,13 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	apiV1 := router.Group("/api/v1")
 	apiV1.Use(middlewares.TenantMiddleware())
 	{
+		// Client Policy (admin)
+		admin := apiV1.Group("/admin")
+		admin.Use(middlewares.RateLimitMiddleware(30, time.Minute))
+		admin.GET("/client/policy", polCtl.Get)
+		admin.POST("/client/policy", polCtl.Upsert)
+		admin.GET("/client/policy/audit", polCtl.Audit)
+		admin.POST("/client/policy/dry-run", polCtl.DryRun)
 		// Rotas de carteiras
 		walletsGroup := apiV1.Group("/wallets")
 		{
@@ -210,24 +233,31 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			scanGroup := b3Group.Group("/reconciliation")
 			scanGroup.Use(middlewares.RateLimitMiddleware(10, time.Minute))
 			scanGroup.POST("/scan", reconController.Scan)
-            b3Group.GET("/reconciliation/inconsistencies", reconController.List)
+			b3Group.GET("/reconciliation/inconsistencies", reconController.List)
 			b3Group.GET("/reconciliation/inconsistencies/:id", reconController.Get)
-            // Auto-fix endpoints (admin-only)
-            af := b3Group.Group("/reconciliation")
-            af.Use(middlewares.RateLimitMiddleware(10, time.Minute))
-            af.POST("/auto-fix", autoFixController.AutoFix)
-            af.POST("/auto-fix/:id", autoFixController.AutoFixByID)
+			// Auto-fix endpoints (admin-only)
+			af := b3Group.Group("/reconciliation")
+			af.Use(middlewares.RateLimitMiddleware(10, time.Minute))
+			af.POST("/auto-fix", autoFixController.AutoFix)
+			af.POST("/auto-fix/:id", autoFixController.AutoFixByID)
 
-            // Manual Ops endpoints
-            opsGroup := apiV1.Group("/ops")
-            opsGroup.Use(middlewares.RateLimitMiddleware(120, time.Minute))
-            opsGroup.POST("/manual", manualOpsController.Create)
-            opsGroup.PUT("/manual/:id", manualOpsController.Update)
-            opsGroup.DELETE("/manual/:id", manualOpsController.Delete)
-            // Dedup endpoints
-            opsGroup.POST("/dedup/scan", dedupController.Scan)
-            opsGroup.POST("/dedup/resolve", dedupController.Resolve)
-            opsGroup.GET("/dedup/candidates", dedupController.List)
+			// Manual Ops endpoints
+			opsGroup := apiV1.Group("/ops")
+			opsGroup.Use(middlewares.RateLimitMiddleware(120, time.Minute))
+			opsGroup.POST("/manual", manualOpsController.Create)
+			opsGroup.PUT("/manual/:id", manualOpsController.Update)
+			opsGroup.DELETE("/manual/:id", manualOpsController.Delete)
+			opsGroup.GET("/manual", manualOpsController.List)
+			// Timeline & Summary endpoints
+			opsGroup.GET("/timeline", timelineController.Get)
+			opsGroup.GET("/timeline/export", timelineController.Export)
+			opsGroup.GET("/reconciliation/summary", reconSumController.Get)
+			// Dedup endpoints
+			dedupGroup := opsGroup.Group("/dedup")
+			dedupGroup.Use(middlewares.RateLimitMiddleware(60, time.Minute))
+			dedupGroup.POST("/scan", dedupController.Scan)
+			dedupGroup.POST("/resolve", dedupController.Resolve)
+			dedupGroup.GET("/candidates", dedupController.List)
 		}
 	}
 

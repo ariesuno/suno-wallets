@@ -1,0 +1,124 @@
+{
+    "info": {
+        "name": "Ops Timeline & Summary",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Timeline — list",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/ops/timeline?cpf={{cpf}}&pageSize=100",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "ops",
+                        "timeline"
+                    ],
+                    "query": [
+                        {
+                            "key": "cpf",
+                            "value": "{{cpf}}"
+                        },
+                        {
+                            "key": "pageSize",
+                            "value": "100"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Timeline — export (admin)",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    },
+                    {
+                        "key": "X-Admin-Secret",
+                        "value": "{{admin_secret}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/ops/timeline/export?cpf={{cpf}}&format=json",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "ops",
+                        "timeline",
+                        "export"
+                    ],
+                    "query": [
+                        {
+                            "key": "cpf",
+                            "value": "{{cpf}}"
+                        },
+                        {
+                            "key": "format",
+                            "value": "json"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Reconciliation — summary",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/ops/reconciliation/summary?cpf={{cpf}}",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "ops",
+                        "reconciliation",
+                        "summary"
+                    ],
+                    "query": [
+                        {
+                            "key": "cpf",
+                            "value": "{{cpf}}"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenant_id",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "admin_secret",
+            "value": ""
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ]
+}

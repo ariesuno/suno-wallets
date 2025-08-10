@@ -1,0 +1,144 @@
+{
+    "info": {
+        "name": "Client Policy",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get policy",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/admin/client/policy?cpf={{cpf}}",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "admin",
+                        "client",
+                        "policy"
+                    ],
+                    "query": [
+                        {
+                            "key": "cpf",
+                            "value": "{{cpf}}"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Upsert policy",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/admin/client/policy",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "admin",
+                        "client",
+                        "policy"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"mode\": \"HYBRID\",\n  \"reason\": \"enable manual + b3\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Audit policy",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/admin/client/policy/audit?cpf={{cpf}}",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "admin",
+                        "client",
+                        "policy",
+                        "audit"
+                    ],
+                    "query": [
+                        {
+                            "key": "cpf",
+                            "value": "{{cpf}}"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Dry-run policy",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "X-Tenant-Id",
+                        "value": "{{tenant_id}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/admin/client/policy/dry-run",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "admin",
+                        "client",
+                        "policy",
+                        "dry-run"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"newMode\": \"MANUAL_ONLY\"\n}"
+                }
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8080/api/v1"
+        },
+        {
+            "key": "tenant_id",
+            "value": "00000000-0000-0000-0000-000000000001"
+        },
+        {
+            "key": "cpf",
+            "value": "00000000000"
+        }
+    ]
+}

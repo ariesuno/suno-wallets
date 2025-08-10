@@ -8,6 +8,7 @@ import (
 
 	appingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
+	polsvc "suno-wallets/src/application/clientpolicy"
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/shared/helpers"
@@ -32,11 +33,14 @@ type Service struct {
 	repo      SyncRepository
 	ingest    IngestPort
 	normalize NormalizePort
+	policy    *polsvc.Service
 }
 
 func NewService(repo SyncRepository, ingest IngestPort, normalize NormalizePort) *Service {
 	return &Service{repo: repo, ingest: ingest, normalize: normalize}
 }
+
+func (s *Service) WithPolicy(p *polsvc.Service) *Service { s.policy = p; return s }
 
 type Params struct {
 	TenantID    uuid.UUID
@@ -70,6 +74,17 @@ type Summary struct {
 func (s *Service) Run(ctx context.Context, p Params) (*Summary, error) {
 	started := time.Now()
 	out := &Summary{StartedAt: started, DryRun: p.DryRun, Force: p.Force}
+	// Enforce policy: MANUAL_ONLY → skipar jobs B3
+	if s.policy != nil {
+		mode := s.policy.GetMode(ctx, p.TenantID.String(), p.CPF)
+		if string(mode) == "MANUAL_ONLY" {
+			observability.IncPolicySkipped("B3_Incremental")
+			helpers.LogInfo("incremental skipped by client policy", map[string]any{"tenantId": p.TenantID.String(), "cpfMasked": maskCPF(p.CPF), "mode": "MANUAL_ONLY"})
+			out.FinishedAt = time.Now()
+			out.DurationMs = time.Since(started).Milliseconds()
+			return out, nil
+		}
+	}
 
 	st, _ := s.repo.GetByTenantCPF(ctx, p.TenantID, p.CPF)
 	now := time.Now().UTC()

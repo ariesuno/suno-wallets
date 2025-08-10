@@ -223,56 +223,92 @@ var (
 		},
 	)
 
-  // Métricas do Auto-fix (1.18)
-  b3AutofixRunsTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{
-      Name: "b3_autofix_runs_total",
-      Help: "Total de execuções do auto-fix por resultado",
-    },
-    []string{"result"},
-  )
-  b3AutofixOpsCreatedTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{
-      Name: "b3_autofix_ops_created_total",
-      Help: "Total de operações criadas pelo auto-fix por reason_code",
-    },
-    []string{"reason_code"},
-  )
-  b3AutofixPendingTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{
-      Name: "b3_autofix_pending_total",
-      Help: "Total de inconsistências pendentes no auto-fix por reason",
-    },
-    []string{"reason"},
-  )
-  b3AutofixDuration = promauto.NewHistogram(
-    prometheus.HistogramOpts{
-      Name:    "b3_autofix_duration_seconds",
-      Help:    "Duração das execuções do auto-fix",
-      Buckets: prometheus.DefBuckets,
-    },
-  )
+	// Métricas do Auto-fix (1.18)
+	b3AutofixRunsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_autofix_runs_total",
+			Help: "Total de execuções do auto-fix por resultado",
+		},
+		[]string{"result"},
+	)
+	b3AutofixOpsCreatedTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_autofix_ops_created_total",
+			Help: "Total de operações criadas pelo auto-fix por reason_code",
+		},
+		[]string{"reason_code"},
+	)
+	b3AutofixPendingTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_autofix_pending_total",
+			Help: "Total de inconsistências pendentes no auto-fix por reason",
+		},
+		[]string{"reason"},
+	)
+	b3AutofixDuration = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "b3_autofix_duration_seconds",
+			Help:    "Duração das execuções do auto-fix",
+			Buckets: prometheus.DefBuckets,
+		},
+	)
 
-  // Métricas 1.19: Manual Ops e Dedup
-  opsManualWritesTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{ Name: "ops_manual_writes_total", Help: "Total de escritas USER_MANUAL por resultado" },
-    []string{"result"},
-  )
-  opsDedupScanRunsTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{ Name: "ops_dedup_scan_runs_total", Help: "Total de execuções de scan de dedup" },
-    []string{"result"},
-  )
-  opsDedupCandidatesTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{ Name: "ops_dedup_candidates_total", Help: "Total de candidatos de dedup por status" },
-    []string{"status"},
-  )
-  opsDedupResolutionsTotal = promauto.NewCounterVec(
-    prometheus.CounterOpts{ Name: "ops_dedup_resolutions_total", Help: "Total de resoluções de dedup por ação" },
-    []string{"action"},
-  )
-  opsDedupDuration = promauto.NewHistogram(
-    prometheus.HistogramOpts{ Name: "ops_dedup_duration_seconds", Help: "Duração do processamento de dedup", Buckets: prometheus.DefBuckets },
-  )
+	// Métricas 1.19: Manual Ops e Dedup
+	opsManualWritesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "ops_manual_writes_total", Help: "Total de escritas USER_MANUAL por resultado"},
+		[]string{"result"},
+	)
+	opsDedupScanRunsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "ops_dedup_scan_runs_total", Help: "Total de execuções de scan de dedup"},
+		[]string{"result"},
+	)
+	opsDedupCandidatesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "ops_dedup_candidates_total", Help: "Total de candidatos de dedup por status"},
+		[]string{"status"},
+	)
+	opsDedupResolutionsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "ops_dedup_resolutions_total", Help: "Total de resoluções de dedup por ação"},
+		[]string{"action"},
+	)
+	opsDedupDuration = promauto.NewHistogram(
+		prometheus.HistogramOpts{Name: "ops_dedup_duration_seconds", Help: "Duração do processamento de dedup", Buckets: prometheus.DefBuckets},
+	)
+
+	// Métricas 1.20: Timeline & Reconciliation Summary
+	opsTimelineRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "ops_timeline_requests_total", Help: "Total de requisições de timeline por resultado"},
+		[]string{"result"},
+	)
+	opsTimelineDuration = promauto.NewHistogram(
+		prometheus.HistogramOpts{Name: "ops_timeline_duration_seconds", Help: "Duração de requisições de timeline", Buckets: prometheus.DefBuckets},
+	)
+	opsTimelineExportRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "ops_timeline_export_requests_total", Help: "Total de exports de timeline por formato"},
+		[]string{"format"},
+	)
+	reconSummaryRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "recon_summary_requests_total", Help: "Total de requisições de resumo de reconciliação por resultado"},
+		[]string{"result"},
+	)
+	reconSummaryDuration = promauto.NewHistogram(
+		prometheus.HistogramOpts{Name: "recon_summary_duration_seconds", Help: "Duração de requisições de resumo de reconciliação", Buckets: prometheus.DefBuckets},
+	)
+	// Client Policy metrics (1.21)
+	clientPolicyReadsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "client_policy_reads_total", Help: "Leituras de client policy por source e resultado"},
+		[]string{"source", "result"},
+	)
+	clientPolicyWritesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "client_policy_writes_total", Help: "Escritas de client policy por resultado"},
+		[]string{"result"},
+	)
+	clientPolicyInvalidationsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{Name: "client_policy_cache_invalidations_total", Help: "Invalidacoes de cache de client policy"},
+	)
+	policySkippedTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "policy_skipped_total", Help: "Operações/jobs skipados por política"},
+		[]string{"job"},
+	)
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
@@ -382,23 +418,54 @@ func IncReconFound(typ string, n int) {
 
 // Auto-fix metrics
 func ObserveAutofixRun(result string, startedAt time.Time) {
-  b3AutofixRunsTotal.WithLabelValues(result).Inc()
-  b3AutofixDuration.Observe(time.Since(startedAt).Seconds())
+	b3AutofixRunsTotal.WithLabelValues(result).Inc()
+	b3AutofixDuration.Observe(time.Since(startedAt).Seconds())
 }
 func IncAutofixOpsCreated(reasonCode string, n int) {
-  if n <= 0 { return }
-  b3AutofixOpsCreatedTotal.WithLabelValues(reasonCode).Add(float64(n))
+	if n <= 0 {
+		return
+	}
+	b3AutofixOpsCreatedTotal.WithLabelValues(reasonCode).Add(float64(n))
 }
 func IncAutofixPending(reason string, n int) {
-  if n <= 0 { return }
-  b3AutofixPendingTotal.WithLabelValues(reason).Add(float64(n))
+	if n <= 0 {
+		return
+	}
+	b3AutofixPendingTotal.WithLabelValues(reason).Add(float64(n))
 }
 
 // Manual Ops & Dedup metrics
 func IncManualWrites(result string) { opsManualWritesTotal.WithLabelValues(result).Inc() }
 func ObserveDedupScan(result string, startedAt time.Time) {
-  opsDedupScanRunsTotal.WithLabelValues(result).Inc()
-  opsDedupDuration.Observe(time.Since(startedAt).Seconds())
+	opsDedupScanRunsTotal.WithLabelValues(result).Inc()
+	opsDedupDuration.Observe(time.Since(startedAt).Seconds())
 }
-func IncDedupCandidates(status string, n int) { if n > 0 { opsDedupCandidatesTotal.WithLabelValues(status).Add(float64(n)) } }
-func IncDedupResolutions(action string, n int) { if n > 0 { opsDedupResolutionsTotal.WithLabelValues(action).Add(float64(n)) } }
+func IncDedupCandidates(status string, n int) {
+	if n > 0 {
+		opsDedupCandidatesTotal.WithLabelValues(status).Add(float64(n))
+	}
+}
+func IncDedupResolutions(action string, n int) {
+	if n > 0 {
+		opsDedupResolutionsTotal.WithLabelValues(action).Add(float64(n))
+	}
+}
+
+// Timeline & Summary metrics
+func ObserveTimeline(result string, startedAt time.Time) {
+	opsTimelineRequestsTotal.WithLabelValues(result).Inc()
+	opsTimelineDuration.Observe(time.Since(startedAt).Seconds())
+}
+func IncTimelineExport(format string) { opsTimelineExportRequestsTotal.WithLabelValues(format).Inc() }
+func ObserveReconSummary(result string, startedAt time.Time) {
+	reconSummaryRequestsTotal.WithLabelValues(result).Inc()
+	reconSummaryDuration.Observe(time.Since(startedAt).Seconds())
+}
+
+// Client Policy
+func IncClientPolicyRead(source, result string) {
+	clientPolicyReadsTotal.WithLabelValues(source, result).Inc()
+}
+func IncClientPolicyWrite(result string) { clientPolicyWritesTotal.WithLabelValues(result).Inc() }
+func IncClientPolicyInvalidate()         { clientPolicyInvalidationsTotal.Inc() }
+func IncPolicySkipped(job string)        { policySkippedTotal.WithLabelValues(job).Inc() }
