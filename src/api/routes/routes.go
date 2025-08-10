@@ -3,11 +3,13 @@ package routes
 import (
 	"context"
 	"suno-wallets/src/api/controllers"
+	adminctl "suno-wallets/src/api/controllers/admin"
 	b3controllers "suno-wallets/src/api/controllers/b3"
 	cpctl "suno-wallets/src/api/controllers/clientpolicy"
 	obsctl "suno-wallets/src/api/controllers/observability"
 	opsctl "suno-wallets/src/api/controllers/ops"
 	"suno-wallets/src/api/middlewares"
+	adminapp "suno-wallets/src/application/admin"
 	appe2e "suno-wallets/src/application/b3/e2e"
 	incrsvc "suno-wallets/src/application/b3/incremental"
 	ingest "suno-wallets/src/application/b3/ingest"
@@ -19,6 +21,7 @@ import (
 	cpsvc "suno-wallets/src/application/clientpolicy"
 	opsapp "suno-wallets/src/application/ops"
 	"suno-wallets/src/application/usecases"
+	adminrepo "suno-wallets/src/infrastructure/admin"
 	b3client "suno-wallets/src/infrastructure/b3/client"
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
 	b3cfg "suno-wallets/src/infrastructure/b3/config"
@@ -137,6 +140,11 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	reconSumRepo := opsinfra.NewReconRepo(db)
 	reconSumSvc := opsapp.NewReconSummaryService(reconSumRepo)
 	reconSumController := opsctl.NewReconSummaryController(reconSumSvc)
+	// Backoffice Admin (1.22)
+	admRepo := adminrepo.NewRepository(db)
+	admQuery := adminapp.NewQueryService(admRepo)
+	admActions := adminapp.NewActionsService(admRepo)
+	backofficeController := adminctl.NewController(admQuery, admActions)
 	// Auto-fix (1.18)
 	sysRepo := reconrepo.NewSysOpsRepository(db)
 	// price lookup placeholder: nil (serviço pode derivar de posições em iteração futura)
@@ -179,6 +187,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		admin.POST("/client/policy", polCtl.Upsert)
 		admin.GET("/client/policy/audit", polCtl.Audit)
 		admin.POST("/client/policy/dry-run", polCtl.DryRun)
+		// Backoffice Admin
+		admin.GET("/backoffice/profile", backofficeController.Profile)
+		admin.POST("/backoffice/actions/request", backofficeController.RequestAction)
+		admin.POST("/backoffice/actions/confirm", backofficeController.ConfirmAction)
 		// Rotas de carteiras
 		walletsGroup := apiV1.Group("/wallets")
 		{
