@@ -166,10 +166,13 @@ func (ac *AutoFixController) AutoFixByID(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
         return
     }
-    // montar req mínimo a partir do id
-    var req apprecon.AutoFixRequest
-    req.CPF = c.Query("cpf")
-    req.Types = []string{"OPENING_BALANCE_MISSING","SELL_WITHOUT_BUY"}
+    // Buscar inconsistency e processar isoladamente
+    inc, err := ac.svc.Repo.GetInconsistencyByID(c, tenantId, id)
+    if err != nil || inc == nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+        return
+    }
+    req := apprecon.AutoFixRequest{CPF: inc.CPF, Types: []string{inc.Type}, Tickers: []string{inc.Ticker}, DryRun: c.Query("dryRun") == "true"}
     out, err := ac.svc.AutoFix(c, tenantId, req)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

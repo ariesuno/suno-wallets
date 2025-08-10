@@ -2,8 +2,11 @@ package reconciliation
 
 import (
     "context"
+    "os"
     "time"
 
+    obs "suno-wallets/src/infrastructure/observability"
+    "suno-wallets/src/shared/helpers"
     "github.com/google/uuid"
 )
 
@@ -64,26 +67,36 @@ type PriceLookupPort interface {
 }
 
 type SystemOperationsService struct {
-    repo  SystemOpsRepository
+    Repo  SystemOpsRepository
     price PriceLookupPort
 }
 
 func NewSystemOperationsService(repo SystemOpsRepository, price PriceLookupPort) *SystemOperationsService {
-    return &SystemOperationsService{repo: repo, price: price}
+    return &SystemOperationsService{Repo: repo, price: price}
 }
 
 func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUID, req AutoFixRequest) (*AutoFixResult, error) {
     started := time.Now()
+    log := helpers.GetLoggerWithFields(map[string]interface{}{
+        "service":   "autofix_service",
+        "tenantId":  tenantID.String(),
+        "cpfMasked": maskCPF(req.CPF),
+        "types":     req.Types,
+        "tickers":   req.Tickers,
+        "dryRun":    req.DryRun,
+        "force":     req.Force,
+    })
 
-    locked, err := s.repo.TryAcquireLock(ctx, tenantID, req.CPF, 180)
+    locked, err := s.Repo.TryAcquireLock(ctx, tenantID, req.CPF, 180)
     if err != nil || !locked {
         return nil, err
     }
-    defer func() { _ = s.repo.ReleaseLock(ctx, tenantID, req.CPF) }()
+    defer func() { _ = s.Repo.ReleaseLock(ctx, tenantID, req.CPF) }()
 
     // buscar inconsistências abertas para os tipos alvo
-    incs, err := s.repo.ListOpenInconsistencies(ctx, tenantID, req.CPF, req.Types, req.Tickers)
+    incs, err := s.Repo.ListOpenInconsistencies(ctx, tenantID, req.CPF, req.Types, req.Tickers)
     if err != nil {
+        obs.ObserveAutofixRun("error", started)
         return nil, err
     }
 
@@ -120,7 +133,7 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
             }
             // derivar de posição
             if unitPrice == nil {
-                if p, ok, _ := s.repo.DerivePriceFromPosition(ctx, tenantID, req.CPF, inc.Ticker, opDate); ok {
+                if p, ok, _ := s.Repo.DerivePriceFromPosition(ctx, tenantID, req.CPF, inc.Ticker, opDate); ok {
                     unitPrice = &p
                     confidence = "DERIVED_POSITION"
                 }
@@ -131,6 +144,7 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
             if requirePrice && unitPrice == nil {
                 res.Pending++
                 res.PendingIDs = append(res.PendingIDs, inc.ID)
+                obs.IncAutofixPending("PENDING_PRICE", 1)
                 continue
             }
             prev := OperationPreview{CPF: req.CPF, Ticker: inc.Ticker, Operation: "OPENING_BALANCE", Date: opDate, Quantity: qty, UnitPrice: unitPrice, ReasonCode: "OPENING_BALANCE_PRE_API", Confidence: confidence, InconsID: inc.ID}
@@ -138,39 +152,48 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
             if req.DryRun {
                 continue
             }
-            created, err := s.repo.UpsertSystemOperation(ctx, tenantID, prev)
+            created, err := s.Repo.UpsertSystemOperation(ctx, tenantID, prev)
             if err != nil {
+                obs.ObserveAutofixRun("error", started)
                 return nil, err
             }
             if created {
                 res.Created++
+                obs.IncAutofixOpsCreated("OPENING_BALANCE_PRE_API", 1)
             } else {
                 res.Skipped++
             }
             // marcar resolvido
-            _ = s.repo.ResolveInconsistency(ctx, tenantID, inc.ID, nil)
+            _ = s.Repo.ResolveInconsistency(ctx, tenantID, inc.ID, nil)
             res.ResolvedIDs = append(res.ResolvedIDs, inc.ID)
 
         case "SELL_WITHOUT_BUY":
-            dateStr, qty, price, found, _ := s.repo.GetFirstSellTxDetails(ctx, tenantID, req.CPF, inc.Ticker)
+            dateStr, qty, price, found, _ := s.Repo.GetFirstSellTxDetails(ctx, tenantID, req.CPF, inc.Ticker)
             if !found { dateStr = time.Now().Format("2006-01-02") }
             unitPrice := &price
             prev := OperationPreview{CPF: req.CPF, Ticker: inc.Ticker, Operation: "BUY", Date: dateStr, Quantity: qty, UnitPrice: unitPrice, ReasonCode: "ZERO_PNL_PRE_API", Confidence: "MIRRORED_SELL", InconsID: inc.ID}
             res.Previews = append(res.Previews, prev)
             if req.DryRun { continue }
-            created, err := s.repo.UpsertSystemOperation(ctx, tenantID, prev)
-            if err != nil { return nil, err }
-            if created { res.Created++ } else { res.Skipped++ }
-            _ = s.repo.ResolveInconsistency(ctx, tenantID, inc.ID, nil)
+            created, err := s.Repo.UpsertSystemOperation(ctx, tenantID, prev)
+            if err != nil { obs.ObserveAutofixRun("error", started); return nil, err }
+            if created { res.Created++; obs.IncAutofixOpsCreated("ZERO_PNL_PRE_API", 1) } else { res.Skipped++ }
+            _ = s.Repo.ResolveInconsistency(ctx, tenantID, inc.ID, nil)
             res.ResolvedIDs = append(res.ResolvedIDs, inc.ID)
         }
     }
 
     res.DurationMs = time.Since(started).Milliseconds()
+    log.Info("autofix_finished", map[string]interface{}{
+        "created": res.Created,
+        "skipped": res.Skipped,
+        "pending": res.Pending,
+        "durationMs": res.DurationMs,
+    })
+    obs.ObserveAutofixRun("success", started)
     return res, nil
 }
 
 // getenv wrapper para facilitar testes
-func getenv(key string) string { return "" }
+func getenv(key string) string { return os.Getenv(key) }
 
 

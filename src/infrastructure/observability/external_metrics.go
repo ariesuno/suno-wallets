@@ -222,6 +222,36 @@ var (
 			Buckets: prometheus.DefBuckets,
 		},
 	)
+
+  // Métricas do Auto-fix (1.18)
+  b3AutofixRunsTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{
+      Name: "b3_autofix_runs_total",
+      Help: "Total de execuções do auto-fix por resultado",
+    },
+    []string{"result"},
+  )
+  b3AutofixOpsCreatedTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{
+      Name: "b3_autofix_ops_created_total",
+      Help: "Total de operações criadas pelo auto-fix por reason_code",
+    },
+    []string{"reason_code"},
+  )
+  b3AutofixPendingTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{
+      Name: "b3_autofix_pending_total",
+      Help: "Total de inconsistências pendentes no auto-fix por reason",
+    },
+    []string{"reason"},
+  )
+  b3AutofixDuration = promauto.NewHistogram(
+    prometheus.HistogramOpts{
+      Name:    "b3_autofix_duration_seconds",
+      Help:    "Duração das execuções do auto-fix",
+      Buckets: prometheus.DefBuckets,
+    },
+  )
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
@@ -327,4 +357,18 @@ func IncReconFound(typ string, n int) {
 		return
 	}
 	b3ReconInconsistenciesFoundTotal.WithLabelValues(typ).Add(float64(n))
+}
+
+// Auto-fix metrics
+func ObserveAutofixRun(result string, startedAt time.Time) {
+  b3AutofixRunsTotal.WithLabelValues(result).Inc()
+  b3AutofixDuration.Observe(time.Since(startedAt).Seconds())
+}
+func IncAutofixOpsCreated(reasonCode string, n int) {
+  if n <= 0 { return }
+  b3AutofixOpsCreatedTotal.WithLabelValues(reasonCode).Add(float64(n))
+}
+func IncAutofixPending(reason string, n int) {
+  if n <= 0 { return }
+  b3AutofixPendingTotal.WithLabelValues(reason).Add(float64(n))
 }
