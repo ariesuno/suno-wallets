@@ -1,0 +1,12 @@
+meta {
+  name: Recon List
+  type: http
+}
+
+get {
+  url: http://localhost:8080/api/v1/b3/reconciliation/inconsistencies?cpf=00000000000
+  headers: {
+    X-Tenant-Id: "00000000-0000-0000-0000-000000000000"
+  }
+}
+

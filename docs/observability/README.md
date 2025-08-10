@@ -23,3 +23,9 @@ Prometheus scrapa `app:8080/metrics`.
 ```
 go test ./tests/integration/observability/... -v
 ```
+
+## Dashboards
+
+- Importar `docs/observability/grafana_b3_reports_dashboard.json` para acompanhar os endpoints de Reports (1.15): throughput, erros e latência (p95/p99) por `endpoint`.
+- Importar `docs/observability/grafana_phase1_smoke_dashboard.json` para visão geral de HTTP + build info.
+- Importar `docs/observability/grafana_e2e_incremental_dashboard.json` para E2E (1.13) e Incremental (1.14): runs por `result/mode/dataType/assetType`, erros por `stage`, latência p95/p99, e `b3_retries_total` por endpoint.

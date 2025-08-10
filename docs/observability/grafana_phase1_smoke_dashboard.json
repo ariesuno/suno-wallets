@@ -1,0 +1,73 @@
+{
+    "title": "Phase1 Smoke Runner",
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+        {
+            "type": "stat",
+            "title": "Build Info",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 8,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "build_info",
+                    "legendFormat": "{{version}}/{{commit}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "HTTP Requests (rate)",
+            "gridPos": {
+                "x": 8,
+                "y": 0,
+                "w": 16,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (path) (rate(http_requests_total[5m]))",
+                    "legendFormat": "{{path}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "HTTP Latency p95 (s)",
+            "gridPos": {
+                "x": 0,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le, path) (rate(http_request_duration_seconds_bucket[5m])))",
+                    "legendFormat": "{{path}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "HTTP Errors (rate)",
+            "gridPos": {
+                "x": 12,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status) (rate(http_requests_total{status=~\"5..\|4..\"}[5m]))",
+                    "legendFormat": "{{status}}"
+                }
+            ]
+        }
+    ]
+}

@@ -6,20 +6,28 @@ import (
 	b3controllers "suno-wallets/src/api/controllers/b3"
 	obsctl "suno-wallets/src/api/controllers/observability"
 	"suno-wallets/src/api/middlewares"
+	appe2e "suno-wallets/src/application/b3/e2e"
+	incrsvc "suno-wallets/src/application/b3/incremental"
 	ingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	possvc "suno-wallets/src/application/b3/positions"
+	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	"suno-wallets/src/application/usecases"
 	b3client "suno-wallets/src/infrastructure/b3/client"
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
 	b3cfg "suno-wallets/src/infrastructure/b3/config"
+	e2erepo "suno-wallets/src/infrastructure/b3/e2e"
 	normrepo "suno-wallets/src/infrastructure/b3/normalize"
 	"suno-wallets/src/infrastructure/b3/persistence"
+	reconrepo "suno-wallets/src/infrastructure/b3/reconciliation"
+	reprepo "suno-wallets/src/infrastructure/b3/reports"
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
+	syncrepo2 "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/infrastructure/repositories"
+	"suno-wallets/src/shared/build"
 	"suno-wallets/src/shared/config"
 
 	"time"
@@ -48,6 +56,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// Configurar métricas Prometheus
 	observability.RegisterMetricsRoute(router)
+	// Registrar build_info
+	observability.RegisterBuildInfo(build.Version, build.Commit, build.BuildDate)
 
 	// Inicializar dependências
 	walletRepo := repositories.NewWalletRepository(db)
@@ -55,7 +65,6 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 
 	// Inicializar controllers
 	healthController := controllers.NewHealthController(db)
-	b3Controller := controllers.NewB3Controller()
 
 	// Observability health (liveness/readiness/details) sem tenant
 	var redisClient *redis.Client
@@ -94,7 +103,22 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	// Normalize
 	normRepo := normrepo.NewNormalizedRepository(db)
 	normSvc := appnorm.NewService(normRepo)
+	// Reports (somente leitura)
+	repRepo := reprepo.NewRepository(db)
+	repSvc := repsvc.NewService(repRepo)
+	repController := b3controllers.NewReportsController(repSvc)
+	// Reconciliation (1.17) — scan e leitura
+	reconRepo := reconrepo.NewRepository(db)
+	reconController := b3controllers.NewReconciliationController(reconRepo)
 	normController := b3controllers.NewNormalizeController(normSvc)
+	// E2E orchestrator (admin)
+	resetRepo := e2erepo.NewRepository(db)
+	e2eOrch := appe2e.NewOrchestrator(resetRepo, ingestSvc, normSvc)
+	// incremental service wiring
+	syncRepoIncr := syncrepo2.NewRepository(db)
+	incrementalSvc := incrsvc.NewService(syncRepoIncr, ingestSvc, normSvc)
+	adminController := b3controllers.NewAdminController(e2eOrch, incrementalSvc)
+	utilController := b3controllers.NewUtilController(incrementalSvc)
 	// Sync diário
 	syncRepo := syncrepo.NewRepository(db)
 	syncSvc := appsync.NewService(syncRepo, ingestSvc)
@@ -130,6 +154,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		// B3
 		b3Group := apiV1.Group("/b3")
 		{
+			// Controller B3 com cfg/creds (para health/auth)
+			b3Controller := controllers.NewB3Controller(b3Conf, creds)
 			b3Group.GET("/health/auth", b3Controller.HealthAuth)
 			// Preview de transações v2 (equity)
 			b3Group.GET("/fetch/transactions/preview", transactionsController.FetchTransactionsPreview)
@@ -151,6 +177,23 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			b3Group.POST("/sync/run", syncController.Run)
 			b3Group.GET("/client/status", syncController.Status)
 			b3Group.GET("/client/last-sync", syncController.LastSync)
+			// Admin: reset and refetch E2E
+			b3Group.POST("/admin/reset-and-refetch", adminController.ResetAndRefetch)
+			// Admin: incremental from last
+			b3Group.POST("/admin/incremental-from-last", adminController.IncrementalFromLast)
+			// Public (autenticado): sync window inspection (somente leitura)
+			b3Group.GET("/client/sync-window", utilController.SyncWindow)
+			// Reports (somente leitura) com rate limit defensivo
+			reportsGroup := b3Group.Group("/client")
+			reportsGroup.Use(middlewares.RateLimitMiddleware(120, time.Minute))
+			reportsGroup.GET("/raw-date-range", repController.RawDateRange)
+			reportsGroup.GET("/summary", repController.Summary)
+			reportsGroup.GET("/tickers", repController.Tickers)
+
+			// Reconciliation endpoints (admin + read)
+			b3Group.POST("/reconciliation/scan", reconController.Scan)
+			b3Group.GET("/reconciliation/inconsistencies", reconController.List)
+			b3Group.GET("/reconciliation/inconsistencies/:id", reconController.Get)
 		}
 	}
 

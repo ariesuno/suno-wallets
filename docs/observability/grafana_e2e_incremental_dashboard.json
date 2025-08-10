@@ -1,0 +1,233 @@
+{
+    "title": "B3 E2E + Incremental",
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+        {
+            "type": "graph",
+            "title": "E2E Runs (rate) por resultado",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (result) (rate(b3_e2e_runs_total[5m]))",
+                    "legendFormat": "{{result}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "E2E Errors (rate) por stage",
+            "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (stage) (rate(b3_e2e_errors_total[5m]))",
+                    "legendFormat": "{{stage}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "E2E Latência p95 (s)",
+            "gridPos": {
+                "x": 0,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le) (rate(b3_e2e_duration_seconds_bucket[5m])))",
+                    "legendFormat": "p95"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "E2E Latência p99 (s)",
+            "gridPos": {
+                "x": 12,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.99, sum by (le) (rate(b3_e2e_duration_seconds_bucket[5m])))",
+                    "legendFormat": "p99"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "E2E Runs (rate) por mode",
+            "gridPos": {
+                "x": 0,
+                "y": 16,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (mode) (rate(b3_e2e_runs_total[5m]))",
+                    "legendFormat": "{{mode}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "E2E Runs (rate) por dataType/assetType",
+            "gridPos": {
+                "x": 12,
+                "y": 16,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (dataType, assetType) (rate(b3_e2e_runs_total[5m]))",
+                    "legendFormat": "{{dataType}}/{{assetType}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Incremental Runs (rate) por resultado",
+            "gridPos": {
+                "x": 0,
+                "y": 24,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (result) (rate(b3_incremental_runs_total[5m]))",
+                    "legendFormat": "{{result}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Incremental Errors (rate) por stage",
+            "gridPos": {
+                "x": 12,
+                "y": 24,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (stage) (rate(b3_incremental_errors_total[5m]))",
+                    "legendFormat": "{{stage}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Incremental Latência p95 (s)",
+            "gridPos": {
+                "x": 0,
+                "y": 32,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le) (rate(b3_incremental_duration_seconds_bucket[5m])))",
+                    "legendFormat": "p95"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Incremental Latência p99 (s)",
+            "gridPos": {
+                "x": 12,
+                "y": 32,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.99, sum by (le) (rate(b3_incremental_duration_seconds_bucket[5m])))",
+                    "legendFormat": "p99"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "B3 Retries (rate) por endpoint",
+            "gridPos": {
+                "x": 0,
+                "y": 40,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (endpoint) (rate(b3_retries_total[5m]))",
+                    "legendFormat": "{{endpoint}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Recon Scan Runs (rate) por resultado",
+            "gridPos": {
+                "x": 0,
+                "y": 48,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (result) (rate(b3_recon_scan_runs_total[5m]))",
+                    "legendFormat": "{{result}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Recon Found (rate) por tipo",
+            "gridPos": {
+                "x": 12,
+                "y": 48,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (type) (rate(b3_recon_inconsistencies_found_total[5m]))",
+                    "legendFormat": "{{type}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Recon Latência p95 (s)",
+            "gridPos": {
+                "x": 0,
+                "y": 56,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le) (rate(b3_recon_scan_duration_seconds_bucket[5m])))",
+                    "legendFormat": "p95"
+                }
+            ]
+        }
+    ]
+}

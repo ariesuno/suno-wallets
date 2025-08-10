@@ -1,0 +1,73 @@
+{
+    "title": "B3 Reports API",
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+        {
+            "type": "graph",
+            "title": "Requests Total",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (endpoint) (rate(b3_reports_requests_total[5m]))",
+                    "legendFormat": "{{endpoint}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Errors Total",
+            "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (endpoint) (rate(b3_reports_errors_total[5m]))",
+                    "legendFormat": "{{endpoint}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Latency p95 (s)",
+            "gridPos": {
+                "x": 0,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(b3_reports_duration_seconds_bucket[5m])))",
+                    "legendFormat": "{{endpoint}}"
+                }
+            ]
+        },
+        {
+            "type": "graph",
+            "title": "Latency p99 (s)",
+            "gridPos": {
+                "x": 12,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.99, sum by (le, endpoint) (rate(b3_reports_duration_seconds_bucket[5m])))",
+                    "legendFormat": "{{endpoint}}"
+                }
+            ]
+        }
+    ]
+}
