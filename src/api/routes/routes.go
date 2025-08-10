@@ -191,7 +191,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			reportsGroup.GET("/tickers", repController.Tickers)
 
 			// Reconciliation endpoints (admin + read)
-			b3Group.POST("/reconciliation/scan", reconController.Scan)
+			// aplicar rate limit defensivo na rota de scan
+			scanGroup := b3Group.Group("/reconciliation")
+			scanGroup.Use(middlewares.RateLimitMiddleware(10, time.Minute))
+			scanGroup.POST("/scan", reconController.Scan)
 			b3Group.GET("/reconciliation/inconsistencies", reconController.List)
 			b3Group.GET("/reconciliation/inconsistencies/:id", reconController.Get)
 		}

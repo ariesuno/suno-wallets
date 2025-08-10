@@ -42,6 +42,12 @@ func (f *fakeRepo) ScanPositionTxDivergence(ctx context.Context, tenantID uuid.U
 func (f *fakeRepo) UpsertFindings(ctx context.Context, tenantID uuid.UUID, cpf string, findings []apprecon.Finding) error {
 	return nil
 }
+func (f *fakeRepo) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string, ttlSeconds int) (bool, error) {
+	return true, nil
+}
+func (f *fakeRepo) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
+	return nil
+}
 func (f *fakeRepo) ListInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]apprecon.Inconsistency, error) {
 	return nil, nil
 }
@@ -53,8 +59,9 @@ func TestRecon_Scan_Totals(t *testing.T) {
 	repo := &fakeRepo{scans: map[string]int{"OPENING_BALANCE_MISSING": 2, "SELL_WITHOUT_BUY": 1, "POSITION_TX_DIVERGENCE": 3}}
 	svc := apprecon.NewService(repo)
 	tenant := uuid.New()
-	totals, err := svc.Scan(context.Background(), tenant, apprecon.ScanRequest{CPF: "12345678901", DryRun: true})
+	res, err := svc.Scan(context.Background(), tenant, apprecon.ScanRequest{CPF: "12345678901", DryRun: true})
 	require.NoError(t, err)
+	totals := res["totals"].(map[string]int)
 	require.Equal(t, 2, totals["OPENING_BALANCE_MISSING"])
 	require.Equal(t, 1, totals["SELL_WITHOUT_BUY"])
 	require.Equal(t, 3, totals["POSITION_TX_DIVERGENCE"])

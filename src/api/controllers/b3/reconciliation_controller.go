@@ -3,6 +3,7 @@ package b3
 import (
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"suno-wallets/src/api/middlewares"
@@ -42,13 +43,15 @@ func (rc *ReconciliationController) Scan(c *gin.Context) {
 		req.Concurrency = 0
 	}
 	start := time.Now()
-	totals, err := rc.svc.Scan(c, tenantId, req)
+	result, err := rc.svc.Scan(c, tenantId, req)
 	if err != nil {
 		helpers.LogError("recon_scan_error", err, map[string]interface{}{"tenantId": tenantId.String()})
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "scan failed"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"totals": totals, "durationMs": time.Since(start).Milliseconds()})
+	// anexa duration também no controller
+	result["durationMsController"] = time.Since(start).Milliseconds()
+	c.JSON(http.StatusOK, result)
 }
 
 // GET /reconciliation/inconsistencies (read-only)
@@ -63,14 +66,35 @@ func (rc *ReconciliationController) List(c *gin.Context) {
 	status := c.Query("status")
 	typ := c.Query("type")
 	ticker := c.Query("ticker")
-	// params simples de paginação
+	// filtros adicionais e paginação
+	var fromPtr, toPtr *time.Time
+	if v := c.Query("from"); v != "" {
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			fromPtr = &t
+		}
+	}
+	if v := c.Query("to"); v != "" {
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			toPtr = &t
+		}
+	}
 	page, pageSize := 1, 50
-	items, err := rc.svc.List(c, tenantId, cpf, status, typ, ticker, nil, nil, page, pageSize)
+	if v := c.Query("page"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			page = n
+		}
+	}
+	if v := c.Query("pageSize"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 && n <= 200 {
+			pageSize = n
+		}
+	}
+	items, err := rc.svc.List(c, tenantId, cpf, status, typ, ticker, fromPtr, toPtr, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "list failed"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"items": items})
+	c.JSON(http.StatusOK, gin.H{"items": items, "page": page, "pageSize": pageSize})
 }
 
 // GET /reconciliation/inconsistencies/:id (read-only)

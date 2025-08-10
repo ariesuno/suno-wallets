@@ -26,6 +26,8 @@ type DetectorRepository interface {
 	ScanOpeningBalanceMissing(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
 	ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
 	ScanPositionTxDivergence(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
+	TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string, ttlSeconds int) (bool, error)
+	ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error
 	UpsertFindings(ctx context.Context, tenantID uuid.UUID, cpf string, findings []Finding) error
 	ListInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error)
 	GetInconsistency(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*Inconsistency, error)
@@ -46,7 +48,7 @@ type Service struct{ repo DetectorRepository }
 
 func NewService(repo DetectorRepository) *Service { return &Service{repo: repo} }
 
-func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest) (map[string]int, error) {
+func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest) (map[string]any, error) {
 	started := time.Now()
 	totals := map[string]int{"OPENING_BALANCE_MISSING": 0, "SELL_WITHOUT_BUY": 0, "POSITION_TX_DIVERGENCE": 0}
 	log := helpers.GetLoggerWithFields(map[string]interface{}{
@@ -54,6 +56,9 @@ func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest)
 		"tenantId":  tenantID.String(),
 		"cpfMasked": maskCPF(req.CPF),
 		"dryRun":    req.DryRun,
+		"tickers":   req.Tickers,
+		"from":      req.From,
+		"to":        req.To,
 	})
 
 	maxSamples := req.MaxSamplesPerType
@@ -62,6 +67,13 @@ func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest)
 	}
 
 	var all []Finding
+
+	// Lock por (tenant, cpf) para evitar corrida
+	locked, errLock := s.repo.TryAcquireLock(ctx, tenantID, req.CPF, 120)
+	if errLock != nil || !locked {
+		return map[string]any{"error": "LOCK_NOT_ACQUIRED"}, errLock
+	}
+	defer func() { _ = s.repo.ReleaseLock(ctx, tenantID, req.CPF) }()
 
 	// Varre cada regra
 	if f, err := s.repo.ScanOpeningBalanceMissing(ctx, tenantID, req.CPF, req.Tickers, req.From, req.To, maxSamples); err != nil {
@@ -98,11 +110,24 @@ func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest)
 	obs.IncReconFound("POSITION_TX_DIVERGENCE", totals["POSITION_TX_DIVERGENCE"])
 	obs.ObserveReconScanRun("success", started)
 
-	log.Info("recon_scan_finished", map[string]interface{}{
+	// Amostras por tipo para resposta
+	responseSamples := map[string][]Finding{"OPENING_BALANCE_MISSING": {}, "SELL_WITHOUT_BUY": {}, "POSITION_TX_DIVERGENCE": {}}
+	for _, f := range all {
+		lst := responseSamples[f.Type]
+		if len(lst) < maxSamples {
+			responseSamples[f.Type] = append(lst, f)
+		}
+	}
+	out := map[string]any{
+		"totals":        totals,
+		"samplesByType": responseSamples,
 		"durationMs":    time.Since(started).Milliseconds(),
+	}
+	log.Info("recon_scan_finished", map[string]interface{}{
+		"durationMs":    out["durationMs"],
 		"found_by_type": totals,
 	})
-	return totals, nil
+	return out, nil
 }
 
 func maskCPF(cpf string) string {
@@ -122,6 +147,11 @@ type Inconsistency struct {
 	Status    string
 	Severity  int
 	UpdatedAt time.Time
+	// Campos adicionais para o GET por id
+	FirstDetectedAt time.Time
+	LastDetectedAt  time.Time
+	SampleDates     map[string]interface{}
+	Details         map[string]interface{}
 }
 
 func (s *Service) List(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error) {
