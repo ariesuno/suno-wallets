@@ -17,8 +17,22 @@ type DedupRepo struct{ db *gorm.DB }
 func NewDedupRepo(db *gorm.DB) *DedupRepo { return &DedupRepo{db: db} }
 
 func (r *DedupRepo) GetPolicy(ctx context.Context, tenantID uuid.UUID, cpf string) (*appops.DedupPolicy, error) {
-	// opcional: retornar nil para defaults
-	return nil, nil
+    type row struct {
+        PreferSource           string
+        AutoMergeThreshold     float64
+        AlertThreshold         float64
+        DateToleranceDays      int
+        QuantityToleranceRatio float64
+        GrossToleranceRatio    float64
+    }
+    var rw row
+    if err := r.db.WithContext(ctx).Raw(`SELECT prefer_source, auto_merge_threshold, alert_threshold, date_tolerance_days, quantity_tolerance_ratio, gross_tolerance_ratio FROM dedup_policies WHERE tenant_id = ? AND cpf = ? LIMIT 1`, tenantID, cpf).Scan(&rw).Error; err != nil {
+        return nil, nil
+    }
+    if rw.PreferSource == "" {
+        return nil, nil
+    }
+    return &appops.DedupPolicy{PreferSource: rw.PreferSource, AutoMergeThreshold: rw.AutoMergeThreshold, AlertThreshold: rw.AlertThreshold, DateToleranceDays: rw.DateToleranceDays, QuantityToleranceRatio: rw.QuantityToleranceRatio, GrossToleranceRatio: rw.GrossToleranceRatio}, nil
 }
 
 func (r *DedupRepo) ListLedgerOps(ctx context.Context, tenantID uuid.UUID, cpf string, source string, since, to *time.Time, tickers []string) ([]appops.LedgerOp, error) {
