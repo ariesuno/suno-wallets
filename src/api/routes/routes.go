@@ -4,6 +4,7 @@ import (
 	"context"
 	"suno-wallets/src/api/controllers"
 	b3controllers "suno-wallets/src/api/controllers/b3"
+    opsctl "suno-wallets/src/api/controllers/ops"
 	obsctl "suno-wallets/src/api/controllers/observability"
 	"suno-wallets/src/api/middlewares"
 	appe2e "suno-wallets/src/application/b3/e2e"
@@ -13,6 +14,7 @@ import (
 	possvc "suno-wallets/src/application/b3/positions"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
+    opsapp "suno-wallets/src/application/ops"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	"suno-wallets/src/application/usecases"
 	b3client "suno-wallets/src/infrastructure/b3/client"
@@ -26,6 +28,7 @@ import (
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	syncrepo2 "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/observability"
+    opsinfra "suno-wallets/src/infrastructure/ops"
 	"suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/build"
 	"suno-wallets/src/shared/config"
@@ -107,9 +110,13 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	repRepo := reprepo.NewRepository(db)
 	repSvc := repsvc.NewService(repRepo)
 	repController := b3controllers.NewReportsController(repSvc)
-	// Reconciliation (1.17) — scan e leitura
+    // Reconciliation (1.17) — scan e leitura
     reconRepo := reconrepo.NewRepository(db)
     reconController := b3controllers.NewReconciliationController(reconRepo)
+    // Manual Ops (1.19)
+    opsRepo := opsinfra.NewOperationsRepository(db)
+    manualOpsSvc := opsapp.NewManualOperationsService(opsRepo)
+    manualOpsController := opsctl.NewManualOperationsController(manualOpsSvc)
     // Auto-fix (1.18)
     sysRepo := reconrepo.NewSysOpsRepository(db)
     // price lookup placeholder: nil (serviço pode derivar de posições em iteração futura)
@@ -206,6 +213,13 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
             af.Use(middlewares.RateLimitMiddleware(10, time.Minute))
             af.POST("/auto-fix", autoFixController.AutoFix)
             af.POST("/auto-fix/:id", autoFixController.AutoFixByID)
+
+            // Manual Ops endpoints
+            opsGroup := apiV1.Group("/ops")
+            opsGroup.Use(middlewares.RateLimitMiddleware(120, time.Minute))
+            opsGroup.POST("/manual", manualOpsController.Create)
+            opsGroup.PUT("/manual/:id", manualOpsController.Update)
+            opsGroup.DELETE("/manual/:id", manualOpsController.Delete)
 		}
 	}
 

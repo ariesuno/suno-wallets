@@ -252,6 +252,27 @@ var (
       Buckets: prometheus.DefBuckets,
     },
   )
+
+  // Métricas 1.19: Manual Ops e Dedup
+  opsManualWritesTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{ Name: "ops_manual_writes_total", Help: "Total de escritas USER_MANUAL por resultado" },
+    []string{"result"},
+  )
+  opsDedupScanRunsTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{ Name: "ops_dedup_scan_runs_total", Help: "Total de execuções de scan de dedup" },
+    []string{"result"},
+  )
+  opsDedupCandidatesTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{ Name: "ops_dedup_candidates_total", Help: "Total de candidatos de dedup por status" },
+    []string{"status"},
+  )
+  opsDedupResolutionsTotal = promauto.NewCounterVec(
+    prometheus.CounterOpts{ Name: "ops_dedup_resolutions_total", Help: "Total de resoluções de dedup por ação" },
+    []string{"action"},
+  )
+  opsDedupDuration = promauto.NewHistogram(
+    prometheus.HistogramOpts{ Name: "ops_dedup_duration_seconds", Help: "Duração do processamento de dedup", Buckets: prometheus.DefBuckets },
+  )
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas
@@ -372,3 +393,12 @@ func IncAutofixPending(reason string, n int) {
   if n <= 0 { return }
   b3AutofixPendingTotal.WithLabelValues(reason).Add(float64(n))
 }
+
+// Manual Ops & Dedup metrics
+func IncManualWrites(result string) { opsManualWritesTotal.WithLabelValues(result).Inc() }
+func ObserveDedupScan(result string, startedAt time.Time) {
+  opsDedupScanRunsTotal.WithLabelValues(result).Inc()
+  opsDedupDuration.Observe(time.Since(startedAt).Seconds())
+}
+func IncDedupCandidates(status string, n int) { if n > 0 { opsDedupCandidatesTotal.WithLabelValues(status).Add(float64(n)) } }
+func IncDedupResolutions(action string, n int) { if n > 0 { opsDedupResolutionsTotal.WithLabelValues(action).Add(float64(n)) } }
