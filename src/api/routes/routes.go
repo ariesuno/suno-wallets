@@ -117,6 +117,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
     opsRepo := opsinfra.NewOperationsRepository(db)
     manualOpsSvc := opsapp.NewManualOperationsService(opsRepo)
     manualOpsController := opsctl.NewManualOperationsController(manualOpsSvc)
+    // Dedup wiring
+    dedupRepo := opsinfra.NewDedupRepo(db)
+    dedupSvc := opsapp.NewDedupService(dedupRepo)
+    dedupController := opsctl.NewDedupController(dedupSvc)
     // Auto-fix (1.18)
     sysRepo := reconrepo.NewSysOpsRepository(db)
     // price lookup placeholder: nil (serviço pode derivar de posições em iteração futura)
@@ -220,6 +224,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
             opsGroup.POST("/manual", manualOpsController.Create)
             opsGroup.PUT("/manual/:id", manualOpsController.Update)
             opsGroup.DELETE("/manual/:id", manualOpsController.Delete)
+            // Dedup endpoints
+            opsGroup.POST("/dedup/scan", dedupController.Scan)
+            opsGroup.POST("/dedup/resolve", dedupController.Resolve)
 		}
 	}
 
