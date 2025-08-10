@@ -1,5 +1,8 @@
 meta { name: B3 - Sync Run type: http }
-request { method: POST url: {{baseUrl}}/api/v1/b3/sync/run }
-headers { Content-Type: application/json }
-body:json { scope: "single" cpf: "{{cpf}}" dataTypes: ["transactions","positions"] assetTypes: ["equity"] force: false dryRun: true limit: 100 }
+request {
+  method: POST
+  url: {{baseUrl}}/api/v1/b3/sync/run
+  headers: { X-Tenant-Id: {{tenantId}}, Content-Type: application/json }
+  body: json({ scope: "single", cpf: "{{cpf}}", dataTypes: ["transactions","positions"], assetTypes: ["equity"], force: false, dryRun: true, limit: 100 })
+}
 

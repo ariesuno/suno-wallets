@@ -1,5 +1,8 @@
 meta { name: Client Policy - Set (admin) type: http }
-request { method: POST url: {{baseUrl}}/api/v1/admin/client/policy }
-headers { Content-Type: application/json }
-body:json { cpf: "{{cpf}}" mode: "HYBRID" reason: "seed" }
+request {
+  method: POST
+  url: {{baseUrl}}/api/v1/admin/client/policy
+  headers: { X-Tenant-Id: {{tenantId}}, Content-Type: application/json }
+  body: json({ cpf: "{{cpf}}", mode: "HYBRID", reason: "seed" })
+}
 

@@ -1,4 +1,8 @@
 meta { name: Ops - Timeline type: http }
-request { method: GET url: {{baseUrl}}/api/v1/ops/timeline }
-params { cpf: {{cpf}} pageSize: 100 }
+request {
+  method: GET
+  url: {{baseUrl}}/api/v1/ops/timeline
+  headers: { X-Tenant-Id: {{tenantId}} }
+  params: { cpf: "{{cpf}}", pageSize: 100 }
+}
 
