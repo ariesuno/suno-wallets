@@ -108,8 +108,12 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	repSvc := repsvc.NewService(repRepo)
 	repController := b3controllers.NewReportsController(repSvc)
 	// Reconciliation (1.17) — scan e leitura
-	reconRepo := reconrepo.NewRepository(db)
-	reconController := b3controllers.NewReconciliationController(reconRepo)
+    reconRepo := reconrepo.NewRepository(db)
+    reconController := b3controllers.NewReconciliationController(reconRepo)
+    // Auto-fix (1.18)
+    sysRepo := reconrepo.NewSysOpsRepository(db)
+    // price lookup placeholder: nil (serviço pode derivar de posições em iteração futura)
+    autoFixController := b3controllers.NewAutoFixController(sysRepo, nil)
 	normController := b3controllers.NewNormalizeController(normSvc)
 	// E2E orchestrator (admin)
 	resetRepo := e2erepo.NewRepository(db)
@@ -195,8 +199,12 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			scanGroup := b3Group.Group("/reconciliation")
 			scanGroup.Use(middlewares.RateLimitMiddleware(10, time.Minute))
 			scanGroup.POST("/scan", reconController.Scan)
-			b3Group.GET("/reconciliation/inconsistencies", reconController.List)
+            b3Group.GET("/reconciliation/inconsistencies", reconController.List)
 			b3Group.GET("/reconciliation/inconsistencies/:id", reconController.Get)
+            // Auto-fix endpoints (admin-only)
+            af := b3Group.Group("/reconciliation")
+            af.Use(middlewares.RateLimitMiddleware(10, time.Minute))
+            af.POST("/auto-fix", autoFixController.AutoFix)
 		}
 	}
 

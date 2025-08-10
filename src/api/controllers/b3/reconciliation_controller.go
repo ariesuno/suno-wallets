@@ -8,7 +8,7 @@ import (
 
 	"suno-wallets/src/api/middlewares"
 	apprecon "suno-wallets/src/application/b3/reconciliation"
-	reconrepo "suno-wallets/src/infrastructure/b3/reconciliation"
+    reconrepo "suno-wallets/src/infrastructure/b3/reconciliation"
 	"suno-wallets/src/shared/helpers"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +21,13 @@ type ReconciliationController struct{ svc *apprecon.Service }
 
 func NewReconciliationController(dbRepo *reconrepo.Repository) *ReconciliationController {
 	return &ReconciliationController{svc: apprecon.NewService(dbRepo)}
+}
+
+// Auto-fix wiring simplificado (1.18)
+type AutoFixController struct{ svc *apprecon.SystemOperationsService }
+
+func NewAutoFixController(sysRepo *reconrepo.SysOpsRepository, price apprecon.PriceLookupPort) *AutoFixController {
+    return &AutoFixController{svc: apprecon.NewSystemOperationsService(sysRepo, price)}
 }
 
 // POST /reconciliation/scan (admin)
@@ -116,4 +123,28 @@ func (rc *ReconciliationController) Get(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, item)
+}
+
+// POST /reconciliation/auto-fix (admin)
+func (ac *AutoFixController) AutoFix(c *gin.Context) {
+    if os.Getenv("ADMIN_SECRET") != "" && c.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
+        c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+        return
+    }
+    tenantId, ok := middlewares.GetTenantID(c)
+    if !ok {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
+        return
+    }
+    var req apprecon.AutoFixRequest
+    if err := c.BindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+        return
+    }
+    out, err := ac.svc.AutoFix(c, tenantId, req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, out)
 }
