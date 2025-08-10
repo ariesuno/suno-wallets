@@ -5,3 +5,6 @@
 # Certificates (sensitive)
 certs/*
 !certs/.gitkeep
+
+# Legacy projects (consulta apenas)
+_legacy/

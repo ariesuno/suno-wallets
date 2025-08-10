@@ -73,6 +73,11 @@ Restrições de fronteiras (muito importantes):
 - **Docs**: criar arquivos por módulo em `/docs/<modulo>/...` com exemplos **cURL** e fluxos.
 - Sempre salvar o **prompt** em `/prompts` e o **resultado** em `/prompt_results` (ambos ignorados pelo Git).
 
+### 📦 Pasta `_legacy` (consulta apenas)
+- A pasta `_legacy/` contém projetos antigos, **não devem ser alterados**.
+- Ela e seu conteúdo devem estar no `.gitignore` e no `.cursorignore`.
+- Só utilizar para **consulta** quando solicitado explicitamente pelo usuário ("veja como é feito em `_legacy/...`").
+
 ## 🚦 Regras para Prompts (checklist que o Cursor deve seguir SEMPRE)
 1. Respeitar **estrutura DDD** e fronteiras.
 2. Nomes **em inglês**, comentários **pt-BR**.
