@@ -1,15 +1,10 @@
-meta {
-  name: Client Status
-  type: http
-}
-
+meta { name: B3 Client Status type: http }
+vars { baseUrl: {{baseUrl}} tenantId: {{tenantId}} cpf: 00000000000 }
 request {
   method: GET
-  url: http://localhost:8080/api/v1/b3/client/status?cpf=12345678901
-
-  headers: {
-    X-Tenant-Id: <TENANT_ID>
-  }
+  url: {{baseUrl}}/api/v1/b3/client/status
 }
+headers { X-Tenant-Id: {{tenantId}} }
+params { cpf: {{cpf}} }
 
 

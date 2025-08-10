@@ -1,26 +1,5 @@
-meta {
-  name: RAW Historical Ingest (B3)
-  type: http
-  seq: 3
-}
-
-request {
-  method: POST
-  url: http://localhost:8080/api/v1/b3/fetch/historical
-}
-
-headers {
-  X-Tenant-Id: <TENANT_ID>
-  Content-Type: application/json
-}
-
-body:json {
-  cpf: "12345678901"
-  dataType: "positions"
-  assetType: "equity"
-  start: "2024-01-01"
-  end: "2024-03-31"
-  fetchAllPages: true
-  force: false
-  dryRun: true
-}
+meta { name: RAW Historical Ingest (B3) type: http seq: 3 }
+vars { baseUrl: {{baseUrl}} tenantId: {{tenantId}} cpf: 00000000000 }
+request { method: POST url: {{baseUrl}}/api/v1/b3/fetch/historical }
+headers { X-Tenant-Id: {{tenantId}} Content-Type: application/json }
+body:json { cpf: "{{cpf}}" dataType: "positions" assetType: "equity" start: "2024-01-01" end: "2024-03-31" fetchAllPages: true force: false dryRun: true }

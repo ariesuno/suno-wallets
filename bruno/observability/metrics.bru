@@ -1,12 +1,6 @@
-meta {
-  name: Metrics
-  type: http
-}
-
-request {
-  method: GET
-  url: http://localhost:8080/metrics
-}
+meta { name: Metrics type: http }
+vars { baseUrl: {{baseUrl}} }
+request { method: GET url: {{baseUrl}}/metrics }
 
 # E2E metrics esperadas:
 # b3_e2e_runs_total

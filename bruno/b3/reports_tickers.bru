@@ -1,21 +1,7 @@
-meta {
-  name: B3 Reports - Tickers
-  type: http
-}
-
-request {
-  method: GET
-  url: http://localhost:8080/api/v1/b3/client/tickers
-}
-
-headers {
-  X-Tenant-Id: <TENANT_ID>
-}
-
-params {
-  cpf: 00000000000
-  from: 2024-01-01
-  to: 2024-12-31
-}
+meta { name: B3 Reports - Tickers type: http }
+vars { baseUrl: {{baseUrl}} tenantId: {{tenantId}} cpf: 00000000000 }
+request { method: GET url: {{baseUrl}}/api/v1/b3/client/tickers }
+headers { X-Tenant-Id: {{tenantId}} }
+params { cpf: {{cpf}} from: 2024-01-01 to: 2024-12-31 }
 
 

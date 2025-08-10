@@ -1,18 +1,6 @@
-meta {
-  name: Recon Scan (admin)
-  type: http
-}
-
-post {
-  url: http://localhost:8080/api/v1/b3/reconciliation/scan
-  body: json {
-    cpf: "00000000000"
-    dryRun: true
-    maxSamplesPerType: 5
-  }
-  headers: {
-    X-Tenant-Id: "00000000-0000-0000-0000-000000000000"
-    X-Admin-Secret: "${env.ADMIN_SECRET}"
-  }
-}
+meta { name: Recon Scan (admin) type: http }
+vars { baseUrl: {{baseUrl}} tenantId: {{tenantId}} adminSecret: {{adminSecret}} cpf: 00000000000 }
+request { method: POST url: {{baseUrl}}/api/v1/b3/reconciliation/scan }
+headers { X-Tenant-Id: {{tenantId}} X-Admin-Secret: {{adminSecret}} Content-Type: application/json }
+body:json { cpf: "{{cpf}}" dryRun: true maxSamplesPerType: 5 }
 
