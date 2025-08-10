@@ -205,6 +205,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
             af := b3Group.Group("/reconciliation")
             af.Use(middlewares.RateLimitMiddleware(10, time.Minute))
             af.POST("/auto-fix", autoFixController.AutoFix)
+            af.POST("/auto-fix/:id", autoFixController.AutoFixByID)
 		}
 	}
 

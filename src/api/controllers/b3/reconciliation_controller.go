@@ -148,3 +148,32 @@ func (ac *AutoFixController) AutoFix(c *gin.Context) {
     }
     c.JSON(http.StatusOK, out)
 }
+
+// POST /reconciliation/auto-fix/:id (admin)
+func (ac *AutoFixController) AutoFixByID(c *gin.Context) {
+    if os.Getenv("ADMIN_SECRET") != "" && c.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
+        c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+        return
+    }
+    tenantId, ok := middlewares.GetTenantID(c)
+    if !ok {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
+        return
+    }
+    idStr := c.Param("id")
+    id, err := uuid.Parse(idStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+        return
+    }
+    // montar req mínimo a partir do id
+    var req apprecon.AutoFixRequest
+    req.CPF = c.Query("cpf")
+    req.Types = []string{"OPENING_BALANCE_MISSING","SELL_WITHOUT_BUY"}
+    out, err := ac.svc.AutoFix(c, tenantId, req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"id": id, "result": out})
+}

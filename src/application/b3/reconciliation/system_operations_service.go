@@ -19,11 +19,12 @@ type AutoFixRequest struct {
 }
 
 type OperationPreview struct {
+    CPF         string
     Ticker      string
     Operation   string
     Date        string
-    Quantity    string
-    UnitPrice   string
+    Quantity    float64
+    UnitPrice   *float64
     ReasonCode  string
     Confidence  string
     InconsID    uuid.UUID
@@ -45,12 +46,17 @@ type SystemOpsRepository interface {
 
     // leitura de inconsistências abertas
     ListOpenInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf string, types []string, tickers []string) ([]Inconsistency, error)
+    GetInconsistencyByID(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*Inconsistency, error)
 
     // geração no ledger (idempotente)
     UpsertSystemOperation(ctx context.Context, tenantID uuid.UUID, op OperationPreview) (bool, error)
 
     // atualização do status da inconsistência e details (anexar generated_op_ids)
     ResolveInconsistency(ctx context.Context, tenantID uuid.UUID, inconsID uuid.UUID, generatedIDs []uuid.UUID) error
+
+    // dados auxiliares
+    GetFirstSellTxDetails(ctx context.Context, tenantID uuid.UUID, cpf string, ticker string) (date string, qty float64, price float64, found bool, err error)
+    DerivePriceFromPosition(ctx context.Context, tenantID uuid.UUID, cpf, ticker, date string) (price float64, found bool, err error)
 }
 
 type PriceLookupPort interface {
@@ -86,16 +92,48 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
     for _, inc := range incs {
         switch inc.Type {
         case "OPENING_BALANCE_MISSING":
-            prev := OperationPreview{
-                Ticker:     inc.Ticker,
-                Operation:  "OPENING_BALANCE",
-                Date:       time.Now().Format("2006-01-02"), // placeholder: ideal usar earliest date
-                Quantity:   "0",                               // placeholder até termos qty calculada no repo
-                UnitPrice:  "",
-                ReasonCode: "OPENING_BALANCE_PRE_API",
-                Confidence: "UNKNOWN",
-                InconsID:   inc.ID,
+            // calcular data e quantidade
+            firstDate := ""
+            if inc.SampleDates != nil {
+                if v, ok := inc.SampleDates["first_position_date"].(string); ok { firstDate = v }
             }
+            opDate := firstDate
+            if opDate == "" { opDate = time.Now().Format("2006-01-02") }
+            var posQty, netTx float64
+            if inc.Details != nil {
+                if v, ok := inc.Details["position_qty"].(float64); ok { posQty = v }
+                if v, ok := inc.Details["net_tx_until_first_position"].(float64); ok { netTx = v }
+            }
+            qty := posQty - netTx
+            if qty < 0 { qty = 0 }
+            // preço
+            var unitPrice *float64
+            confidence := "UNKNOWN"
+            // tentar mercado
+            if s.price != nil {
+                if d, err := time.Parse("2006-01-02", opDate); err == nil {
+                    if p, ok, _ := s.price.GetClosingPrice(ctx, inc.Ticker, d); ok {
+                        unitPrice = &p
+                        confidence = "MARKET_CLOSE"
+                    }
+                }
+            }
+            // derivar de posição
+            if unitPrice == nil {
+                if p, ok, _ := s.repo.DerivePriceFromPosition(ctx, tenantID, req.CPF, inc.Ticker, opDate); ok {
+                    unitPrice = &p
+                    confidence = "DERIVED_POSITION"
+                }
+            }
+            // checar AUTO_FIX_REQUIRE_PRICE
+            requirePrice := false
+            if v := getenv("AUTO_FIX_REQUIRE_PRICE"); v == "true" || v == "1" { requirePrice = true }
+            if requirePrice && unitPrice == nil {
+                res.Pending++
+                res.PendingIDs = append(res.PendingIDs, inc.ID)
+                continue
+            }
+            prev := OperationPreview{CPF: req.CPF, Ticker: inc.Ticker, Operation: "OPENING_BALANCE", Date: opDate, Quantity: qty, UnitPrice: unitPrice, ReasonCode: "OPENING_BALANCE_PRE_API", Confidence: confidence, InconsID: inc.ID}
             res.Previews = append(res.Previews, prev)
             if req.DryRun {
                 continue
@@ -114,16 +152,10 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
             res.ResolvedIDs = append(res.ResolvedIDs, inc.ID)
 
         case "SELL_WITHOUT_BUY":
-            prev := OperationPreview{
-                Ticker:     inc.Ticker,
-                Operation:  "BUY",
-                Date:       time.Now().Format("2006-01-02"), // placeholder: ideal usar data da venda
-                Quantity:   "0",
-                UnitPrice:  "",
-                ReasonCode: "ZERO_PNL_PRE_API",
-                Confidence: "MIRRORED_SELL",
-                InconsID:   inc.ID,
-            }
+            dateStr, qty, price, found, _ := s.repo.GetFirstSellTxDetails(ctx, tenantID, req.CPF, inc.Ticker)
+            if !found { dateStr = time.Now().Format("2006-01-02") }
+            unitPrice := &price
+            prev := OperationPreview{CPF: req.CPF, Ticker: inc.Ticker, Operation: "BUY", Date: dateStr, Quantity: qty, UnitPrice: unitPrice, ReasonCode: "ZERO_PNL_PRE_API", Confidence: "MIRRORED_SELL", InconsID: inc.ID}
             res.Previews = append(res.Previews, prev)
             if req.DryRun { continue }
             created, err := s.repo.UpsertSystemOperation(ctx, tenantID, prev)
@@ -137,5 +169,8 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
     res.DurationMs = time.Since(started).Milliseconds()
     return res, nil
 }
+
+// getenv wrapper para facilitar testes
+func getenv(key string) string { return "" }
 
 
