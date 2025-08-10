@@ -5,6 +5,8 @@ import (
 	"suno-wallets/src/api/middlewares"
 	appadm "suno-wallets/src/application/admin"
 
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -45,6 +47,11 @@ func (c *Controller) RequestAction(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
 		return
 	}
+	role := ctx.GetHeader("X-Role")
+	if role != "ADMIN" && role != "SUPPORT" {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+		return
+	}
 	var body struct {
 		CPF         string                 `json:"cpf"`
 		Action      string                 `json:"action"`
@@ -74,6 +81,11 @@ func (c *Controller) ConfirmAction(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id/token required"})
 		return
 	}
+	role := ctx.GetHeader("X-Role")
+	if role != "ADMIN" {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+		return
+	}
 	if err := c.a.Confirm(ctx, uuidFrom(id), token); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -82,3 +94,83 @@ func (c *Controller) ConfirmAction(ctx *gin.Context) {
 }
 
 func uuidFrom(s string) uuid.UUID { u, _ := uuid.Parse(s); return u }
+
+// Search: GET /admin/backoffice/search?query=&limit=
+func (c *Controller) Search(ctx *gin.Context) {
+	tenantID, ok := middlewares.GetTenantID(ctx)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
+		return
+	}
+	q := ctx.Query("query")
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "20"))
+	items, err := c.q.Search(ctx, tenantID.String(), q, limit)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"items": items})
+}
+
+// List actions: GET /admin/backoffice/actions?cpf=&action=&status=&page=&pageSize=
+func (c *Controller) ListActions(ctx *gin.Context) {
+	tenantID, ok := middlewares.GetTenantID(ctx)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
+		return
+	}
+	cpf := ctx.Query("cpf")
+	action := ctx.Query("action")
+	status := ctx.Query("status")
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "50"))
+	items, err := c.q.ListActions(ctx, tenantID.String(), cpf, action, status, page, pageSize)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"items": items, "page": page, "pageSize": pageSize})
+}
+
+// Get action detail: GET /admin/backoffice/actions/:id
+func (c *Controller) GetAction(ctx *gin.Context) {
+	tenantID, ok := middlewares.GetTenantID(ctx)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
+		return
+	}
+	idStr := ctx.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	item, err := c.q.GetAction(ctx, tenantID.String(), id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, item)
+}
+
+// Export ledger: GET /admin/backoffice/export/ledger?cpf=&limit=&excludeB3=false
+func (c *Controller) ExportLedger(ctx *gin.Context) {
+	tenantID, ok := middlewares.GetTenantID(ctx)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
+		return
+	}
+	cpf := ctx.Query("cpf")
+	if cpf == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cpf required"})
+		return
+	}
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50000"))
+	excludeB3 := ctx.DefaultQuery("excludeB3", "false") == "true"
+	items, err := c.q.ExportLedger(ctx, tenantID.String(), cpf, excludeB3, limit)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"items": items})
+}

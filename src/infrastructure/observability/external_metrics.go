@@ -309,6 +309,23 @@ var (
 		prometheus.CounterOpts{Name: "policy_skipped_total", Help: "Operações/jobs skipados por política"},
 		[]string{"job"},
 	)
+	// Admin Backoffice (1.22)
+	adminActionsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "admin_actions_total", Help: "Total de ações administrativas por status"},
+		[]string{"action", "status"},
+	)
+	adminActionsDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{Name: "admin_actions_duration_seconds", Help: "Duração das ações administrativas", Buckets: prometheus.DefBuckets},
+		[]string{"action"},
+	)
+	adminExportsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "admin_exports_total", Help: "Total de exports administrativos por formato"},
+		[]string{"format"},
+	)
+	adminProfileRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{Name: "admin_profile_requests_total", Help: "Total de requisições de profile no backoffice"},
+		[]string{"result"},
+	)
 )
 
 // ObserveExternalAPI registra duração e contagem de chamadas externas

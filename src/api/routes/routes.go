@@ -189,6 +189,10 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		admin.POST("/client/policy/dry-run", polCtl.DryRun)
 		// Backoffice Admin
 		admin.GET("/backoffice/profile", backofficeController.Profile)
+		admin.GET("/backoffice/search", backofficeController.Search)
+		admin.GET("/backoffice/actions", backofficeController.ListActions)
+		admin.GET("/backoffice/actions/:id", backofficeController.GetAction)
+		admin.GET("/backoffice/export/ledger", backofficeController.ExportLedger)
 		admin.POST("/backoffice/actions/request", backofficeController.RequestAction)
 		admin.POST("/backoffice/actions/confirm", backofficeController.ConfirmAction)
 		// Rotas de carteiras
