@@ -2,6 +2,7 @@ package ops
 
 import (
     "context"
+    "fmt"
     "time"
 
     obs "suno-wallets/src/infrastructure/observability"
@@ -29,6 +30,7 @@ type ManualOpsRepository interface {
     UpdateManual(ctx context.Context, op ManualOperation) error
     SoftDeleteManual(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) error
     ListManual(ctx context.Context, tenantID uuid.UUID, cpf string, filters map[string]interface{}, page, pageSize int) ([]ManualOperation, error)
+    GetPolicyMode(ctx context.Context, tenantID uuid.UUID, cpf string) (string, error)
 }
 
 type ManualOperationsService struct{ repo ManualOpsRepository }
@@ -37,6 +39,12 @@ func NewManualOperationsService(repo ManualOpsRepository) *ManualOperationsServi
 
 func (s *ManualOperationsService) Create(ctx context.Context, op ManualOperation) (uuid.UUID, error) {
     log := helpers.GetLoggerWithFields(map[string]interface{}{"service": "manual_ops"})
+    // política por cliente: bloquear criação em B3_ONLY
+    mode, _ := s.repo.GetPolicyMode(ctx, op.TenantID, op.CPF)
+    if mode == "B3_ONLY" {
+        obs.IncManualWrites("blocked_policy")
+        return uuid.Nil, fmt.Errorf("POLICY_BLOCK_B3_ONLY")
+    }
     id, err := s.repo.CreateManual(ctx, op)
     if err != nil {
         obs.IncManualWrites("error")

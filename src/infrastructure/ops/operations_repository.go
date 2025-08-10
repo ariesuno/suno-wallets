@@ -45,4 +45,14 @@ func (r *OperationsRepository) ListManual(ctx context.Context, tenantID uuid.UUI
     return out, nil
 }
 
+func (r *OperationsRepository) GetPolicyMode(ctx context.Context, tenantID uuid.UUID, cpf string) (string, error) {
+    type row struct{ Mode string }
+    var rw row
+    if err := r.db.WithContext(ctx).Raw(`SELECT COALESCE(mode,'HYBRID') AS mode FROM dedup_policies WHERE tenant_id = ? AND cpf = ? LIMIT 1`, tenantID, cpf).Scan(&rw).Error; err != nil {
+        return "HYBRID", nil
+    }
+    if rw.Mode == "" { return "HYBRID", nil }
+    return rw.Mode, nil
+}
+
 

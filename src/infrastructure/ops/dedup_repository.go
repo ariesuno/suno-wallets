@@ -70,12 +70,14 @@ func (r *DedupRepo) ListCandidates(ctx context.Context, tenantID uuid.UUID, cpf 
 }
 
 func (r *DedupRepo) ResolveMerge(ctx context.Context, tenantID uuid.UUID, candidateIDs []uuid.UUID, prefer string) error {
-	// implementação simplificada: apenas marca candidatos como CONFIRMED_MERGE
-	return r.db.WithContext(ctx).Exec(`UPDATE dedup_candidates SET status = 'CONFIRMED_MERGE' WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Error
+    // implementar merge: escolher operação preferida e inativar a outra no ledger
+    // Nota: simplificado aqui; detalhamento de supersedes pode ser expandido
+    if err := r.db.WithContext(ctx).Exec(`UPDATE dedup_candidates SET status = 'CONFIRMED_MERGE' WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Error; err != nil { return err }
+    return nil
 }
 
 func (r *DedupRepo) ResolveOverride(ctx context.Context, tenantID uuid.UUID, candidateIDs []uuid.UUID) error {
-	return r.db.WithContext(ctx).Exec(`UPDATE dedup_candidates SET status = 'OVERRIDDEN' WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Error
+    return r.db.WithContext(ctx).Exec(`UPDATE dedup_candidates SET status = 'OVERRIDDEN' WHERE tenant_id = ? AND id IN ?`, tenantID, candidateIDs).Error
 }
 
 func (r *DedupRepo) ResolveIgnore(ctx context.Context, tenantID uuid.UUID, candidateIDs []uuid.UUID) error {
