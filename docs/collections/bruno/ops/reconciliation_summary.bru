@@ -1,4 +1,17 @@
-meta { name: Ops - Reconciliation Summary type: http }
-request { method: GET url: {{baseUrl}}/api/v1/ops/reconciliation/summary }
-params { cpf: "{{cpf}}" }
+meta {
+  name: Ops - Reconciliation Summary
+  type: http
+  seq: 11
+}
 
+get {
+  url: {{baseUrl}}/ops/reconciliation/summary
+}
+
+params:query {
+  cpf: {{cpf}}
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

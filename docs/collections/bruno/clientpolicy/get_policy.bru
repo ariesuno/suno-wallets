@@ -1,4 +1,17 @@
-meta { name: Client Policy - Get type: http }
-request { method: GET url: {{baseUrl}}/api/v1/admin/client/policy }
-params { cpf: "{{cpf}}" }
+meta {
+  name: Client Policy - Get
+  type: http
+  seq: 30
+}
 
+get {
+  url: {{baseUrl}}/admin/client/policy
+}
+
+params:query {
+  cpf: {{cpf}}
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

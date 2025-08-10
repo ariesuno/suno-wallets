@@ -1,5 +1,28 @@
-meta { name: B3 - RAW Historical Ingest type: http }
-request { method: POST url: {{baseUrl}}/api/v1/b3/fetch/historical }
-headers { Content-Type: application/json }
-body:json { cpf: "{{cpf}}" dataType: "positions" assetType: "equity" start: "2024-01-01" end: "2024-03-31" fetchAllPages: true force: false dryRun: true }
+meta {
+  name: B3 - RAW Historical Ingest
+  type: http
+  seq: 3
+}
 
+post {
+  url: {{baseUrl}}/b3/fetch/historical
+  body: json
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "dataType": "positions",
+    "assetType": "equity",
+    "start": "2024-01-01",
+    "end": "2024-03-31",
+    "fetchAllPages": true,
+    "force": false,
+    "dryRun": true
+  }
+}

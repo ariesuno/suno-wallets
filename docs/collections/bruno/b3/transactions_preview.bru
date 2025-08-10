@@ -1,4 +1,22 @@
-meta { name: B3 - Transactions Preview type: http }
-request { method: GET url: {{baseUrl}}/api/v1/b3/fetch/transactions/preview }
-params { cpf: "{{cpf}}" assetType: "equity" start: "2024-01-01" end: "2024-01-31" page: 1 fetchAllPages: false }
+meta {
+  name: B3 - Transactions Preview
+  type: http
+  seq: 1
+}
 
+get {
+  url: {{baseUrl}}/b3/fetch/transactions/preview
+}
+
+params:query {
+  cpf: {{cpf}}
+  assetType: equity
+  start: 2024-01-01
+  end: 2024-01-31
+  page: 1
+  fetchAllPages: false
+}
+
+headers {
+  X-Tenant-Id: {{tenantId}}
+}

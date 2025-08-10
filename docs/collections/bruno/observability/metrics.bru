@@ -1,6 +1,15 @@
-meta { name: Observability - Metrics type: http }
-request {
-  method: GET
-  url: {{baseUrl}}/metrics
+meta {
+  name: Observability - Metrics
+  type: http
+  seq: 20
 }
 
+get {
+  url: {{baseUrl}}/../../metrics
+}
+
+docs {
+  Prometheus metrics endpoint for observability.
+  
+  Returns application metrics in Prometheus format.
+}
