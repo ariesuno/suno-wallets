@@ -142,9 +142,29 @@ func (s *Service) testTransactions(ctx context.Context, params TestParams) Trans
 		return TransactionsSummary{Error: err.Error(), DateRange: DateRangeInfo{Start: startDate, End: endDate}}
 	}
 	defer resp.Body.Close()
+	// Usar estrutura B3 correta
 	var transactionsData struct {
-		Data []map[string]interface{} `json:"data"`
-		Meta map[string]interface{}   `json:"meta"`
+		Data struct {
+			Periods struct {
+				PeriodLists []struct {
+					BuyTotal         float64 `json:"buyTotal"`
+					SellTotal        float64 `json:"sellTotal"`
+					ReferenceDate    string  `json:"referenceDate"`
+					AssetTradingList []struct {
+						Side                      string  `json:"side"`
+						MarketName                string  `json:"marketName"`
+						PriceValue                float64 `json:"priceValue"`
+						GrossAmount               float64 `json:"grossAmount"`
+						TickerSymbol              string  `json:"tickerSymbol"`
+						TradeDateTime             string  `json:"tradeDateTime"`
+						TradeQuantity             int     `json:"tradeQuantity"`
+						ParticipantName           string  `json:"participantName"`
+						ParticipantDocumentNumber string  `json:"participantDocumentNumber"`
+					} `json:"assetTradingList"`
+				} `json:"periodLists"`
+			} `json:"periods"`
+		} `json:"data"`
+		Meta map[string]interface{} `json:"meta"`
 	}
 	if err := parseJSONResponse(resp, &transactionsData); err != nil {
 		return TransactionsSummary{Error: fmt.Sprintf("erro ao parsear resposta: %v", err), DateRange: DateRangeInfo{Start: startDate, End: endDate}}
@@ -153,25 +173,36 @@ func (s *Service) testTransactions(ctx context.Context, params TestParams) Trans
 	operationTypes := make(map[string]int)
 	tickersMap := make(map[string]bool)
 	var sampleRecords []interface{}
-	for i, tx := range transactionsData.Data {
-		if i < 5 {
-			sampleRecords = append(sampleRecords, tx)
-		}
-		if v, ok := tx["assetType"].(string); ok {
-			assetTypes[v]++
-		}
-		if v, ok := tx["operation"].(string); ok {
-			operationTypes[v]++
-		}
-		if v, ok := tx["ticker"].(string); ok {
-			tickersMap[v] = true
+	totalRecords := 0
+
+	// Processar estrutura B3 aninhada
+	for _, periodList := range transactionsData.Data.Periods.PeriodLists {
+		for _, tx := range periodList.AssetTradingList {
+			totalRecords++
+			if len(sampleRecords) < 5 {
+				sampleRecords = append(sampleRecords, map[string]interface{}{
+					"ticker":      tx.TickerSymbol,
+					"side":        tx.Side,
+					"quantity":    tx.TradeQuantity,
+					"price":       tx.PriceValue,
+					"grossAmount": tx.GrossAmount,
+					"marketName":  tx.MarketName,
+					"tradeDate":   tx.TradeDateTime,
+					"participant": tx.ParticipantName,
+				})
+			}
+
+			// Classificar por mercado como "asset type"
+			assetTypes[tx.MarketName]++
+			operationTypes[tx.Side]++
+			tickersMap[tx.TickerSymbol] = true
 		}
 	}
+
 	var tickers []string
 	for t := range tickersMap {
 		tickers = append(tickers, t)
 	}
-	totalRecords := len(transactionsData.Data)
 	totalPages := 1
 	if meta := transactionsData.Meta; meta != nil {
 		if total, ok := meta["totalRecords"].(float64); ok {

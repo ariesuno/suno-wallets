@@ -30,7 +30,8 @@ func optstr(s string) *string {
 	}
 	return &s
 }
-func itoa(i int) string { return strconv.Itoa(i) }
+func itoa(i int) string     { return strconv.Itoa(i) }
+func ftoa(f float64) string { return strconv.FormatFloat(f, 'f', 2, 64) }
 func parseYMD(s string) time.Time {
 	t, _ := time.Parse("2006-01-02", s)
 	return t

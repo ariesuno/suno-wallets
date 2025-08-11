@@ -1,0 +1,21 @@
+meta {
+  name: Analyze Reactivation Strategy
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/b3/admin/reactivation/analyze
+}
+
+headers {
+  X-Tenant-ID: {{tenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cpf": "{{cpf}}",
+    "currentDate": "2025-08-08"
+  }
+}

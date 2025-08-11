@@ -161,7 +161,8 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
 
 func nextTimeOrEpoch(t *time.Time) time.Time {
 	if t == nil {
-		return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+		// Data de início da API B3: 01 de novembro de 2019
+		return time.Date(2019, 11, 1, 0, 0, 0, 0, time.UTC)
 	}
 	return t.Add(24 * time.Hour)
 }

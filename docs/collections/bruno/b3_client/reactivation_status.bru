@@ -1,0 +1,17 @@
+meta {
+  name: Check Reactivation Status
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{baseUrl}}/b3/client/reactivation/status
+}
+
+params:query {
+  cpf: {{cpf}}
+}
+
+headers {
+  X-Tenant-ID: {{tenantId}}
+}

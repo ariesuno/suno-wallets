@@ -93,7 +93,7 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 		if p.DataType == "positions" {
 			path = fmt.Sprintf("/position/v3/equities/investors/%s", p.CPF)
 		} else {
-			path = fmt.Sprintf("/assets-trading/v2/equity/%s", p.CPF)
+			path = fmt.Sprintf("/assets-trading/v2/investors/%s", p.CPF)
 		}
 		baseQuery := map[string]string{"referenceStartDate": w[0].Format("2006-01-02"), "referenceEndDate": w[1].Format("2006-01-02")}
 

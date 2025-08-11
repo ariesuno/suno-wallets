@@ -16,6 +16,7 @@ import (
 	ingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	possvc "suno-wallets/src/application/b3/positions"
+	reactivationsvc "suno-wallets/src/application/b3/reactivation"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
 	b3svc "suno-wallets/src/application/b3/transactions"
@@ -172,6 +173,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	incrementalSvc := incrsvc.NewService(syncRepoIncr, ingestSvc, normSvc).WithPolicy(polSvc)
 	adminController := b3controllers.NewAdminController(e2eOrch, incrementalSvc)
 	utilController := b3controllers.NewUtilController(incrementalSvc)
+	// Reactivation service (smart historical sync)
+	reactivationSvc := reactivationsvc.NewService(syncRepoIncr, ingestSvc, incrementalSvc)
+	reactivationController := b3controllers.NewReactivationController(reactivationSvc)
 	// Sync diário
 	syncRepo := syncrepo.NewRepository(db)
 	syncSvc := appsync.NewService(syncRepo, ingestSvc)
@@ -251,8 +255,13 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			b3Group.POST("/admin/reset-and-refetch", adminController.ResetAndRefetch)
 			// Admin: incremental from last
 			b3Group.POST("/admin/incremental-from-last", adminController.IncrementalFromLast)
+			// Admin: reactivation service (smart historical sync)
+			b3Group.POST("/admin/reactivation/analyze", reactivationController.AnalyzeReactivation)
+			b3Group.POST("/admin/reactivation/execute", reactivationController.ExecuteReactivation)
 			// Public (autenticado): sync window inspection (somente leitura)
 			b3Group.GET("/client/sync-window", utilController.SyncWindow)
+			// Public: reactivation status
+			b3Group.GET("/client/reactivation/status", reactivationController.GetReactivationStatus)
 			// Reports (somente leitura) com rate limit defensivo
 			reportsGroup := b3Group.Group("/client")
 			reportsGroup.Use(middlewares.RateLimitMiddleware(120, time.Minute))

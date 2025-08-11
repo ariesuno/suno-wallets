@@ -255,7 +255,8 @@ func dayStart(t time.Time) time.Time {
 }
 func nextOrEpoch(st *syncrepo.SyncState, isTx bool) time.Time {
 	if st == nil {
-		return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+		// Data de início da API B3: 01 de novembro de 2019
+		return time.Date(2019, 11, 1, 0, 0, 0, 0, time.UTC)
 	}
 	var t *time.Time
 	if isTx {

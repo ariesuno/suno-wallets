@@ -40,5 +40,5 @@ func (c *B3OfficialClient) GetTransactionsV2(ctx context.Context, cpf string, st
 		"referenceEndDate":   endDate,
 		"page":               fmt.Sprintf("%d", page),
 	}
-	return c.MakeRequest(ctx, http.MethodGet, "/assets-trading/v2/equity/"+cpf, q, cpf, true)
+	return c.MakeRequest(ctx, http.MethodGet, "/assets-trading/v2/investors/"+cpf, q, cpf, true)
 }
