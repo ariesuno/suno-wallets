@@ -1,9 +1,14 @@
 
 # Local env (not committed)
 .env
+.env.local
+.env.production
+exemplo.json
+.DS_Store
 
 # Certificates (sensitive)
 certs/*
+certs/**
 !certs/.gitkeep
 
 # Legacy projects (consulta apenas)

@@ -57,10 +57,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Executar migrações automáticas
+	// Executar migrações automáticas com fallback (EnsureSchema)
 	if err := migration.AutoMigrate(db); err != nil {
-		helpers.LogError("Falha ao executar migrações", err, map[string]interface{}{})
-		log.Fatal(err)
+		helpers.LogError("Falha ao executar migrações (tentando fallback EnsureSchema)", err, map[string]interface{}{})
+		_ = migration.CreateExtensions(db)
+		if e2 := migration.EnsureSchema(db); e2 != nil {
+			helpers.LogError("Fallback EnsureSchema falhou", e2, map[string]interface{}{})
+			log.Fatal(e2)
+		}
 	}
 
 	// Configurar rotas

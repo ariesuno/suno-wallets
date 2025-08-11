@@ -1,17 +1,20 @@
 meta {
   name: Test B3 Connection
   type: http
+  seq: 16
 }
 
 get {
   url: {{baseUrl}}/b3/test/connection
-  headers: {
-    X-Tenant-Id: {{tenantId}}
-  }
-  params:query {
-    cpf: {{cpf}}
-    yearMonth: 2024-01
-  }
+}
+
+params:query {
+  cpf: {{cpf}}
+  yearMonth: 2024-01
+}
+
+headers {
+  X-Tenant-ID: {{tenantId}}
 }
 
 docs {

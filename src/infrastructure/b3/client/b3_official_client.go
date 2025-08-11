@@ -52,36 +52,80 @@ func buildTLSConfig(cfg *b3cfg.B3Config) (*tls.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	// converte p12 para chave e certificado
-	privateKey, certificate, err := pkcs12.Decode(p12Bytes, cfg.CertPassphrase)
+
+	// Use ToPEM method like legacy project to handle different P12 formats
+	blocks, err := pkcs12.ToPEM(p12Bytes, cfg.CertPassphrase)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("erro ao decodificar certificado P12 - verifique arquivo e senha: %w", err)
 	}
 
-	// monta certificado x509 (sem cadeia adicional)
-	cert := tls.Certificate{PrivateKey: privateKey, Certificate: [][]byte{certificate.Raw}}
+	var privateKey interface{}
+	var certificates [][]byte
 
-	// opcional: legacy CA extra (.cer)
-	rootCAs, _ := x509.SystemCertPool()
-	if rootCAs == nil {
-		rootCAs = x509.NewCertPool()
-	}
-	if cfg.LegacyCertPath != "" {
-		if b, e := os.ReadFile(cfg.LegacyCertPath); e == nil {
-			if block, _ := pem.Decode(b); block != nil {
-				if certParsed, e2 := x509.ParseCertificate(block.Bytes); e2 == nil {
-					rootCAs.AddCert(certParsed)
+	for _, block := range blocks {
+		if block.Type == "PRIVATE KEY" || block.Type == "RSA PRIVATE KEY" {
+			privateKey, err = x509.ParsePKCS8PrivateKey(block.Bytes)
+			if err != nil {
+				// Try RSA if PKCS8 fails
+				privateKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+				if err != nil {
+					return nil, fmt.Errorf("erro ao parsear chave privada: %w", err)
 				}
+			}
+		} else if block.Type == "CERTIFICATE" {
+			certificates = append(certificates, block.Bytes)
+		}
+	}
+
+	if privateKey == nil || len(certificates) == 0 {
+		return nil, fmt.Errorf("chave privada ou certificado não encontrado no arquivo P12")
+	}
+
+	// monta certificado x509
+	cert := tls.Certificate{PrivateKey: privateKey, Certificate: certificates}
+
+	// Adicionar certificado .cer adicional como no projeto .NET
+	var allCerts []tls.Certificate
+	allCerts = append(allCerts, cert)
+
+	// Carregar certificado .cer adicional se especificado
+	if cfg.LegacyCertPath != "" {
+		if cerBytes, err := os.ReadFile(cfg.LegacyCertPath); err == nil {
+			// Tentar como certificado X.509 direto (formato DER)
+			if cerCert, err := x509.ParseCertificate(cerBytes); err == nil {
+				cerTlsCert := tls.Certificate{
+					Certificate: [][]byte{cerCert.Raw},
+				}
+				allCerts = append(allCerts, cerTlsCert)
 			} else {
-				rootCAs.AppendCertsFromPEM(b)
+				// Tentar como PEM
+				if block, _ := pem.Decode(cerBytes); block != nil {
+					if cerCert, err := x509.ParseCertificate(block.Bytes); err == nil {
+						cerTlsCert := tls.Certificate{
+							Certificate: [][]byte{cerCert.Raw},
+						}
+						allCerts = append(allCerts, cerTlsCert)
+					}
+				}
 			}
 		}
 	}
 
+	// Pool de CA certificates
+	rootCAs, _ := x509.SystemCertPool()
+	if rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+	}
+
 	return &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{cert},
-		RootCAs:      rootCAs,
+		MinVersion:               tls.VersionTLS10, // Mais relaxado como .NET
+		MaxVersion:               tls.VersionTLS13,
+		Certificates:             allCerts,
+		RootCAs:                  rootCAs,
+		InsecureSkipVerify:       true, // Como ServerCertificateCustomValidationCallback = true
+		VerifyPeerCertificate:    nil,
+		ClientAuth:               tls.NoClientCert,
+		PreferServerCipherSuites: false,
 	}, nil
 }
 

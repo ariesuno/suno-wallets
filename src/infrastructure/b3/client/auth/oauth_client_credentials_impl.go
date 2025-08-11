@@ -3,7 +3,8 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -42,6 +43,9 @@ func (c *clientCredentialsImpl) GetToken(ctx context.Context) (*TokenResponse, e
 
 	form := url.Values{}
 	form.Set("grant_type", "client_credentials")
+	if c.cfg.Scope != "" {
+		form.Set("scope", c.cfg.Scope)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.OAuthTokenURL, strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
@@ -51,11 +55,14 @@ func (c *clientCredentialsImpl) GetToken(ctx context.Context) (*TokenResponse, e
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("OAuth request failed: %w", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("failed to acquire token")
+		// Ler o corpo da resposta para obter detalhes do erro
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("OAuth token request failed: status %d, body: %s", resp.StatusCode, string(body))
 	}
 	var payload struct {
 		AccessToken string `json:"access_token"`

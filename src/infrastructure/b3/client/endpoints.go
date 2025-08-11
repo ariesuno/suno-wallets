@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -19,7 +20,7 @@ func (c *B3OfficialClient) GetPositionsV3(ctx context.Context, cpf string, start
 	q := map[string]string{
 		"referenceStartDate": startDate,
 		"referenceEndDate":   endDate,
-		"page":               string(rune(page)),
+		"page":               fmt.Sprintf("%d", page),
 	}
 	return c.MakeRequest(ctx, http.MethodGet, "/position/v3/equities/investors/"+cpf, q, cpf, true)
 }
@@ -37,7 +38,7 @@ func (c *B3OfficialClient) GetTransactionsV2(ctx context.Context, cpf string, st
 	q := map[string]string{
 		"referenceStartDate": startDate,
 		"referenceEndDate":   endDate,
-		"page":               string(rune(page)),
+		"page":               fmt.Sprintf("%d", page),
 	}
 	return c.MakeRequest(ctx, http.MethodGet, "/assets-trading/v2/equity/"+cpf, q, cpf, true)
 }

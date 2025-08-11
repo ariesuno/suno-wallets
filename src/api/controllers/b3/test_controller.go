@@ -7,17 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"suno-wallets/src/application/b3/test"
+	"suno-wallets/src/application/b3/diagnostics"
 	"suno-wallets/src/shared/validation"
 )
 
 // Comentários em pt-BR: controller para teste da conexão com B3
 
 type TestController struct {
-	svc *test.Service
+	svc *diagnostics.Service
 }
 
-func NewTestController(svc *test.Service) *TestController {
+func NewTestController(svc *diagnostics.Service) *TestController {
 	return &TestController{svc: svc}
 }
 
@@ -56,7 +56,7 @@ func (c *TestController) TestConnection(ctx *gin.Context) {
 	endOfMonth := startOfMonth.AddDate(0, 1, -1) // Último dia do mês
 
 	// Executa o teste
-	result, err := c.svc.TestConnectionAndReport(ctx, test.TestParams{
+	result, err := c.svc.TestConnectionAndReport(ctx, diagnostics.TestParams{
 		TenantID:  tenantID,
 		CPF:       cpf,
 		StartDate: startOfMonth,

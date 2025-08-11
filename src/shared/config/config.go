@@ -1,8 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -61,7 +63,7 @@ type Config struct {
 
 // Load carrega as configurações do ambiente
 func Load() *Config {
-	return &Config{
+	cfg := &Config{
 		AppPort: getEnv("APP_PORT", "8080"),
 		AppEnv:  getEnv("APP_ENV", "development"),
 		GinMode: getEnv("GIN_MODE", "debug"),
@@ -105,6 +107,10 @@ func Load() *Config {
 		B3InitialBackoff: getEnvInt("B3_INITIAL_BACKOFF_MS", 200),
 		B3MaxBackoff:     getEnvInt("B3_MAX_BACKOFF_MS", 2000),
 	}
+
+	// Suporte a env.json (legado e plano)
+	applyB3FromJSON(cfg)
+	return cfg
 }
 
 // getEnv busca variável de ambiente ou retorna valor padrão
@@ -123,6 +129,130 @@ func getEnvInt(key string, defaultValue int) int {
 		}
 	}
 	return defaultValue
+}
+
+// applyB3FromJSON lê credenciais/paths B3 de um env.json se existir.
+// Suporta dois formatos:
+// 1) Legado (aninhado): { "B3": { "UrlOptIn":"", "UrlLogin":"", "UrlData":"", "ClientId":"", "ClientSecret":"", "Scope":"", "CertPath":"certs/...", "CertP12Path":"certs/...", "CertPassphrase":"" } }
+// 2) Plano: chaves B3_* no topo
+func applyB3FromJSON(cfg *Config) {
+	// Procurar possíveis caminhos
+	candidates := []string{"/app/certs/env.json", "./certs/env.json", "./env.json"}
+	var content []byte
+	for _, p := range candidates {
+		if b, err := os.ReadFile(p); err == nil {
+			content = b
+			break
+		}
+	}
+	if len(content) == 0 {
+		return
+	}
+
+	// Tentar legado
+	type legacyJSON struct {
+		B3 struct {
+			UrlOptIn       string `json:"UrlOptIn"`
+			UrlLogin       string `json:"UrlLogin"`
+			UrlData        string `json:"UrlData"`
+			ClientId       string `json:"ClientId"`
+			ClientSecret   string `json:"ClientSecret"`
+			Scope          string `json:"Scope"`
+			CertPath       string `json:"CertPath"`
+			CertP12Path    string `json:"CertP12Path"`
+			CertPassphrase string `json:"CertPassphrase"`
+		} `json:"B3"`
+	}
+	var legacy legacyJSON
+	if err := json.Unmarshal(content, &legacy); err == nil {
+		// Se houver pelo menos um campo relevante, aplicar
+		if legacy.B3.UrlData != "" || legacy.B3.UrlLogin != "" || legacy.B3.ClientId != "" || legacy.B3.CertP12Path != "" || legacy.B3.CertPath != "" {
+			if legacy.B3.UrlData != "" {
+				cfg.B3URLData = legacy.B3.UrlData
+			}
+			if legacy.B3.UrlLogin != "" {
+				cfg.B3OAuthTokenURL = legacy.B3.UrlLogin
+			}
+			if legacy.B3.UrlOptIn != "" {
+				cfg.B3URLOptIn = legacy.B3.UrlOptIn
+			}
+			if legacy.B3.ClientId != "" {
+				cfg.B3ClientID = legacy.B3.ClientId
+			}
+			if legacy.B3.ClientSecret != "" {
+				cfg.B3ClientSecret = legacy.B3.ClientSecret
+			}
+			if legacy.B3.Scope != "" {
+				cfg.B3Scope = legacy.B3.Scope
+			}
+			if legacy.B3.CertP12Path != "" {
+				cfg.B3CertP12Path = normalizeCertPath(legacy.B3.CertP12Path)
+			}
+			if legacy.B3.CertPath != "" {
+				cfg.B3LegacyCertPath = normalizeCertPath(legacy.B3.CertPath)
+			}
+			if legacy.B3.CertPassphrase != "" {
+				cfg.B3CertPassphrase = legacy.B3.CertPassphrase
+			}
+			return
+		}
+	}
+
+	// Plano
+	type flat struct {
+		URLData        string `json:"B3_URL_DATA"`
+		OAuthTokenURL  string `json:"B3_OAUTH_TOKEN_URL"`
+		ClientID       string `json:"B3_CLIENT_ID"`
+		ClientSecret   string `json:"B3_CLIENT_SECRET"`
+		Scope          string `json:"B3_SCOPE"`
+		CertP12Path    string `json:"B3_CERT_P12_PATH"`
+		CertPassphrase string `json:"B3_CERT_PASSPHRASE"`
+		LegacyCertPath string `json:"B3_LEGACY_CERT_PATH"`
+	}
+	var f flat
+	if err := json.Unmarshal(content, &f); err != nil {
+		return
+	}
+	if f.URLData != "" {
+		cfg.B3URLData = f.URLData
+	}
+	if f.OAuthTokenURL != "" {
+		cfg.B3OAuthTokenURL = f.OAuthTokenURL
+	}
+	if f.ClientID != "" {
+		cfg.B3ClientID = f.ClientID
+	}
+	if f.ClientSecret != "" {
+		cfg.B3ClientSecret = f.ClientSecret
+	}
+	if f.Scope != "" {
+		cfg.B3Scope = f.Scope
+	}
+	if f.CertP12Path != "" {
+		cfg.B3CertP12Path = normalizeCertPath(f.CertP12Path)
+	}
+	if f.CertPassphrase != "" {
+		cfg.B3CertPassphrase = f.CertPassphrase
+	}
+	if f.LegacyCertPath != "" {
+		cfg.B3LegacyCertPath = normalizeCertPath(f.LegacyCertPath)
+	}
+}
+
+func normalizeCertPath(p string) string {
+	if p == "" {
+		return p
+	}
+	if strings.HasPrefix(p, "/") {
+		return p
+	}
+	if strings.HasPrefix(p, "certs/") {
+		return "/app/" + p
+	}
+	if strings.HasPrefix(p, "./certs/") {
+		return "/app/" + strings.TrimPrefix(p, "./")
+	}
+	return p
 }
 
 // GetJWTDuration retorna a duração do token JWT

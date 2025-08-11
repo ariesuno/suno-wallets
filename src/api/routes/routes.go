@@ -10,6 +10,7 @@ import (
 	opsctl "suno-wallets/src/api/controllers/ops"
 	"suno-wallets/src/api/middlewares"
 	adminapp "suno-wallets/src/application/admin"
+	diagsvc "suno-wallets/src/application/b3/diagnostics"
 	appe2e "suno-wallets/src/application/b3/e2e"
 	incrsvc "suno-wallets/src/application/b3/incremental"
 	ingest "suno-wallets/src/application/b3/ingest"
@@ -17,7 +18,6 @@ import (
 	possvc "suno-wallets/src/application/b3/positions"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
-	testsvc "suno-wallets/src/application/b3/test"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	cpsvc "suno-wallets/src/application/clientpolicy"
 	opsapp "suno-wallets/src/application/ops"
@@ -39,6 +39,7 @@ import (
 	"suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/build"
 	"suno-wallets/src/shared/config"
+	"suno-wallets/src/shared/helpers"
 
 	"time"
 
@@ -86,6 +87,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		OAuthTokenURL:  cfg.B3OAuthTokenURL,
 		ClientID:       cfg.B3ClientID,
 		ClientSecret:   cfg.B3ClientSecret,
+		Scope:          cfg.B3Scope,
 		CertP12Path:    cfg.B3CertP12Path,
 		CertPassphrase: cfg.B3CertPassphrase,
 		LegacyCertPath: cfg.B3LegacyCertPath,
@@ -102,14 +104,22 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		}
 		return tok.AccessToken, nil
 	}
-	b3Cli, _ := b3client.NewB3OfficialClient(b3Conf, getBearer)
+	b3Cli, err := b3client.NewB3OfficialClient(b3Conf, getBearer)
+	if err != nil {
+		helpers.LogError("Falha ao inicializar cliente B3", err, map[string]interface{}{
+			"cert_path": cfg.B3CertP12Path,
+			"url_data":  cfg.B3URLData,
+		})
+		// Continuar sem cliente B3 - serviços que precisam dele falharão graciosamente
+		b3Cli = nil
+	}
 	transactionsService := b3svc.NewTransactionsService(b3Cli)
 	transactionsController := b3controllers.NewTransactionsController(transactionsService)
 	positionsService := possvc.NewPositionsService(b3Cli)
 	positionsController := b3controllers.NewPositionsController(positionsService)
 	// Test service para conectividade B3
-	testService := testsvc.NewService(b3Cli)
-	testController := b3controllers.NewTestController(testService)
+	diagnosticsService := diagsvc.NewService(b3Cli)
+	testController := b3controllers.NewTestController(diagnosticsService)
 	// Ingest (RAW persistence)
 	rawRepo := persistence.NewRawRepository(db)
 	ingestSvc := ingest.NewService(b3Cli, rawRepo)

@@ -12,6 +12,7 @@ type B3Config struct {
 	OAuthTokenURL   string
 	ClientID        string
 	ClientSecret    string
+	Scope           string // OAuth2 scope para B3
 	CertP12Path     string
 	CertPassphrase  string
 	LegacyCertPath  string // opcional: .cer legado (CA ou cliente)
