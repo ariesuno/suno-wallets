@@ -52,7 +52,7 @@ func (rc *ReconciliationController) Scan(c *gin.Context) {
 	start := time.Now()
 	result, err := rc.svc.Scan(c, tenantId, req)
 	if err != nil {
-		helpers.LogError("recon_scan_error", err, map[string]interface{}{"tenantId": tenantId.String()})
+		helpers.LogError("recon_scan_error", err, map[string]interface{}{"tenantId": tenantId})
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "scan failed"})
 		return
 	}

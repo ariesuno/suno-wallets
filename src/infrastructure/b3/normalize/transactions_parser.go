@@ -39,7 +39,7 @@ func NormalizeTransactions(tenantID uuid.UUID, cpf, assetType string, rawID uuid
 		tid := strptr(stringify(m["tradeId"]))
 		isin := strptr(stringify(m["isin"]))
 		cur := strptr(stringify(m["currency"]))
-		nHash := hashx.ComputeNormalizedHash(tenantID.String(), cpf, assetType, tradeDate.Format("2006-01-02"), ticker, side, qty, price, rawID.String(), itoa(i))
+		nHash := hashx.ComputeNormalizedHash(tenantID, cpf, assetType, tradeDate.Format("2006-01-02"), ticker, side, qty, price, rawID.String(), itoa(i))
 		extra, _ := json.Marshal(m)
 		out = append(out, NormalizedTransaction{
 			ID: uuid.New(), TenantID: tenantID, CPF: cpf, AssetType: assetType, SourceVersion: "v2", RawID: rawID,

@@ -68,17 +68,17 @@ func (r *sqliteResetRepo) Reset(ctx context.Context, tenantID uuid.UUID, cpf str
 		_ = r.db.WithContext(ctx).Exec(`INSERT INTO b3_raw_data_client_archive
             SELECT id, tenant_id, cpf, data_type, asset_type, period_start, period_end, page, payload_json, payload_hash,
                    source_version, endpoint_path, http_status, fetched_at, retry_count, request_id, normalized_at, normalized_count,
-                   ?, ? FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, time.Now().Format(time.RFC3339), archivedBy, tenantID.String(), cpf).Error
+                   ?, ? FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, time.Now().Format(time.RFC3339), archivedBy, tenantID, cpf).Error
 		var cnt int64
-		_ = r.db.WithContext(ctx).Raw(`SELECT COUNT(1) FROM b3_raw_data_client_archive WHERE tenant_id = ? AND cpf = ?`, tenantID.String(), cpf).Scan(&cnt).Error
+		_ = r.db.WithContext(ctx).Raw(`SELECT COUNT(1) FROM b3_raw_data_client_archive WHERE tenant_id = ? AND cpf = ?`, tenantID, cpf).Scan(&cnt).Error
 		res.RawMoved = int(cnt)
-		_ = r.db.WithContext(ctx).Exec(`DELETE FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, tenantID.String(), cpf).Error
+		_ = r.db.WithContext(ctx).Exec(`DELETE FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, tenantID, cpf).Error
 	} else {
-		tx := r.db.WithContext(ctx).Exec(`DELETE FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, tenantID.String(), cpf)
+		tx := r.db.WithContext(ctx).Exec(`DELETE FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, tenantID, cpf)
 		res.RawDeleted = int(tx.RowsAffected)
 	}
 	// limpar períodos
-	_ = r.db.WithContext(ctx).Exec(`DELETE FROM b3_fetched_periods WHERE tenant_id = ? AND cpf = ?`, tenantID.String(), cpf).Error
+	_ = r.db.WithContext(ctx).Exec(`DELETE FROM b3_fetched_periods WHERE tenant_id = ? AND cpf = ?`, tenantID, cpf).Error
 	res.SyncStateReset = true
 	return res, nil
 }

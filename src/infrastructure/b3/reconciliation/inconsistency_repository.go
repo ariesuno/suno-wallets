@@ -39,7 +39,7 @@ func getEarliestDate() string {
 }
 
 func makeLockKey(tenantID uuid.UUID, cpf string) int64 {
-	b := sha256.Sum256([]byte(tenantID.String() + "|" + cpf))
+	b := sha256.Sum256([]byte(tenantID + "|" + cpf))
 	// usar primeiros 8 bytes como chave signed 64-bit
 	u := binary.BigEndian.Uint64(b[:8])
 	return int64(u)
@@ -147,7 +147,7 @@ func (r *Repository) ScanOpeningBalanceMissing(ctx context.Context, tenantID uui
 		if p.Qty > net { // provável saldo pré-API
 			samples := map[string]interface{}{"first_position_date": p.Ref}
 			details := map[string]interface{}{"position_qty": p.Qty, "net_tx_until_first_position": net}
-			hash := makeHash(tenantID.String(), cpf, tkr, "OPENING_BALANCE_MISSING", p.Ref)
+			hash := makeHash(tenantID, cpf, tkr, "OPENING_BALANCE_MISSING", p.Ref)
 			out = append(out, apprecon.Finding{Ticker: tkr, Type: "OPENING_BALANCE_MISSING", Severity: 2, Samples: samples, Details: details, DedupeHash: hash})
 			if maxSamples > 0 && len(out) >= maxSamples {
 				break
@@ -222,7 +222,7 @@ func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID,
 			if cum < 0 {
 				// cumulativo negativo
 				samples := map[string]interface{}{"first_tx_date": firstDate, "first_tx_side": firstSide, "min_cum_qty": cum}
-				hash := makeHash(tenantID.String(), cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
+				hash := makeHash(tenantID, cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
 				out = append(out, apprecon.Finding{Ticker: tkr, Type: "SELL_WITHOUT_BUY", Severity: 3, Samples: samples, Details: nil, DedupeHash: hash})
 				found = true
 				break
@@ -231,7 +231,7 @@ func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID,
 		}
 		if !found && strings.ToUpper(firstSide) == "SELL" {
 			samples := map[string]interface{}{"first_tx_date": firstDate, "first_tx_side": firstSide}
-			hash := makeHash(tenantID.String(), cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
+			hash := makeHash(tenantID, cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
 			out = append(out, apprecon.Finding{Ticker: tkr, Type: "SELL_WITHOUT_BUY", Severity: 3, Samples: samples, Details: nil, DedupeHash: hash})
 		}
 		if maxSamples > 0 && len(out) >= maxSamples {
@@ -294,7 +294,7 @@ func (r *Repository) ScanPositionTxDivergence(ctx context.Context, tenantID uuid
 		if net != rw.Qty {
 			samples := map[string]interface{}{"date": rw.Ref, "pos_qty": rw.Qty}
 			details := map[string]interface{}{"net_tx_qty": net}
-			hash := makeHash(tenantID.String(), cpf, rw.Ticker, "POSITION_TX_DIVERGENCE", rw.Ref)
+			hash := makeHash(tenantID, cpf, rw.Ticker, "POSITION_TX_DIVERGENCE", rw.Ref)
 			out = append(out, apprecon.Finding{Ticker: rw.Ticker, Type: "POSITION_TX_DIVERGENCE", Severity: 2, Samples: samples, Details: details, DedupeHash: hash})
 			if maxSamples > 0 && len(out) >= maxSamples {
 				break

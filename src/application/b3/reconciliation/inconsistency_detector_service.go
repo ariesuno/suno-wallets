@@ -53,7 +53,7 @@ func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest)
 	totals := map[string]int{"OPENING_BALANCE_MISSING": 0, "SELL_WITHOUT_BUY": 0, "POSITION_TX_DIVERGENCE": 0}
 	log := helpers.GetLoggerWithFields(map[string]interface{}{
 		"service":   "inconsistency_detector",
-		"tenantId":  tenantID.String(),
+		"tenantId":  tenantID,
 		"cpfMasked": maskCPF(req.CPF),
 		"dryRun":    req.DryRun,
 		"tickers":   req.Tickers,

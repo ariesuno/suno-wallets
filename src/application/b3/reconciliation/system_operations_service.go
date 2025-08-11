@@ -79,7 +79,7 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID uuid.UUI
     started := time.Now()
     log := helpers.GetLoggerWithFields(map[string]interface{}{
         "service":   "autofix_service",
-        "tenantId":  tenantID.String(),
+        "tenantId":  tenantID,
         "cpfMasked": maskCPF(req.CPF),
         "types":     req.Types,
         "tickers":   req.Tickers,

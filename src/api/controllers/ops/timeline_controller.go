@@ -78,12 +78,12 @@ func (tc *TimelineController) Get(ctx *gin.Context) {
 	}
 	filters := appops.TimelineFilters{CPF: cpf, Tickers: tickers, From: fromPtr, To: toPtr, Sources: sources, AssetTypes: assetTypes, Canonicalize: canonicalize, PageSize: pageSize, Cursor: cursor}
 	if tc.enforcer != nil {
-		tc.enforcer.Apply(ctx, tenantID.String(), cpf, &filters)
+		tc.enforcer.Apply(ctx, tenantID, cpf, &filters)
 	}
-	items, next, err := tc.svc.List(ctx, tenantID.String(), filters)
+	items, next, err := tc.svc.List(ctx, tenantID, filters)
 	log := helpers.GetLoggerWithFields(map[string]interface{}{
 		"endpoint":  "ops_timeline",
-		"tenantId":  tenantID.String(),
+		"tenantId":  tenantID,
 		"cpfMasked": maskCPF(cpf),
 		"filters":   map[string]interface{}{"tickers": tickers, "sources": sources, "assetTypes": assetTypes, "from": fromPtr, "to": toPtr, "pageSize": pageSize},
 	})
@@ -131,7 +131,7 @@ func (tc *TimelineController) Export(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cpf required"})
 		return
 	}
-	items, _, err := tc.svc.List(ctx, tenantID.String(), appops.TimelineFilters{CPF: cpf, PageSize: limit})
+	items, _, err := tc.svc.List(ctx, tenantID, appops.TimelineFilters{CPF: cpf, PageSize: limit})
 	if err != nil {
 		obs.ObserveTimeline("error", started)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -139,7 +139,7 @@ func (tc *TimelineController) Export(ctx *gin.Context) {
 	}
 	obs.IncTimelineExport(format)
 	ctx.Header("Content-Disposition", "attachment; filename=timeline."+format)
-	log := helpers.GetLoggerWithFields(map[string]interface{}{"endpoint": "ops_timeline_export", "tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf), "format": format, "limit": limit})
+	log := helpers.GetLoggerWithFields(map[string]interface{}{"endpoint": "ops_timeline_export", "tenantId": tenantID, "cpfMasked": maskCPF(cpf), "format": format, "limit": limit})
 	if strings.ToLower(format) == "csv" {
 		ctx.Header("Content-Type", "text/csv")
 		w := ctx.Writer

@@ -36,7 +36,7 @@ func (c *ReportsController) RawDateRange(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	helpers.LogInfo("reports raw-date-range", map[string]any{"tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf)})
+	helpers.LogInfo("reports raw-date-range", map[string]any{"tenantId": tenantID, "cpfMasked": maskCPF(cpf)})
 	out, err := c.svc.GetRawDateRange(ctx, tenantID, cpf)
 	observability.ObserveReport(endpoint, started)
 	if err != nil {
@@ -44,7 +44,7 @@ func (c *ReportsController) RawDateRange(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	helpers.LogInfo("reports raw-date-range done", map[string]any{"tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf), "durationMs": time.Since(started).Milliseconds()})
+	helpers.LogInfo("reports raw-date-range done", map[string]any{"tenantId": tenantID, "cpfMasked": maskCPF(cpf), "durationMs": time.Since(started).Milliseconds()})
 	ctx.JSON(http.StatusOK, out)
 }
 
@@ -75,7 +75,7 @@ func (c *ReportsController) Summary(ctx *gin.Context) {
 	}
 	from, _ := time.Parse("2006-01-02", fromStr)
 	to, _ := time.Parse("2006-01-02", toStr)
-	helpers.LogInfo("reports summary", map[string]any{"tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf), "from": fromStr, "to": toStr})
+	helpers.LogInfo("reports summary", map[string]any{"tenantId": tenantID, "cpfMasked": maskCPF(cpf), "from": fromStr, "to": toStr})
 	out, err := c.svc.GetSummary(ctx, tenantID, cpf, from, to)
 	observability.ObserveReport(endpoint, started)
 	if err != nil {
@@ -83,7 +83,7 @@ func (c *ReportsController) Summary(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	helpers.LogInfo("reports summary done", map[string]any{"tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf), "durationMs": time.Since(started).Milliseconds(), "months": out.MonthsWithTransactions, "tx": out.TotalTransactions, "tickers": out.TickersCount, "positions": out.PositionsCount})
+	helpers.LogInfo("reports summary done", map[string]any{"tenantId": tenantID, "cpfMasked": maskCPF(cpf), "durationMs": time.Since(started).Milliseconds(), "months": out.MonthsWithTransactions, "tx": out.TotalTransactions, "tickers": out.TickersCount, "positions": out.PositionsCount})
 	ctx.JSON(http.StatusOK, out)
 }
 
@@ -136,7 +136,7 @@ func (c *ReportsController) Tickers(ctx *gin.Context) {
 	if offset < 0 {
 		offset = 0
 	}
-	helpers.LogInfo("reports tickers", map[string]any{"tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf), "from": fromStr, "to": toStr, "limit": limit, "offset": offset})
+	helpers.LogInfo("reports tickers", map[string]any{"tenantId": tenantID, "cpfMasked": maskCPF(cpf), "from": fromStr, "to": toStr, "limit": limit, "offset": offset})
 	out, err := c.svc.GetTickers(ctx, tenantID, cpf, from, to, limit, offset)
 	observability.ObserveReport(endpoint, started)
 	if err != nil {
@@ -146,7 +146,7 @@ func (c *ReportsController) Tickers(ctx *gin.Context) {
 	}
 	// log rows
 	if arr, ok := out["tickers"].([]app.TickerRow); ok {
-		helpers.LogInfo("reports tickers done", map[string]any{"tenantId": tenantID.String(), "cpfMasked": maskCPF(cpf), "durationMs": time.Since(started).Milliseconds(), "rows": len(arr)})
+		helpers.LogInfo("reports tickers done", map[string]any{"tenantId": tenantID, "cpfMasked": maskCPF(cpf), "durationMs": time.Since(started).Milliseconds(), "rows": len(arr)})
 	}
 	ctx.JSON(http.StatusOK, out)
 }

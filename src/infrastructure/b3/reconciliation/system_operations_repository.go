@@ -44,7 +44,7 @@ func (r *SysOpsRepository) GetInconsistencyByID(ctx context.Context, tenantID uu
 
 func (r *SysOpsRepository) UpsertSystemOperation(ctx context.Context, tenantID uuid.UUID, op apprecon.OperationPreview) (bool, error) {
     // Chave natural de idempotência
-    natural := strings.Join([]string{tenantID.String(), op.Ticker, op.Operation, op.Date, op.ReasonCode, op.InconsID.String()}, "|")
+    natural := strings.Join([]string{tenantID, op.Ticker, op.Operation, op.Date, op.ReasonCode, op.InconsID.String()}, "|")
     h := sha256.Sum256([]byte(natural))
     _ = hex.EncodeToString(h[:])
     // Upsert baseado no unique index

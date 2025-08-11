@@ -88,7 +88,7 @@ func (s *DedupService) Scan(ctx context.Context, tenantID uuid.UUID, req ScanReq
 	started := time.Now()
 	log := helpers.GetLoggerWithFields(map[string]interface{}{
 		"service":  "dedup_scan",
-		"tenantId": tenantID.String(),
+		"tenantId": tenantID,
 		"cpf":      maskCPF(req.CPF),
 		"dryRun":   req.DryRun,
 		"mode":     req.ScanMode,
@@ -131,7 +131,7 @@ func (s *DedupService) Scan(ctx context.Context, tenantID uuid.UUID, req ScanReq
 				Status:               "OPEN",
 				Rationale:            rationale,
 			}
-			cand.PairKey = hashJoin(tenantID.String(), req.CPF, b3.ID.String(), mo.ID.String())
+			cand.PairKey = hashJoin(tenantID, req.CPF, b3.ID.String(), mo.ID.String())
 			cand.DedupeKey = hashJoin(b3.Ticker, b3.OperationType, b3.OperationDate.Format("2006-01-02"), f2s(b3.Quantity), f2s(zeroIfNil(b3.Gross)), mo.OperationType, f2s(mo.Quantity), f2s(zeroIfNil(mo.Gross)))
 			if !req.DryRun {
 				if ok, err := s.repo.UpsertCandidate(ctx, cand); err == nil && ok {

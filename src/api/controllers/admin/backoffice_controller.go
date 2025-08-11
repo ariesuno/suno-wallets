@@ -33,7 +33,7 @@ func (c *Controller) Profile(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cpf required"})
 		return
 	}
-	prof, err := c.q.Profile(ctx, tenantID.String(), cpf)
+	prof, err := c.q.Profile(ctx, tenantID, cpf)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -66,7 +66,7 @@ func (c *Controller) RequestAction(ctx *gin.Context) {
 	if body.TTL <= 0 {
 		body.TTL = 600
 	}
-	id, token, err := c.a.Request(ctx, tenantID.String(), body.CPF, body.Action, body.RequestedBy, body.TTL, body.Payload)
+	id, token, err := c.a.Request(ctx, tenantID, body.CPF, body.Action, body.RequestedBy, body.TTL, body.Payload)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -104,7 +104,7 @@ func (c *Controller) Search(ctx *gin.Context) {
 	}
 	q := ctx.Query("query")
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "20"))
-	items, err := c.q.Search(ctx, tenantID.String(), q, limit)
+	items, err := c.q.Search(ctx, tenantID, q, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -124,7 +124,7 @@ func (c *Controller) ListActions(ctx *gin.Context) {
 	status := ctx.Query("status")
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "50"))
-	items, err := c.q.ListActions(ctx, tenantID.String(), cpf, action, status, page, pageSize)
+	items, err := c.q.ListActions(ctx, tenantID, cpf, action, status, page, pageSize)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -145,7 +145,7 @@ func (c *Controller) GetAction(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	item, err := c.q.GetAction(ctx, tenantID.String(), id)
+	item, err := c.q.GetAction(ctx, tenantID, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -167,7 +167,7 @@ func (c *Controller) ExportLedger(ctx *gin.Context) {
 	}
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50000"))
 	excludeB3 := ctx.DefaultQuery("excludeB3", "false") == "true"
-	items, err := c.q.ExportLedger(ctx, tenantID.String(), cpf, excludeB3, limit)
+	items, err := c.q.ExportLedger(ctx, tenantID, cpf, excludeB3, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
