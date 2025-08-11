@@ -6,7 +6,6 @@ import (
 
 	appe2e "suno-wallets/src/application/b3/e2e"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -17,20 +16,20 @@ type Repository struct{ db *gorm.DB }
 func NewRepository(db *gorm.DB) *Repository { return &Repository{db: db} }
 
 // TryAcquireLock usa advisory locks do Postgres por (tenant, cpf)
-func (r *Repository) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string) (bool, error) {
+func (r *Repository) TryAcquireLock(ctx context.Context, tenantID string, cpf string) (bool, error) {
 	var ok bool
 	// chave: hash de tenant e cpf em bigint (usa pg's advisory lock por two-int)
 	// Atenção: para simplicidade, usamos uma única chave derivada via hashtext
-	err := r.db.WithContext(ctx).Raw(`SELECT pg_try_advisory_lock(hashtext(?))`, tenantID.String()+":"+cpf).Scan(&ok).Error
+	err := r.db.WithContext(ctx).Raw(`SELECT pg_try_advisory_lock(hashtext(?))`, tenantID+":"+cpf).Scan(&ok).Error
 	return ok, err
 }
 
-func (r *Repository) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
-	return r.db.WithContext(ctx).Exec(`SELECT pg_advisory_unlock(hashtext(?))`, tenantID.String()+":"+cpf).Error
+func (r *Repository) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
+	return r.db.WithContext(ctx).Exec(`SELECT pg_advisory_unlock(hashtext(?))`, tenantID+":"+cpf).Error
 }
 
 // Reset move para _archive (ou deleta) dados vinculados ao CPF e limpa períodos/sync_state
-func (r *Repository) Reset(ctx context.Context, tenantID uuid.UUID, cpf, mode, archivedBy string) (*appe2e.ResetResult, error) {
+func (r *Repository) Reset(ctx context.Context, tenantID string, cpf, mode, archivedBy string) (*appe2e.ResetResult, error) {
 	tx := r.db.WithContext(ctx).Begin()
 	defer func() {
 		if tx.Error != nil {

@@ -25,7 +25,7 @@ type NormalizePort interface {
 }
 
 type SyncRepository interface {
-	GetByTenantCPF(ctx context.Context, tenantID uuid.UUID, cpf string) (*syncrepo.SyncState, error)
+	GetByTenantCPF(ctx context.Context, tenantID string, cpf string) (*syncrepo.SyncState, error)
 	MarkResult(ctx context.Context, id uuid.UUID, success bool, needsReprocess bool, lastResult string, lastError *string, txSyncAt, posSyncAt *time.Time) error
 }
 
@@ -43,7 +43,7 @@ func NewService(repo SyncRepository, ingest IngestPort, normalize NormalizePort)
 func (s *Service) WithPolicy(p *polsvc.Service) *Service { s.policy = p; return s }
 
 type Params struct {
-	TenantID    uuid.UUID
+	TenantID    string
 	CPF         string
 	DataTypes   []string // transactions | positions
 	AssetTypes  []string // e.g., ["equity"]
@@ -76,10 +76,10 @@ func (s *Service) Run(ctx context.Context, p Params) (*Summary, error) {
 	out := &Summary{StartedAt: started, DryRun: p.DryRun, Force: p.Force}
 	// Enforce policy: MANUAL_ONLY → skipar jobs B3
 	if s.policy != nil {
-		mode := s.policy.GetMode(ctx, p.TenantID.String(), p.CPF)
+		mode := s.policy.GetMode(ctx, p.TenantID, p.CPF)
 		if string(mode) == "MANUAL_ONLY" {
 			observability.IncPolicySkipped("B3_Incremental")
-			helpers.LogInfo("incremental skipped by client policy", map[string]any{"tenantId": p.TenantID.String(), "cpfMasked": maskCPF(p.CPF), "mode": "MANUAL_ONLY"})
+			helpers.LogInfo("incremental skipped by client policy", map[string]any{"tenantId": p.TenantID, "cpfMasked": maskCPF(p.CPF), "mode": "MANUAL_ONLY"})
 			out.FinishedAt = time.Now()
 			out.DurationMs = time.Since(started).Milliseconds()
 			return out, nil
@@ -98,7 +98,7 @@ func (s *Service) Run(ctx context.Context, p Params) (*Summary, error) {
 	var lastErr *string
 	var txSyncAt, posSyncAt *time.Time
 
-	logBase := map[string]any{"tenantId": p.TenantID.String(), "cpfMasked": maskCPF(p.CPF), "types": p.DataTypes, "force": p.Force, "dryRun": p.DryRun}
+	logBase := map[string]any{"tenantId": p.TenantID, "cpfMasked": maskCPF(p.CPF), "types": p.DataTypes, "force": p.Force, "dryRun": p.DryRun}
 	for _, dt := range p.DataTypes {
 		assetType := firstOrDefault(p.AssetTypes, "equity")
 		var from time.Time
@@ -143,7 +143,7 @@ func (s *Service) Run(ctx context.Context, p Params) (*Summary, error) {
 		rawSaved := 0
 		for _, w := range months {
 			res, err := s.ingest.Ingest(ctx, appingest.IngestParams{
-				TenantID:  p.TenantID.String(),
+				TenantID:  p.TenantID,
 				CPF:       p.CPF,
 				DataType:  dt,
 				AssetType: assetType,

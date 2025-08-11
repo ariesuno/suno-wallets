@@ -20,8 +20,8 @@ type IngestService interface {
 }
 
 type Repository interface {
-	GetActiveByTenant(ctx context.Context, tenantID uuid.UUID, limit int) ([]syncrepo.SyncState, error)
-	GetByTenantCPF(ctx context.Context, tenantID uuid.UUID, cpf string) (*syncrepo.SyncState, error)
+	GetActiveByTenant(ctx context.Context, tenantID string, limit int) ([]syncrepo.SyncState, error)
+	GetByTenantCPF(ctx context.Context, tenantID string, cpf string) (*syncrepo.SyncState, error)
 	Upsert(ctx context.Context, st *syncrepo.SyncState) error
 	MarkResult(ctx context.Context, id uuid.UUID, success bool, needsReprocess bool, lastResult string, lastError *string, txSyncAt, posSyncAt *time.Time) error
 }
@@ -41,7 +41,7 @@ func (s *Service) Repo() Repository { return s.repo }
 type RunScope string
 
 type RunParams struct {
-	TenantID   uuid.UUID
+	TenantID   string
 	Scope      RunScope // single|tenant
 	CPF        string   // quando single
 	DataTypes  []string // transactions, positions
@@ -93,7 +93,7 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
 				end := now
 				if start.Before(end) {
 					res, err := s.ingest.Ingest(ctx, ingest.IngestParams{
-						TenantID:  p.TenantID.String(),
+						TenantID:  p.TenantID,
 						CPF:       t.CPF,
 						DataType:  "transactions",
 						AssetType: firstOrDefault(p.AssetTypes, "equity"),
@@ -120,7 +120,7 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
 				end := now
 				if start.Before(end) {
 					res, err := s.ingest.Ingest(ctx, ingest.IngestParams{
-						TenantID:  p.TenantID.String(),
+						TenantID:  p.TenantID,
 						CPF:       t.CPF,
 						DataType:  "positions",
 						AssetType: firstOrDefault(p.AssetTypes, "equity"),
@@ -151,7 +151,7 @@ func (s *Service) Run(ctx context.Context, p RunParams) (*RunSummary, error) {
 		}
 		_ = s.repo.MarkResult(ctx, t.ID, ok, needsReprocess, tern(ok, "OK", "ERROR"), lastErr, txSyncAt, posSyncAt)
 		helpers.LogInfo("B3 daily sync processed", map[string]interface{}{
-			"tenant_id": p.TenantID.String(), "cpf_masked": maskCPFLocal(t.CPF),
+			"tenant_id": p.TenantID, "cpf_masked": maskCPFLocal(t.CPF),
 			"success": ok, "needs_reprocess": needsReprocess,
 		})
 	}

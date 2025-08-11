@@ -54,7 +54,7 @@ func (c *UtilController) SyncWindow(ctx *gin.Context) {
 		}
 	}
 
-	out, _ := c.svc.Run(ctx, incr.Params{TenantID: tenantID, CPF: cpf, DataTypes: []string{typ}, AssetTypes: []string{"equity"}, Since: sincePtr, End: endPtr, DryRun: true})
+	out, _ := c.svc.Run(ctx, incr.Params{TenantID: tenantID.String(), CPF: cpf, DataTypes: []string{typ}, AssetTypes: []string{"equity"}, Since: sincePtr, End: endPtr, DryRun: true})
 	if out == nil {
 		ctx.JSON(http.StatusOK, gin.H{"from": nil, "to": nil, "months": 0, "pagesEstimate": 0})
 		return

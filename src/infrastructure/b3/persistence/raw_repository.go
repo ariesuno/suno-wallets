@@ -13,7 +13,7 @@ import (
 
 type RawRecord struct {
 	ID           uuid.UUID       `gorm:"type:uuid;primaryKey"`
-	TenantID     uuid.UUID       `gorm:"type:uuid;not null;index"`
+	TenantID     string          `gorm:"type:varchar(50);not null;index"`
 	CPF          string          `gorm:"type:varchar(11);not null;index"`
 	DataType     string          `gorm:"type:varchar;not null;index"`
 	AssetType    string          `gorm:"type:varchar;not null;index"`
@@ -32,7 +32,7 @@ type RawRecord struct {
 
 type FetchedPeriod struct {
 	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
-	TenantID      uuid.UUID `gorm:"type:uuid;not null;index"`
+	TenantID      string    `gorm:"type:varchar(50);not null;index"`
 	CPF           string    `gorm:"type:varchar(11);not null;index"`
 	DataType      string    `gorm:"type:varchar;not null;index"`
 	AssetType     string    `gorm:"type:varchar;not null;index"`
@@ -46,7 +46,7 @@ type FetchedPeriod struct {
 type RawRepository interface {
 	UpsertRaw(ctx context.Context, rec *RawRecord) error
 	MarkMonth(ctx context.Context, p *FetchedPeriod) error
-	GetMonth(ctx context.Context, tenantID uuid.UUID, cpf, dataType, assetType string, monthStart time.Time) (*FetchedPeriod, error)
+	GetMonth(ctx context.Context, tenantID string, cpf, dataType, assetType string, monthStart time.Time) (*FetchedPeriod, error)
 }
 
 type rawRepositoryImpl struct{ db *gorm.DB }
@@ -80,7 +80,7 @@ func (r *rawRepositoryImpl) MarkMonth(ctx context.Context, p *FetchedPeriod) err
 	).Error
 }
 
-func (r *rawRepositoryImpl) GetMonth(ctx context.Context, tenantID uuid.UUID, cpf, dataType, assetType string, monthStart time.Time) (*FetchedPeriod, error) {
+func (r *rawRepositoryImpl) GetMonth(ctx context.Context, tenantID string, cpf, dataType, assetType string, monthStart time.Time) (*FetchedPeriod, error) {
 	var m FetchedPeriod
 	err := r.db.WithContext(ctx).Raw(
 		`SELECT id, tenant_id, cpf, data_type, asset_type, month_start, month_end, pages, completed, last_fetched_at

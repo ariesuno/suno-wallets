@@ -50,7 +50,7 @@ type B3AssetTrading struct {
 	AssetTradingObjectCode       string  `json:"assetTradingObjectCode,omitempty"`
 }
 
-func NormalizeTransactions(tenantID uuid.UUID, cpf, assetType string, rawID uuid.UUID, payload []byte) ([]NormalizedTransaction, error) {
+func NormalizeTransactions(tenantID string, cpf, assetType string, rawID uuid.UUID, payload []byte) ([]NormalizedTransaction, error) {
 	// Parse da estrutura B3 específica
 	var b3Response B3TransactionResponse
 	if err := json.Unmarshal(payload, &b3Response); err != nil {
@@ -74,7 +74,7 @@ func NormalizeTransactions(tenantID uuid.UUID, cpf, assetType string, rawID uuid
 
 			// Criar hash único para esta transação
 			nHash := hashx.ComputeNormalizedHash(
-				tenantID.String(), cpf, assetType,
+				tenantID, cpf, assetType,
 				tradeDate.Format("2006-01-02"), ticker, side,
 				itoa(trade.TradeQuantity), ftoa(trade.PriceValue),
 				rawID.String(), itoa(sequenceIndex),

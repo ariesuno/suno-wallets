@@ -38,15 +38,15 @@ func getEarliestDate() string {
 	return "2019-10-01"
 }
 
-func makeLockKey(tenantID uuid.UUID, cpf string) int64 {
-	b := sha256.Sum256([]byte(tenantID.String() + "|" + cpf))
+func makeLockKey(tenantID string, cpf string) int64 {
+	b := sha256.Sum256([]byte(tenantID + "|" + cpf))
 	// usar primeiros 8 bytes como chave signed 64-bit
 	u := binary.BigEndian.Uint64(b[:8])
 	return int64(u)
 }
 
 // TryAcquireLock tenta adquirir lock por (tenant, cpf). Em Postgres usa advisory lock; em SQLite é no-op (sempre true)
-func (r *Repository) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string, ttlSeconds int) (bool, error) {
+func (r *Repository) TryAcquireLock(ctx context.Context, tenantID string, cpf string, ttlSeconds int) (bool, error) {
 	switch r.db.Dialector.Name() {
 	case "postgres":
 		key := makeLockKey(tenantID, cpf)
@@ -62,7 +62,7 @@ func (r *Repository) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf
 }
 
 // ReleaseLock libera advisory lock quando suportado
-func (r *Repository) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
+func (r *Repository) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
 	switch r.db.Dialector.Name() {
 	case "postgres":
 		key := makeLockKey(tenantID, cpf)
@@ -73,7 +73,7 @@ func (r *Repository) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf st
 	}
 }
 
-func (r *Repository) ScanOpeningBalanceMissing(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
+func (r *Repository) ScanOpeningBalanceMissing(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
 	// Estratégia: obter primeira posição por ticker e comparar com Σ(buys-sells) do earliest até a first_date
 	type posRow struct {
 		Ticker string
@@ -147,7 +147,7 @@ func (r *Repository) ScanOpeningBalanceMissing(ctx context.Context, tenantID uui
 		if p.Qty > net { // provável saldo pré-API
 			samples := map[string]interface{}{"first_position_date": p.Ref}
 			details := map[string]interface{}{"position_qty": p.Qty, "net_tx_until_first_position": net}
-			hash := makeHash(tenantID.String(), cpf, tkr, "OPENING_BALANCE_MISSING", p.Ref)
+			hash := makeHash(tenantID, cpf, tkr, "OPENING_BALANCE_MISSING", p.Ref)
 			out = append(out, apprecon.Finding{Ticker: tkr, Type: "OPENING_BALANCE_MISSING", Severity: 2, Samples: samples, Details: details, DedupeHash: hash})
 			if maxSamples > 0 && len(out) >= maxSamples {
 				break
@@ -157,7 +157,7 @@ func (r *Repository) ScanOpeningBalanceMissing(ctx context.Context, tenantID uui
 	return out, nil
 }
 
-func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
+func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
 	// Estratégia: identificar tickers com primeira transação SELL ou cumulativo líquido negativo
 	type txRow struct {
 		Ticker string
@@ -222,7 +222,7 @@ func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID,
 			if cum < 0 {
 				// cumulativo negativo
 				samples := map[string]interface{}{"first_tx_date": firstDate, "first_tx_side": firstSide, "min_cum_qty": cum}
-				hash := makeHash(tenantID.String(), cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
+				hash := makeHash(tenantID, cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
 				out = append(out, apprecon.Finding{Ticker: tkr, Type: "SELL_WITHOUT_BUY", Severity: 3, Samples: samples, Details: nil, DedupeHash: hash})
 				found = true
 				break
@@ -231,7 +231,7 @@ func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID,
 		}
 		if !found && strings.ToUpper(firstSide) == "SELL" {
 			samples := map[string]interface{}{"first_tx_date": firstDate, "first_tx_side": firstSide}
-			hash := makeHash(tenantID.String(), cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
+			hash := makeHash(tenantID, cpf, tkr, "SELL_WITHOUT_BUY", firstDate)
 			out = append(out, apprecon.Finding{Ticker: tkr, Type: "SELL_WITHOUT_BUY", Severity: 3, Samples: samples, Details: nil, DedupeHash: hash})
 		}
 		if maxSamples > 0 && len(out) >= maxSamples {
@@ -245,7 +245,7 @@ func (r *Repository) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID,
 	return out, nil
 }
 
-func (r *Repository) ScanPositionTxDivergence(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
+func (r *Repository) ScanPositionTxDivergence(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
 	type posRow struct {
 		Ticker string
 		Ref    string
@@ -294,7 +294,7 @@ func (r *Repository) ScanPositionTxDivergence(ctx context.Context, tenantID uuid
 		if net != rw.Qty {
 			samples := map[string]interface{}{"date": rw.Ref, "pos_qty": rw.Qty}
 			details := map[string]interface{}{"net_tx_qty": net}
-			hash := makeHash(tenantID.String(), cpf, rw.Ticker, "POSITION_TX_DIVERGENCE", rw.Ref)
+			hash := makeHash(tenantID, cpf, rw.Ticker, "POSITION_TX_DIVERGENCE", rw.Ref)
 			out = append(out, apprecon.Finding{Ticker: rw.Ticker, Type: "POSITION_TX_DIVERGENCE", Severity: 2, Samples: samples, Details: details, DedupeHash: hash})
 			if maxSamples > 0 && len(out) >= maxSamples {
 				break
@@ -304,7 +304,7 @@ func (r *Repository) ScanPositionTxDivergence(ctx context.Context, tenantID uuid
 	return out, nil
 }
 
-func (r *Repository) UpsertFindings(ctx context.Context, tenantID uuid.UUID, cpf string, findings []apprecon.Finding) error {
+func (r *Repository) UpsertFindings(ctx context.Context, tenantID string, cpf string, findings []apprecon.Finding) error {
 	// upsert idempotente via dedupe
 	for _, f := range findings {
 		samplesJSON, _ := json.Marshal(f.Samples)
@@ -325,7 +325,7 @@ func (r *Repository) UpsertFindings(ctx context.Context, tenantID uuid.UUID, cpf
 }
 
 // Implementações de leitura (list e get)
-func (r *Repository) ListInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]apprecon.Inconsistency, error) {
+func (r *Repository) ListInconsistencies(ctx context.Context, tenantID string, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]apprecon.Inconsistency, error) {
 	qb := r.db.WithContext(ctx).Table("b3_inconsistencies").Select("id, tenant_id, cpf, ticker, type, status, severity, updated_at").Where("tenant_id = ?", tenantID)
 	if cpf != "" {
 		qb = qb.Where("cpf = ?", cpf)
@@ -348,7 +348,7 @@ func (r *Repository) ListInconsistencies(ctx context.Context, tenantID uuid.UUID
 	offset := (page - 1) * pageSize
 	type listRow struct {
 		ID        uuid.UUID
-		TenantID  uuid.UUID
+		TenantID  string
 		CPF       string
 		Ticker    string
 		Type      string
@@ -376,11 +376,11 @@ func (r *Repository) ListInconsistencies(ctx context.Context, tenantID uuid.UUID
 	return out, nil
 }
 
-func (r *Repository) GetInconsistency(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*apprecon.Inconsistency, error) {
+func (r *Repository) GetInconsistency(ctx context.Context, tenantID string, id uuid.UUID) (*apprecon.Inconsistency, error) {
 	// Carregar inclusive sample_dates e details
 	type dbrow struct {
 		ID              uuid.UUID
-		TenantID        uuid.UUID
+		TenantID        string
 		CPF             string
 		Ticker          string
 		Type            string

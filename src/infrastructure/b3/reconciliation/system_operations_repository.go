@@ -18,14 +18,14 @@ type SysOpsRepository struct{ db *gorm.DB }
 
 func NewSysOpsRepository(db *gorm.DB) *SysOpsRepository { return &SysOpsRepository{db: db} }
 
-func (r *SysOpsRepository) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string, ttlSeconds int) (bool, error) {
+func (r *SysOpsRepository) TryAcquireLock(ctx context.Context, tenantID string, cpf string, ttlSeconds int) (bool, error) {
 	return (&Repository{db: r.db}).TryAcquireLock(ctx, tenantID, cpf, ttlSeconds)
 }
-func (r *SysOpsRepository) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
+func (r *SysOpsRepository) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
 	return (&Repository{db: r.db}).ReleaseLock(ctx, tenantID, cpf)
 }
 
-func (r *SysOpsRepository) ListOpenInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf string, types []string, tickers []string) ([]apprecon.Inconsistency, error) {
+func (r *SysOpsRepository) ListOpenInconsistencies(ctx context.Context, tenantID string, cpf string, types []string, tickers []string) ([]apprecon.Inconsistency, error) {
 	qb := r.db.WithContext(ctx).Table("b3_inconsistencies").Select("id, tenant_id, cpf, ticker, type, status, severity, updated_at").Where("tenant_id = ? AND cpf = ? AND status = 'OPEN'", tenantID, cpf)
 	if len(types) > 0 {
 		qb = qb.Where("type IN ?", types)
@@ -40,13 +40,13 @@ func (r *SysOpsRepository) ListOpenInconsistencies(ctx context.Context, tenantID
 	return rows, nil
 }
 
-func (r *SysOpsRepository) GetInconsistencyByID(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*apprecon.Inconsistency, error) {
+func (r *SysOpsRepository) GetInconsistencyByID(ctx context.Context, tenantID string, id uuid.UUID) (*apprecon.Inconsistency, error) {
 	return (&Repository{db: r.db}).GetInconsistency(ctx, tenantID, id)
 }
 
-func (r *SysOpsRepository) UpsertSystemOperation(ctx context.Context, tenantID uuid.UUID, op apprecon.OperationPreview) (bool, error) {
+func (r *SysOpsRepository) UpsertSystemOperation(ctx context.Context, tenantID string, op apprecon.OperationPreview) (bool, error) {
 	// Chave natural de idempotência
-	natural := strings.Join([]string{tenantID.String(), op.Ticker, op.Operation, op.Date, op.ReasonCode, op.InconsID.String()}, "|")
+	natural := strings.Join([]string{tenantID, op.Ticker, op.Operation, op.Date, op.ReasonCode, op.InconsID.String()}, "|")
 	h := sha256.Sum256([]byte(natural))
 	_ = hex.EncodeToString(h[:])
 	// Upsert baseado no unique index
@@ -61,13 +61,13 @@ func (r *SysOpsRepository) UpsertSystemOperation(ctx context.Context, tenantID u
 	return res.RowsAffected > 0, nil
 }
 
-func (r *SysOpsRepository) ResolveInconsistency(ctx context.Context, tenantID uuid.UUID, inconsID uuid.UUID, generatedIDs []uuid.UUID) error {
+func (r *SysOpsRepository) ResolveInconsistency(ctx context.Context, tenantID string, inconsID uuid.UUID, generatedIDs []uuid.UUID) error {
 	// Simples: marcar RESOLVED; anexar detalhes pode ficar para iteração seguinte
 	return r.db.WithContext(ctx).Exec(`UPDATE b3_inconsistencies SET status = 'RESOLVED', updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ? AND id = ?`, tenantID, inconsID).Error
 }
 
 // GetFirstSellTxDetails retorna data/quantidade/preço da primeira venda
-func (r *SysOpsRepository) GetFirstSellTxDetails(ctx context.Context, tenantID uuid.UUID, cpf string, ticker string) (string, float64, float64, bool, error) {
+func (r *SysOpsRepository) GetFirstSellTxDetails(ctx context.Context, tenantID string, cpf string, ticker string) (string, float64, float64, bool, error) {
 	type row struct {
 		D string
 		Q float64
@@ -89,7 +89,7 @@ func (r *SysOpsRepository) GetFirstSellTxDetails(ctx context.Context, tenantID u
 }
 
 // DerivePriceFromPosition tenta derivar preço unitário a partir do valor da posição (value/qty) na data
-func (r *SysOpsRepository) DerivePriceFromPosition(ctx context.Context, tenantID uuid.UUID, cpf, ticker, date string) (float64, bool, error) {
+func (r *SysOpsRepository) DerivePriceFromPosition(ctx context.Context, tenantID string, cpf, ticker, date string) (float64, bool, error) {
 	type row struct {
 		Q float64
 		V float64

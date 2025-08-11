@@ -14,7 +14,7 @@ import (
 
 type NormalizedTransaction struct {
 	ID             uuid.UUID       `gorm:"type:uuid;primaryKey"`
-	TenantID       uuid.UUID       `gorm:"type:uuid;not null"`
+	TenantID       string          `gorm:"type:varchar(50);not null"`
 	CPF            string          `gorm:"type:varchar(11);not null"`
 	AssetType      string          `gorm:"type:varchar;not null"`
 	SourceVersion  string          `gorm:"type:varchar;not null"`
@@ -38,7 +38,7 @@ type NormalizedTransaction struct {
 
 type NormalizedPosition struct {
 	ID             uuid.UUID       `gorm:"type:uuid;primaryKey"`
-	TenantID       uuid.UUID       `gorm:"type:uuid;not null"`
+	TenantID       string          `gorm:"type:varchar(50);not null"`
 	CPF            string          `gorm:"type:varchar(11);not null"`
 	AssetType      string          `gorm:"type:varchar;not null"`
 	SourceVersion  string          `gorm:"type:varchar;not null"`
@@ -59,7 +59,7 @@ type NormalizedPosition struct {
 type NormalizedRepository interface {
 	UpsertTransactions(ctx context.Context, items []NormalizedTransaction) error
 	UpsertPositions(ctx context.Context, items []NormalizedPosition) error
-	SelectPendingRaw(ctx context.Context, tenantID uuid.UUID, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error)
+	SelectPendingRaw(ctx context.Context, tenantID string, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error)
 	MarkRawNormalized(ctx context.Context, rawID uuid.UUID, count int) error
 }
 
@@ -110,7 +110,7 @@ func (r *normalizedRepositoryImpl) UpsertPositions(ctx context.Context, items []
 }
 
 // Seleciona RAW pendente (sem normalized_at) dentro do período, ou tudo se force=true
-func (r *normalizedRepositoryImpl) SelectPendingRaw(ctx context.Context, tenantID uuid.UUID, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error) {
+func (r *normalizedRepositoryImpl) SelectPendingRaw(ctx context.Context, tenantID string, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error) {
 	var rows []persistence.RawRecord
 	qb := r.db.WithContext(ctx).Table("b3_raw_data_client").
 		Where("tenant_id = ? AND cpf = ? AND data_type = ? AND asset_type = ? AND period_start >= ? AND period_end <= ?", tenantID, cpf, dataType, assetType, start, end)

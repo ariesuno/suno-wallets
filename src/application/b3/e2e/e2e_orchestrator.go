@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
 	appingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	"suno-wallets/src/infrastructure/observability"
@@ -18,9 +16,9 @@ import (
 
 // ResetRepository define operações de reset/locks necessárias pelo orquestrador (implementação em Infrastructure)
 type ResetRepository interface {
-	TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string) (bool, error)
-	ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error
-	Reset(ctx context.Context, tenantID uuid.UUID, cpf string, mode string, archivedBy string) (*ResetResult, error)
+	TryAcquireLock(ctx context.Context, tenantID string, cpf string) (bool, error)
+	ReleaseLock(ctx context.Context, tenantID string, cpf string) error
+	Reset(ctx context.Context, tenantID string, cpf string, mode string, archivedBy string) (*ResetResult, error)
 }
 
 // ResetResult resume o efeito do reset seguro
@@ -37,7 +35,7 @@ type ResetResult struct {
 
 // Params parâmetros do orquestrador E2E
 type Params struct {
-	TenantID    uuid.UUID
+	TenantID    string
 	CPF         string
 	AssetTypes  []string // ex.: ["equity"]
 	DataTypes   []string // ex.: ["transactions","positions"]
@@ -91,7 +89,7 @@ func (o *Orchestrator) Run(ctx context.Context, p Params) (*Summary, error) {
 	started := time.Now()
 	sum := &Summary{Mode: p.Mode, Force: p.Force, DryRun: p.DryRun, StartedAt: started}
 	logBase := map[string]any{
-		"tenantId":  p.TenantID.String(),
+		"tenantId":  p.TenantID,
 		"cpfMasked": maskCPF(p.CPF),
 		"mode":      p.Mode,
 		"force":     p.Force,
@@ -150,7 +148,7 @@ func (o *Orchestrator) Run(ctx context.Context, p Params) (*Summary, error) {
 			for _, w := range months {
 				// Chamar ingest com force conforme parâmetro
 				ingSum, err := o.ingest.Ingest(ctx, appingest.IngestParams{
-					TenantID:  p.TenantID.String(),
+					TenantID:  p.TenantID,
 					CPF:       p.CPF,
 					DataType:  dataType,
 					AssetType: assetType,

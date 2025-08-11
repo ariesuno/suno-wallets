@@ -81,7 +81,7 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 
 	for _, w := range wins {
 		// checar período já buscado
-		existing, _ := s.repo.GetMonth(ctx, uuid.MustParse(p.TenantID), p.CPF, p.DataType, p.AssetType, w[0])
+		existing, _ := s.repo.GetMonth(ctx, p.TenantID, p.CPF, p.DataType, p.AssetType, w[0])
 		if existing != nil && existing.Completed && !p.Force {
 			sum.Skipped++
 			observability.IncRawSkipped(1)
@@ -106,7 +106,7 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 			}
 			h, _ := hashx.ComputeRawHash(generic, path, p.TenantID, p.CPF, baseQuery["referenceStartDate"], baseQuery["referenceEndDate"], pageNum)
 			payload, _ := json.Marshal(generic)
-			rec := &persistence.RawRecord{ID: uuid.New(), TenantID: uuid.MustParse(p.TenantID), CPF: p.CPF, DataType: p.DataType, AssetType: p.AssetType,
+			rec := &persistence.RawRecord{ID: uuid.New(), TenantID: p.TenantID, CPF: p.CPF, DataType: p.DataType, AssetType: p.AssetType,
 				PeriodStart: w[0], PeriodEnd: w[1], Page: pageNum, PayloadJSON: payload, PayloadHash: h, SourceVer: map[bool]string{p.DataType == "positions": "v3"}[true],
 				EndpointPath: path, HTTPStatus: hr.StatusCode, RetryCount: 0, RequestID: uuid.New(), FetchedAt: time.Now()}
 			if !p.DryRun {
@@ -132,7 +132,7 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 		}
 
 		// marcar mês
-		_ = s.repo.MarkMonth(ctx, &persistence.FetchedPeriod{ID: uuid.New(), TenantID: uuid.MustParse(p.TenantID), CPF: p.CPF,
+		_ = s.repo.MarkMonth(ctx, &persistence.FetchedPeriod{ID: uuid.New(), TenantID: p.TenantID, CPF: p.CPF,
 			DataType: p.DataType, AssetType: p.AssetType, MonthStart: w[0], MonthEnd: w[1], Pages: sum.PagesProcessed, Completed: true})
 		observability.IncRawMonthsCompleted(1)
 	}

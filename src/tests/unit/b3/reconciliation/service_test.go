@@ -15,7 +15,7 @@ type fakeRepo struct {
 	scans map[string]int
 }
 
-func (f *fakeRepo) ScanOpeningBalanceMissing(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
+func (f *fakeRepo) ScanOpeningBalanceMissing(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
 	n := f.scans["OPENING_BALANCE_MISSING"]
 	out := make([]apprecon.Finding, n)
 	for i := 0; i < n; i++ {
@@ -23,7 +23,7 @@ func (f *fakeRepo) ScanOpeningBalanceMissing(ctx context.Context, tenantID uuid.
 	}
 	return out, nil
 }
-func (f *fakeRepo) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
+func (f *fakeRepo) ScanSellWithoutBuy(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
 	n := f.scans["SELL_WITHOUT_BUY"]
 	out := make([]apprecon.Finding, n)
 	for i := 0; i < n; i++ {
@@ -31,7 +31,7 @@ func (f *fakeRepo) ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID, c
 	}
 	return out, nil
 }
-func (f *fakeRepo) ScanPositionTxDivergence(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
+func (f *fakeRepo) ScanPositionTxDivergence(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]apprecon.Finding, error) {
 	n := f.scans["POSITION_TX_DIVERGENCE"]
 	out := make([]apprecon.Finding, n)
 	for i := 0; i < n; i++ {
@@ -39,27 +39,26 @@ func (f *fakeRepo) ScanPositionTxDivergence(ctx context.Context, tenantID uuid.U
 	}
 	return out, nil
 }
-func (f *fakeRepo) UpsertFindings(ctx context.Context, tenantID uuid.UUID, cpf string, findings []apprecon.Finding) error {
+func (f *fakeRepo) UpsertFindings(ctx context.Context, tenantID string, cpf string, findings []apprecon.Finding) error {
 	return nil
 }
-func (f *fakeRepo) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string, ttlSeconds int) (bool, error) {
+func (f *fakeRepo) TryAcquireLock(ctx context.Context, tenantID string, cpf string, ttlSeconds int) (bool, error) {
 	return true, nil
 }
-func (f *fakeRepo) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
+func (f *fakeRepo) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
 	return nil
 }
-func (f *fakeRepo) ListInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]apprecon.Inconsistency, error) {
+func (f *fakeRepo) ListInconsistencies(ctx context.Context, tenantID string, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]apprecon.Inconsistency, error) {
 	return nil, nil
 }
-func (f *fakeRepo) GetInconsistency(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*apprecon.Inconsistency, error) {
+func (f *fakeRepo) GetInconsistency(ctx context.Context, tenantID string, id uuid.UUID) (*apprecon.Inconsistency, error) {
 	return nil, nil
 }
 
 func TestRecon_Scan_Totals(t *testing.T) {
 	repo := &fakeRepo{scans: map[string]int{"OPENING_BALANCE_MISSING": 2, "SELL_WITHOUT_BUY": 1, "POSITION_TX_DIVERGENCE": 3}}
 	svc := apprecon.NewService(repo)
-	tenant := uuid.New()
-	res, err := svc.Scan(context.Background(), tenant, apprecon.ScanRequest{CPF: "12345678901", DryRun: true})
+	res, err := svc.Scan(context.Background(), "status_invest", apprecon.ScanRequest{CPF: "12345678901", DryRun: true})
 	require.NoError(t, err)
 	totals := res["totals"].(map[string]int)
 	require.Equal(t, 2, totals["OPENING_BALANCE_MISSING"])

@@ -8,7 +8,7 @@ import (
 
 	"suno-wallets/src/api/middlewares"
 	apprecon "suno-wallets/src/application/b3/reconciliation"
-    reconrepo "suno-wallets/src/infrastructure/b3/reconciliation"
+	reconrepo "suno-wallets/src/infrastructure/b3/reconciliation"
 	"suno-wallets/src/shared/helpers"
 
 	"github.com/gin-gonic/gin"
@@ -24,10 +24,12 @@ func NewReconciliationController(dbRepo *reconrepo.Repository) *ReconciliationCo
 }
 
 // Auto-fix wiring simplificado (1.18)
-type AutoFixController struct{ svc *apprecon.SystemOperationsService }
+type AutoFixController struct {
+	svc *apprecon.SystemOperationsService
+}
 
 func NewAutoFixController(sysRepo *reconrepo.SysOpsRepository, price apprecon.PriceLookupPort) *AutoFixController {
-    return &AutoFixController{svc: apprecon.NewSystemOperationsService(sysRepo, price)}
+	return &AutoFixController{svc: apprecon.NewSystemOperationsService(sysRepo, price)}
 }
 
 // POST /reconciliation/scan (admin)
@@ -36,11 +38,7 @@ func (rc *ReconciliationController) Scan(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
 		return
 	}
-	tenantId, ok := middlewares.GetTenantID(c)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
-		return
-	}
+	tenantId := middlewares.MustGetTenantName(c)
 	var req apprecon.ScanRequest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
@@ -64,11 +62,7 @@ func (rc *ReconciliationController) Scan(c *gin.Context) {
 // GET /reconciliation/inconsistencies (read-only)
 func (rc *ReconciliationController) List(c *gin.Context) {
 	// Placeholder: leitura simples inicial por tenant (poderá evoluir com filtros/paginação)
-	tenantId, ok := middlewares.GetTenantID(c)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
-		return
-	}
+	tenantId := middlewares.MustGetTenantName(c)
 	cpf := c.Query("cpf")
 	status := c.Query("status")
 	typ := c.Query("type")
@@ -106,11 +100,7 @@ func (rc *ReconciliationController) List(c *gin.Context) {
 
 // GET /reconciliation/inconsistencies/:id (read-only)
 func (rc *ReconciliationController) Get(c *gin.Context) {
-	tenantId, ok := middlewares.GetTenantID(c)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
-		return
-	}
+	tenantId := middlewares.MustGetTenantName(c)
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -127,56 +117,48 @@ func (rc *ReconciliationController) Get(c *gin.Context) {
 
 // POST /reconciliation/auto-fix (admin)
 func (ac *AutoFixController) AutoFix(c *gin.Context) {
-    if os.Getenv("ADMIN_SECRET") != "" && c.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
-        c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
-        return
-    }
-    tenantId, ok := middlewares.GetTenantID(c)
-    if !ok {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
-        return
-    }
-    var req apprecon.AutoFixRequest
-    if err := c.BindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
-        return
-    }
-    out, err := ac.svc.AutoFix(c, tenantId, req)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.JSON(http.StatusOK, out)
+	if os.Getenv("ADMIN_SECRET") != "" && c.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+		return
+	}
+	tenantId := middlewares.MustGetTenantName(c)
+	var req apprecon.AutoFixRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+	out, err := ac.svc.AutoFix(c, tenantId, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, out)
 }
 
 // POST /reconciliation/auto-fix/:id (admin)
 func (ac *AutoFixController) AutoFixByID(c *gin.Context) {
-    if os.Getenv("ADMIN_SECRET") != "" && c.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
-        c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
-        return
-    }
-    tenantId, ok := middlewares.GetTenantID(c)
-    if !ok {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "missing tenant"})
-        return
-    }
-    idStr := c.Param("id")
-    id, err := uuid.Parse(idStr)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-        return
-    }
-    // Buscar inconsistency e processar isoladamente
-    inc, err := ac.svc.Repo.GetInconsistencyByID(c, tenantId, id)
-    if err != nil || inc == nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-        return
-    }
-    req := apprecon.AutoFixRequest{CPF: inc.CPF, Types: []string{inc.Type}, Tickers: []string{inc.Ticker}, DryRun: c.Query("dryRun") == "true"}
-    out, err := ac.svc.AutoFix(c, tenantId, req)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{"id": id, "result": out})
+	if os.Getenv("ADMIN_SECRET") != "" && c.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+		return
+	}
+	tenantId := middlewares.MustGetTenantName(c)
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	// Buscar inconsistency e processar isoladamente
+	inc, err := ac.svc.Repo.GetInconsistencyByID(c, tenantId, id)
+	if err != nil || inc == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+	req := apprecon.AutoFixRequest{CPF: inc.CPF, Types: []string{inc.Type}, Tickers: []string{inc.Ticker}, DryRun: c.Query("dryRun") == "true"}
+	out, err := ac.svc.AutoFix(c, tenantId, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"id": id, "result": out})
 }

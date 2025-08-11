@@ -52,7 +52,7 @@ func (c *SyncController) Run(ctx *gin.Context) {
 			return
 		}
 	}
-	sum, err := c.svc.Run(ctx, appsync.RunParams{TenantID: tenantID, Scope: appsync.RunScope(req.Scope), CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Force: req.Force, DryRun: req.DryRun, Limit: req.Limit})
+	sum, err := c.svc.Run(ctx, appsync.RunParams{TenantID: tenantID.String(), Scope: appsync.RunScope(req.Scope), CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Force: req.Force, DryRun: req.DryRun, Limit: req.Limit})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -79,7 +79,7 @@ func (c *SyncController) LastSync(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID, cpf)
+	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID.String(), cpf)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -110,7 +110,7 @@ func (c *SyncController) Status(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID, cpf)
+	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID.String(), cpf)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

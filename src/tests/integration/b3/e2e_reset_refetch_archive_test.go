@@ -56,13 +56,13 @@ func (f *fakeNormalize) Run(ctx context.Context, p appnorm.RunParams) (*appnorm.
 // Reset repo que move linhas reais nas tabelas sqlite de teste
 type sqliteResetRepo struct{ db *gorm.DB }
 
-func (r *sqliteResetRepo) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string) (bool, error) {
+func (r *sqliteResetRepo) TryAcquireLock(ctx context.Context, tenantID string, cpf string) (bool, error) {
 	return true, nil
 }
-func (r *sqliteResetRepo) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
+func (r *sqliteResetRepo) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
 	return nil
 }
-func (r *sqliteResetRepo) Reset(ctx context.Context, tenantID uuid.UUID, cpf string, mode string, archivedBy string) (*appe2e.ResetResult, error) {
+func (r *sqliteResetRepo) Reset(ctx context.Context, tenantID string, cpf string, mode string, archivedBy string) (*appe2e.ResetResult, error) {
 	res := &appe2e.ResetResult{}
 	if mode == "archive" {
 		_ = r.db.WithContext(ctx).Exec(`INSERT INTO b3_raw_data_client_archive

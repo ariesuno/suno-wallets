@@ -21,11 +21,11 @@ import (
 // fakeResetRepo implementa appe2e.ResetRepository para o caminho dryRun (apenas lock)
 type fakeResetRepoDry struct{}
 
-func (r *fakeResetRepoDry) TryAcquireLock(_ context.Context, _ uuid.UUID, _ string) (bool, error) {
+func (r *fakeResetRepoDry) TryAcquireLock(_ context.Context, _ string, _ string) (bool, error) {
 	return true, nil
 }
-func (r *fakeResetRepoDry) ReleaseLock(_ context.Context, _ uuid.UUID, _ string) error { return nil }
-func (r *fakeResetRepoDry) Reset(_ context.Context, _ uuid.UUID, _ string, _ string, _ string) (*appe2e.ResetResult, error) {
+func (r *fakeResetRepoDry) ReleaseLock(_ context.Context, _ string, _ string) error { return nil }
+func (r *fakeResetRepoDry) Reset(_ context.Context, _ string, _ string, _ string, _ string) (*appe2e.ResetResult, error) {
 	return &appe2e.ResetResult{}, nil
 }
 

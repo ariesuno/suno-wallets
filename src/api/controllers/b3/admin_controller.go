@@ -125,7 +125,7 @@ func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
 
 	// Executar orquestração
 	out, err := c.orch.Run(ctx, appE2E.Params{
-		TenantID:    tenantID,
+		TenantID:    tenantID.String(),
 		CPF:         req.CPF,
 		AssetTypes:  req.AssetTypes,
 		DataTypes:   req.DataTypes,
@@ -210,7 +210,7 @@ func (c *AdminController) IncrementalFromLast(ctx *gin.Context) {
 		ctx.JSON(http.StatusServiceUnavailable, gin.H{"error": "incremental service not configured"})
 		return
 	}
-	out, err := c.incr.Run(ctx, incr.Params{TenantID: tenantID, CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Since: sincePtr, End: endPtr, Force: req.Force, DryRun: req.DryRun, Concurrency: req.Concurrency})
+	out, err := c.incr.Run(ctx, incr.Params{TenantID: tenantID.String(), CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Since: sincePtr, End: endPtr, Force: req.Force, DryRun: req.DryRun, Concurrency: req.Concurrency})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

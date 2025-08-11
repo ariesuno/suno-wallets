@@ -40,7 +40,7 @@ type ingestRequest struct {
 // @Router /b3/fetch/historical [post]
 func (c *IngestController) PostHistorical(ctx *gin.Context) {
 	// tenant obrigatório
-	tenantUUID, ok := middlewares.GetTenantID(ctx)
+	tenantName, ok := middlewares.GetTenantName(ctx)
 	if !ok {
 		return
 	}
@@ -78,7 +78,7 @@ func (c *IngestController) PostHistorical(ctx *gin.Context) {
 	}
 
 	params := ingest.IngestParams{
-		TenantID:  tenantUUID.String(),
+		TenantID:  tenantName,
 		CPF:       req.CPF,
 		DataType:  req.DataType,
 		AssetType: req.AssetType,
@@ -102,6 +102,6 @@ func (c *IngestController) PostHistorical(ctx *gin.Context) {
 		"pagesProcessed":  sum.PagesProcessed,
 		"dryRun":          sum.DryRun,
 		"force":           sum.Force,
-		"tenantId":        tenantUUID,
+		"tenantId":        tenantName,
 	})
 }

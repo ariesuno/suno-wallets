@@ -15,7 +15,7 @@ import (
 type Repository interface {
 	UpsertTransactions(ctx context.Context, items []normrepo.NormalizedTransaction) error
 	UpsertPositions(ctx context.Context, items []normrepo.NormalizedPosition) error
-	SelectPendingRaw(ctx context.Context, tenantID uuid.UUID, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error)
+	SelectPendingRaw(ctx context.Context, tenantID string, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error)
 	MarkRawNormalized(ctx context.Context, rawID uuid.UUID, count int) error
 }
 
@@ -24,7 +24,7 @@ type Service struct{ repo Repository }
 func NewService(repo Repository) *Service { return &Service{repo: repo} }
 
 type RunParams struct {
-	TenantID  uuid.UUID
+	TenantID  string
 	CPF       string
 	DataType  string // transactions | positions
 	AssetType string // equity

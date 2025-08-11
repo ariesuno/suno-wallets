@@ -41,10 +41,7 @@ type normalizeRequest struct {
 // @Failure 400 {object} map[string]string "Requisição inválida"
 // @Router /b3/normalize/run [post]
 func (c *NormalizeController) Run(ctx *gin.Context) {
-	tenantID, ok := middlewares.GetTenantID(ctx)
-	if !ok {
-		return
-	}
+	tenantName := middlewares.MustGetTenantName(ctx)
 
 	var req normalizeRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -75,7 +72,7 @@ func (c *NormalizeController) Run(ctx *gin.Context) {
 	startT, _ := time.Parse("2006-01-02", req.Start)
 	endT, _ := time.Parse("2006-01-02", req.End)
 
-	sum, err := c.svc.Run(ctx, appnorm.RunParams{TenantID: tenantID, CPF: req.CPF, DataType: req.DataType, AssetType: req.AssetType, Start: startT, End: endT, Force: req.Force, DryRun: req.DryRun})
+	sum, err := c.svc.Run(ctx, appnorm.RunParams{TenantID: tenantName, CPF: req.CPF, DataType: req.DataType, AssetType: req.AssetType, Start: startT, End: endT, Force: req.Force, DryRun: req.DryRun})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

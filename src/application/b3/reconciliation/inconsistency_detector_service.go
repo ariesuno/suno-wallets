@@ -23,14 +23,14 @@ type ScanRequest struct {
 }
 
 type DetectorRepository interface {
-	ScanOpeningBalanceMissing(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
-	ScanSellWithoutBuy(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
-	ScanPositionTxDivergence(ctx context.Context, tenantID uuid.UUID, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
-	TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string, ttlSeconds int) (bool, error)
-	ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error
-	UpsertFindings(ctx context.Context, tenantID uuid.UUID, cpf string, findings []Finding) error
-	ListInconsistencies(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error)
-	GetInconsistency(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*Inconsistency, error)
+	ScanOpeningBalanceMissing(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
+	ScanSellWithoutBuy(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
+	ScanPositionTxDivergence(ctx context.Context, tenantID string, cpf string, tickers []string, from, to *time.Time, maxSamples int) ([]Finding, error)
+	TryAcquireLock(ctx context.Context, tenantID string, cpf string, ttlSeconds int) (bool, error)
+	ReleaseLock(ctx context.Context, tenantID string, cpf string) error
+	UpsertFindings(ctx context.Context, tenantID string, cpf string, findings []Finding) error
+	ListInconsistencies(ctx context.Context, tenantID string, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error)
+	GetInconsistency(ctx context.Context, tenantID string, id uuid.UUID) (*Inconsistency, error)
 }
 
 type Finding struct {
@@ -48,7 +48,7 @@ type Service struct{ repo DetectorRepository }
 
 func NewService(repo DetectorRepository) *Service { return &Service{repo: repo} }
 
-func (s *Service) Scan(ctx context.Context, tenantID uuid.UUID, req ScanRequest) (map[string]any, error) {
+func (s *Service) Scan(ctx context.Context, tenantID string, req ScanRequest) (map[string]any, error) {
 	started := time.Now()
 	totals := map[string]int{"OPENING_BALANCE_MISSING": 0, "SELL_WITHOUT_BUY": 0, "POSITION_TX_DIVERGENCE": 0}
 	log := helpers.GetLoggerWithFields(map[string]interface{}{
@@ -140,7 +140,7 @@ func maskCPF(cpf string) string {
 // Tipos de leitura para listagem/detalhes
 type Inconsistency struct {
 	ID        uuid.UUID
-	TenantID  uuid.UUID
+	TenantID  string
 	CPF       string
 	Ticker    string
 	Type      string
@@ -154,7 +154,7 @@ type Inconsistency struct {
 	Details         map[string]interface{}
 }
 
-func (s *Service) List(ctx context.Context, tenantID uuid.UUID, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error) {
+func (s *Service) List(ctx context.Context, tenantID string, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -164,6 +164,6 @@ func (s *Service) List(ctx context.Context, tenantID uuid.UUID, cpf, status, typ
 	return s.repo.ListInconsistencies(ctx, tenantID, cpf, status, typ, ticker, from, to, page, pageSize)
 }
 
-func (s *Service) Get(ctx context.Context, tenantID uuid.UUID, id uuid.UUID) (*Inconsistency, error) {
+func (s *Service) Get(ctx context.Context, tenantID string, id uuid.UUID) (*Inconsistency, error) {
 	return s.repo.GetInconsistency(ctx, tenantID, id)
 }

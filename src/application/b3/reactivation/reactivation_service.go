@@ -73,7 +73,7 @@ func (s *Service) AnalyzeReactivation(ctx context.Context, params ReactivationPa
 	}
 
 	// Buscar estado atual do cliente
-	syncState, err := s.syncRepo.GetByTenantCPF(ctx, params.TenantID, params.CPF)
+	syncState, err := s.syncRepo.GetByTenantCPF(ctx, params.TenantID.String(), params.CPF)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao buscar estado de sync: %w", err)
 	}
@@ -255,7 +255,7 @@ func (s *Service) ExecuteReactivation(ctx context.Context, params ReactivationPa
 
 		case "incremental_daily":
 			_, err = s.incrementalSvc.Run(ctx, incremental.Params{
-				TenantID:   params.TenantID,
+				TenantID:   params.TenantID.String(),
 				CPF:        params.CPF,
 				DataTypes:  step.DataTypes,
 				AssetTypes: []string{"equity"},

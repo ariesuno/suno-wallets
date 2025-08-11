@@ -16,13 +16,13 @@ type fakeResetRepo struct {
 	lock bool
 }
 
-func (r *fakeResetRepo) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf string) (bool, error) {
+func (r *fakeResetRepo) TryAcquireLock(ctx context.Context, tenantID string, cpf string) (bool, error) {
 	return r.lock, nil
 }
-func (r *fakeResetRepo) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
+func (r *fakeResetRepo) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
 	return nil
 }
-func (r *fakeResetRepo) Reset(ctx context.Context, tenantID uuid.UUID, cpf string, mode string, archivedBy string) (*appe2e.ResetResult, error) {
+func (r *fakeResetRepo) Reset(ctx context.Context, tenantID string, cpf string, mode string, archivedBy string) (*appe2e.ResetResult, error) {
 	return &appe2e.ResetResult{}, nil
 }
 
@@ -35,7 +35,7 @@ func TestOrchestrator_DryRun_ReturnsPlan(t *testing.T) {
 	end := time.Date(2024, 3, 20, 0, 0, 0, 0, time.UTC)
 
 	out, err := orch.Run(context.Background(), appe2e.Params{
-		TenantID:   tenant,
+		TenantID:   tenant.String(),
 		CPF:        "00000000000",
 		AssetTypes: []string{"equity"},
 		DataTypes:  []string{"transactions", "positions"},
@@ -60,7 +60,7 @@ func TestOrchestrator_LockNotAcquired_ReturnsError(t *testing.T) {
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
 
 	out, err := orch.Run(context.Background(), appe2e.Params{
-		TenantID:   tenant,
+		TenantID:   tenant.String(),
 		CPF:        "00000000000",
 		AssetTypes: []string{"equity"},
 		DataTypes:  []string{"transactions"},
