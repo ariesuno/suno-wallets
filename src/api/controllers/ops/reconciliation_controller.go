@@ -30,7 +30,7 @@ func (rc *ReconSummaryController) Get(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cpf required"})
 		return
 	}
-	out, err := rc.svc.Get(ctx, tenantID, cpf)
+	out, err := rc.svc.Get(ctx, tenantID.String(), cpf)
 	if err != nil {
 		obs.ObserveReconSummary("error", started)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

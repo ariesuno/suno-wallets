@@ -26,7 +26,7 @@ func (c *Controller) Get(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cpf required"})
 		return
 	}
-	mode := c.svc.GetMode(ctx, tenantID, cpf)
+	mode := c.svc.GetMode(ctx, tenantID.String(), cpf)
 	ctx.JSON(http.StatusOK, gin.H{"mode": mode})
 }
 
@@ -50,7 +50,7 @@ func (c *Controller) Upsert(ctx *gin.Context) {
 		return
 	}
 	m := parseMode(body.Mode)
-	if err := c.svc.Upsert(ctx, tenantID, body.CPF, m, body.Reason, "admin:api"); err != nil {
+	if err := c.svc.Upsert(ctx, tenantID.String(), body.CPF, m, body.Reason, "admin:api"); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -68,7 +68,7 @@ func (c *Controller) Audit(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cpf required"})
 		return
 	}
-	items, err := c.svc.ListAudit(ctx, tenantID, cpf, 50)
+	items, err := c.svc.ListAudit(ctx, tenantID.String(), cpf, 50)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -78,7 +78,7 @@ func (c *IngestController) PostHistorical(ctx *gin.Context) {
 	}
 
 	params := ingest.IngestParams{
-		TenantID:  tenantUUID,
+		TenantID:  tenantUUID.String(),
 		CPF:       req.CPF,
 		DataType:  req.DataType,
 		AssetType: req.AssetType,

@@ -3,10 +3,10 @@ package middlewares
 import (
 	"net/http"
 
-	"suno-wallets/src/domain/enums"
 	"suno-wallets/src/shared/helpers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 const (
@@ -19,47 +19,35 @@ func TenantMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tenantIDStr := c.GetHeader(TenantIDHeader)
 
-		// Verificar se o header está presente
 		if tenantIDStr == "" {
 			helpers.LogWarn("Header X-Tenant-ID não fornecido", map[string]interface{}{
 				"ip":     c.ClientIP(),
 				"method": c.Request.Method,
 				"path":   c.Request.URL.Path,
 			})
-
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "MISSING_TENANT_ID",
-				"message": "Header X-Tenant-ID é obrigatório",
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "MISSING_TENANT_ID", "message": "Header X-Tenant-ID é obrigatório"})
 			c.Abort()
 			return
 		}
 
-		// Validar se o tenant é válido
-		tenant := enums.TenantType(tenantIDStr)
-		if !tenant.IsValid() {
-			helpers.LogWarn("Header X-Tenant-ID inválido", map[string]interface{}{
+		// Validar UUID
+		tenantUUID, err := uuid.Parse(tenantIDStr)
+		if err != nil {
+			helpers.LogWarn("Header X-Tenant-ID inválido (esperado UUID)", map[string]interface{}{
 				"tenant_id_header": tenantIDStr,
-				"valid_tenants":    enums.ValidTenants(),
 				"ip":               c.ClientIP(),
 				"method":           c.Request.Method,
 				"path":             c.Request.URL.Path,
 			})
-
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "INVALID_TENANT_ID",
-				"message": "Header X-Tenant-ID deve ser um tenant válido: nai, status_invest, fiis, funds_explorer, orcana",
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_TENANT_ID", "message": "Header X-Tenant-ID deve ser um UUID válido"})
 			c.Abort()
 			return
 		}
 
-		// Armazenar tenant ID no contexto
-		c.Set(TenantIDKey, tenant.String())
+		c.Set(TenantIDKey, tenantUUID)
 
-		// Log da requisição com tenant
 		helpers.LogInfo("Requisição autenticada por tenant", map[string]interface{}{
-			"tenant_id": tenant.String(),
+			"tenant_id": tenantUUID.String(),
 			"ip":        c.ClientIP(),
 			"method":    c.Request.Method,
 			"path":      c.Request.URL.Path,
@@ -70,32 +58,29 @@ func TenantMiddleware() gin.HandlerFunc {
 }
 
 // GetTenantID extrai o tenant ID do contexto
-func GetTenantID(c *gin.Context) (string, bool) {
+func GetTenantID(c *gin.Context) (uuid.UUID, bool) {
 	tenantID, exists := c.Get(TenantIDKey)
 	if !exists {
-		return "", false
+		return uuid.Nil, false
 	}
-
-	id, ok := tenantID.(string)
-	return id, ok
+	id, ok := tenantID.(uuid.UUID)
+	if !ok {
+		return uuid.Nil, false
+	}
+	return id, true
 }
 
 // MustGetTenantID extrai o tenant ID do contexto ou retorna erro
-func MustGetTenantID(c *gin.Context) string {
+func MustGetTenantID(c *gin.Context) uuid.UUID {
 	tenantID, ok := GetTenantID(c)
 	if !ok {
 		helpers.LogError("Tenant ID não encontrado no contexto", nil, map[string]interface{}{
 			"path":   c.Request.URL.Path,
 			"method": c.Request.Method,
 		})
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "INTERNAL_ERROR",
-			"message": "Erro interno do servidor",
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR", "message": "Erro interno do servidor"})
 		c.Abort()
-		return ""
+		return uuid.Nil
 	}
-
 	return tenantID
 }

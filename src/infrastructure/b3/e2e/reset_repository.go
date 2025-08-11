@@ -21,12 +21,12 @@ func (r *Repository) TryAcquireLock(ctx context.Context, tenantID uuid.UUID, cpf
 	var ok bool
 	// chave: hash de tenant e cpf em bigint (usa pg's advisory lock por two-int)
 	// Atenção: para simplicidade, usamos uma única chave derivada via hashtext
-	err := r.db.WithContext(ctx).Raw(`SELECT pg_try_advisory_lock(hashtext(?))`, tenantID+":"+cpf).Scan(&ok).Error
+	err := r.db.WithContext(ctx).Raw(`SELECT pg_try_advisory_lock(hashtext(?))`, tenantID.String()+":"+cpf).Scan(&ok).Error
 	return ok, err
 }
 
 func (r *Repository) ReleaseLock(ctx context.Context, tenantID uuid.UUID, cpf string) error {
-	return r.db.WithContext(ctx).Exec(`SELECT pg_advisory_unlock(hashtext(?))`, tenantID+":"+cpf).Error
+	return r.db.WithContext(ctx).Exec(`SELECT pg_advisory_unlock(hashtext(?))`, tenantID.String()+":"+cpf).Error
 }
 
 // Reset move para _archive (ou deleta) dados vinculados ao CPF e limpa períodos/sync_state

@@ -8,8 +8,8 @@ type Mode string
 
 const (
 	ModeB3Only     Mode = "B3_ONLY"
-	ModeManualOnly      = "MANUAL_ONLY"
-	ModeHybrid          = "HYBRID"
+	ModeManualOnly Mode = "MANUAL_ONLY"
+	ModeHybrid     Mode = "HYBRID"
 )
 
 type ClientPolicy struct {

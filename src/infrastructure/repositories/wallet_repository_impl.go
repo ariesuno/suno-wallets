@@ -181,7 +181,7 @@ func (r *walletRepositoryImpl) Delete(ctx context.Context, id, tenantID uuid.UUI
 		return entities.NewNotFoundError("wallet", id.String())
 	}
 
-	helpers.LogAudit("wallet_deleted", tenantID, "", map[string]interface{}{
+	helpers.LogAudit("wallet_deleted", tenantID.String(), "", map[string]interface{}{
 		"wallet_id": id,
 	})
 
@@ -269,7 +269,7 @@ func (r *walletRepositoryImpl) UpdateBalance(ctx context.Context, id, tenantID u
 		return entities.NewNotFoundError("wallet", id.String())
 	}
 
-	helpers.LogAudit("wallet_balance_updated", tenantID, "", map[string]interface{}{
+	helpers.LogAudit("wallet_balance_updated", tenantID.String(), "", map[string]interface{}{
 		"wallet_id":   id,
 		"new_balance": newBalance,
 	})
