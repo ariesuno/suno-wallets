@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
+	"suno-wallets/src/api/middlewares"
 	"suno-wallets/src/application/b3/diagnostics"
 	"suno-wallets/src/shared/validation"
 )
@@ -23,12 +23,8 @@ func NewTestController(svc *diagnostics.Service) *TestController {
 
 // GET /b3/test/connection - Testa conexão e retorna relatório básico
 func (c *TestController) TestConnection(ctx *gin.Context) {
-	tenantIDStr := ctx.GetHeader("X-Tenant-ID")
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_TENANT_ID"})
-		return
-	}
+	// Usar o middleware para obter o tenant name (já validado)
+	tenantID := middlewares.MustGetTenantName(ctx)
 
 	cpf := ctx.Query("cpf")
 	yearMonth := ctx.Query("yearMonth") // Formato: 2024-01

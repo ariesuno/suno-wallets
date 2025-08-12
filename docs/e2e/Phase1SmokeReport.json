@@ -1,0 +1,30 @@
+{
+  "tenantId": "status_invest",
+  "cpfMasked": "***5881",
+  "startedAt": "2025-08-12T01:23:03.808297Z",
+  "finishedAt": "2025-08-12T01:23:03.817771Z",
+  "durationMs": 9,
+  "stages": {
+    "health": {
+      "ok": true,
+      "details": {
+        "live": true
+      },
+      "durationMs": 8
+    },
+    "reports": {
+      "ok": false,
+      "details": {
+        "rawDateRangeBytes": 85
+      },
+      "durationMs": 1
+    }
+  },
+  "verdict": "FAIL",
+  "failures": [
+    {
+      "reason": "criteria not met",
+      "stage": "reports"
+    }
+  ]
+}

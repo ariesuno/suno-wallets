@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
-
 	b3Client "suno-wallets/src/infrastructure/b3/client"
 	"suno-wallets/src/shared/helpers"
 )
@@ -20,7 +18,7 @@ type Service struct {
 }
 
 type TestParams struct {
-	TenantID  uuid.UUID
+	TenantID  string
 	CPF       string
 	StartDate time.Time
 	EndDate   time.Time

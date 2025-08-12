@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
+	"suno-wallets/src/api/middlewares"
 	app "suno-wallets/src/application/b3/reports"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/shared/helpers"
@@ -24,12 +24,8 @@ func NewReportsController(svc *app.Service) *ReportsController { return &Reports
 func (c *ReportsController) RawDateRange(ctx *gin.Context) {
 	started := time.Now()
 	endpoint := "raw-date-range"
-	tenantIDStr := ctx.GetHeader("X-Tenant-ID")
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_TENANT_ID"})
-		return
-	}
+	// Usar o middleware para obter o tenant ID (já validado)
+	tenantID := middlewares.MustGetTenantID(ctx)
 	cpf := ctx.Query("cpf")
 	if err := validation.ValidateCPF(cpf); err != nil {
 		observability.IncReportError(endpoint)
@@ -52,11 +48,8 @@ func (c *ReportsController) RawDateRange(ctx *gin.Context) {
 func (c *ReportsController) Summary(ctx *gin.Context) {
 	started := time.Now()
 	endpoint := "summary"
-	tenantID, err := uuid.Parse(ctx.GetHeader("X-Tenant-ID"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_TENANT_ID"})
-		return
-	}
+	// Usar o middleware para obter o tenant ID (já validado)
+	tenantID := middlewares.MustGetTenantID(ctx)
 	cpf := ctx.Query("cpf")
 	fromStr := ctx.Query("from")
 	toStr := ctx.Query("to")
@@ -91,11 +84,8 @@ func (c *ReportsController) Summary(ctx *gin.Context) {
 func (c *ReportsController) Tickers(ctx *gin.Context) {
 	started := time.Now()
 	endpoint := "tickers"
-	tenantID, err := uuid.Parse(ctx.GetHeader("X-Tenant-ID"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_TENANT_ID"})
-		return
-	}
+	// Usar o middleware para obter o tenant ID (já validado)
+	tenantID := middlewares.MustGetTenantID(ctx)
 	cpf := ctx.Query("cpf")
 	fromStr := ctx.Query("from")
 	toStr := ctx.Query("to")

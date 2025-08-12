@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
+	"suno-wallets/src/api/middlewares"
 	incr "suno-wallets/src/application/b3/incremental"
 	"suno-wallets/src/shared/validation"
 )
@@ -19,12 +19,8 @@ func NewUtilController(svc *incr.Service) *UtilController { return &UtilControll
 
 // GET /b3/client/sync-window
 func (c *UtilController) SyncWindow(ctx *gin.Context) {
-	tenantIDStr := ctx.GetHeader("X-Tenant-ID")
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_TENANT_ID"})
-		return
-	}
+	// Usar o middleware para obter o tenant ID (já validado)
+	tenantID := middlewares.MustGetTenantName(ctx)
 
 	cpf := ctx.Query("cpf")
 	typ := ctx.Query("type") // transactions|positions
@@ -54,7 +50,7 @@ func (c *UtilController) SyncWindow(ctx *gin.Context) {
 		}
 	}
 
-	out, _ := c.svc.Run(ctx, incr.Params{TenantID: tenantID.String(), CPF: cpf, DataTypes: []string{typ}, AssetTypes: []string{"equity"}, Since: sincePtr, End: endPtr, DryRun: true})
+	out, _ := c.svc.Run(ctx, incr.Params{TenantID: tenantID, CPF: cpf, DataTypes: []string{typ}, AssetTypes: []string{"equity"}, Since: sincePtr, End: endPtr, DryRun: true})
 	if out == nil {
 		ctx.JSON(http.StatusOK, gin.H{"from": nil, "to": nil, "months": 0, "pagesEstimate": 0})
 		return
