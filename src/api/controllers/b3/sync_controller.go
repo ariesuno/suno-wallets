@@ -37,10 +37,7 @@ type runRequest struct {
 // @Failure 400 {object} map[string]string
 // @Router /b3/sync/run [post]
 func (c *SyncController) Run(ctx *gin.Context) {
-	tenantID, ok := middlewares.GetTenantID(ctx)
-	if !ok {
-		return
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 	var req runRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -52,7 +49,7 @@ func (c *SyncController) Run(ctx *gin.Context) {
 			return
 		}
 	}
-	sum, err := c.svc.Run(ctx, appsync.RunParams{TenantID: tenantID.String(), Scope: appsync.RunScope(req.Scope), CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Force: req.Force, DryRun: req.DryRun, Limit: req.Limit})
+	sum, err := c.svc.Run(ctx, appsync.RunParams{TenantID: tenantID, Scope: appsync.RunScope(req.Scope), CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Force: req.Force, DryRun: req.DryRun, Limit: req.Limit})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -70,16 +67,13 @@ func (c *SyncController) Run(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Router /b3/client/last-sync [get]
 func (c *SyncController) LastSync(ctx *gin.Context) {
-	tenantID, ok := middlewares.GetTenantID(ctx)
-	if !ok {
-		return
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 	cpf := ctx.Query("cpf")
 	if err := validation.ValidateCPF(cpf); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID.String(), cpf)
+	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID, cpf)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -101,16 +95,13 @@ func (c *SyncController) LastSync(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Router /b3/client/status [get]
 func (c *SyncController) Status(ctx *gin.Context) {
-	tenantID, ok := middlewares.GetTenantID(ctx)
-	if !ok {
-		return
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 	cpf := ctx.Query("cpf")
 	if err := validation.ValidateCPF(cpf); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID.String(), cpf)
+	st, err := c.svc.Repo().GetByTenantCPF(ctx, tenantID, cpf)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

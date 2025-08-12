@@ -9,8 +9,6 @@ import (
 	"suno-wallets/src/application/b3/ingest"
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/shared/helpers"
-
-	"github.com/google/uuid"
 )
 
 // Comentários em pt-BR: serviço inteligente para reativação de clientes inativos
@@ -30,7 +28,7 @@ func NewService(syncRepo syncrepo.Repository, ingestSvc *ingest.Service, increme
 }
 
 type ReactivationParams struct {
-	TenantID    uuid.UUID
+	TenantID    string
 	CPF         string
 	CurrentDate time.Time // Data atual de fechamento do pregão (ex: 2025-08-08)
 }
@@ -73,7 +71,7 @@ func (s *Service) AnalyzeReactivation(ctx context.Context, params ReactivationPa
 	}
 
 	// Buscar estado atual do cliente
-	syncState, err := s.syncRepo.GetByTenantCPF(ctx, params.TenantID.String(), params.CPF)
+	syncState, err := s.syncRepo.GetByTenantCPF(ctx, params.TenantID, params.CPF)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao buscar estado de sync: %w", err)
 	}
@@ -112,7 +110,7 @@ func (s *Service) AnalyzeReactivation(ctx context.Context, params ReactivationPa
 		})
 
 		helpers.LogInfo("reactivation plan: full historical", map[string]interface{}{
-			"tenant_id":  params.TenantID.String(),
+			"tenant_id":  params.TenantID,
 			"cpf_masked": maskCPF(params.CPF),
 			"gap_days":   plan.GapDays,
 			"strategy":   plan.Strategy,
@@ -140,7 +138,7 @@ func (s *Service) AnalyzeReactivation(ctx context.Context, params ReactivationPa
 		})
 
 		helpers.LogInfo("reactivation plan: incremental only", map[string]interface{}{
-			"tenant_id":  params.TenantID.String(),
+			"tenant_id":  params.TenantID,
 			"cpf_masked": maskCPF(params.CPF),
 			"gap_days":   gapDays,
 			"strategy":   plan.Strategy,
@@ -182,7 +180,7 @@ func (s *Service) AnalyzeReactivation(ctx context.Context, params ReactivationPa
 		plan.EstimatedMinutes = s.estimateHybridTime(gapDays)
 
 		helpers.LogInfo("reactivation plan: hybrid optimized", map[string]interface{}{
-			"tenant_id":  params.TenantID.String(),
+			"tenant_id":  params.TenantID,
 			"cpf_masked": maskCPF(params.CPF),
 			"gap_days":   gapDays,
 			"strategy":   plan.Strategy,
@@ -205,7 +203,7 @@ func (s *Service) AnalyzeReactivation(ctx context.Context, params ReactivationPa
 	})
 
 	helpers.LogInfo("reactivation plan: default incremental", map[string]interface{}{
-		"tenant_id":  params.TenantID.String(),
+		"tenant_id":  params.TenantID,
 		"cpf_masked": maskCPF(params.CPF),
 		"gap_days":   gapDays,
 		"strategy":   plan.Strategy,
@@ -229,7 +227,7 @@ func (s *Service) ExecuteReactivation(ctx context.Context, params ReactivationPa
 	// Executar cada step do plano
 	for i, step := range plan.Steps {
 		helpers.LogInfo("executing reactivation step", map[string]interface{}{
-			"tenant_id":   params.TenantID.String(),
+			"tenant_id":   params.TenantID,
 			"cpf_masked":  maskCPF(params.CPF),
 			"step":        i + 1,
 			"total_steps": len(plan.Steps),
@@ -239,7 +237,7 @@ func (s *Service) ExecuteReactivation(ctx context.Context, params ReactivationPa
 		switch step.Type {
 		case "historical_monthly":
 			_, err = s.ingestSvc.Ingest(ctx, ingest.IngestParams{
-				TenantID:  params.TenantID.String(),
+				TenantID:  params.TenantID,
 				CPF:       params.CPF,
 				DataType:  "transactions", // Fazer para cada tipo
 				AssetType: "equity",
@@ -255,7 +253,7 @@ func (s *Service) ExecuteReactivation(ctx context.Context, params ReactivationPa
 
 		case "incremental_daily":
 			_, err = s.incrementalSvc.Run(ctx, incremental.Params{
-				TenantID:   params.TenantID.String(),
+				TenantID:   params.TenantID,
 				CPF:        params.CPF,
 				DataTypes:  step.DataTypes,
 				AssetTypes: []string{"equity"},
@@ -271,7 +269,7 @@ func (s *Service) ExecuteReactivation(ctx context.Context, params ReactivationPa
 	}
 
 	helpers.LogInfo("reactivation completed", map[string]interface{}{
-		"tenant_id":       params.TenantID.String(),
+		"tenant_id":       params.TenantID,
 		"cpf_masked":      maskCPF(params.CPF),
 		"strategy":        plan.Strategy,
 		"steps_completed": len(plan.Steps),

@@ -9,7 +9,6 @@ import (
 	"suno-wallets/src/shared/validation"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // Comentários em pt-BR: controller para reativação inteligente de clientes
@@ -24,10 +23,7 @@ func NewReactivationController(svc *reactivation.Service) *ReactivationControlle
 
 // POST /b3/admin/reactivation/analyze - Analisa estratégia de reativação (admin-only)
 func (c *ReactivationController) AnalyzeReactivation(ctx *gin.Context) {
-	tenantID := middlewares.MustGetTenantID(ctx)
-	if tenantID == uuid.Nil {
-		return // MustGetTenantID já retornou erro
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 
 	var req struct {
 		CPF         string `json:"cpf" binding:"required"`
@@ -82,17 +78,14 @@ func (c *ReactivationController) AnalyzeReactivation(ctx *gin.Context) {
 			"cpf":         req.CPF,
 			"currentDate": currentDate.Format("2006-01-02"),
 			"analyzedAt":  time.Now().UTC(),
-			"tenantId":    tenantID.String(),
+			"tenantId":    tenantID,
 		},
 	})
 }
 
 // POST /b3/admin/reactivation/execute - Executa plano de reativação (admin-only)
 func (c *ReactivationController) ExecuteReactivation(ctx *gin.Context) {
-	tenantID := middlewares.MustGetTenantID(ctx)
-	if tenantID == uuid.Nil {
-		return // MustGetTenantID já retornou erro
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 
 	var req struct {
 		CPF         string `json:"cpf" binding:"required"`
@@ -148,7 +141,7 @@ func (c *ReactivationController) ExecuteReactivation(ctx *gin.Context) {
 			"cpf":         req.CPF,
 			"currentDate": currentDate.Format("2006-01-02"),
 			"executedAt":  time.Now().UTC(),
-			"tenantId":    tenantID.String(),
+			"tenantId":    tenantID,
 			"dryRun":      req.DryRun,
 		},
 	})
@@ -156,10 +149,7 @@ func (c *ReactivationController) ExecuteReactivation(ctx *gin.Context) {
 
 // GET /b3/client/reactivation/status - Status de reativação para o cliente (público)
 func (c *ReactivationController) GetReactivationStatus(ctx *gin.Context) {
-	tenantID := middlewares.MustGetTenantID(ctx)
-	if tenantID == uuid.Nil {
-		return // MustGetTenantID já retornou erro
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 
 	cpf := ctx.Query("cpf")
 	if cpf == "" {

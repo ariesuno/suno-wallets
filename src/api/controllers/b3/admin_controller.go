@@ -51,10 +51,7 @@ type resetAndRefetchRequest struct {
 // @Failure 403 {object} map[string]string
 // @Router /b3/admin/reset-and-refetch [post]
 func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
-	tenantID, ok := middlewares.GetTenantID(ctx)
-	if !ok {
-		return
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 
 	// RBAC simples: header X-Admin-Secret deve bater com env ADMIN_SECRET (até termos RBAC real)
 	if os.Getenv("ADMIN_SECRET") != "" {
@@ -125,7 +122,7 @@ func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
 
 	// Executar orquestração
 	out, err := c.orch.Run(ctx, appE2E.Params{
-		TenantID:    tenantID.String(),
+		TenantID:    tenantID,
 		CPF:         req.CPF,
 		AssetTypes:  req.AssetTypes,
 		DataTypes:   req.DataTypes,
@@ -167,10 +164,7 @@ func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
 // @Produce json
 // @Router /b3/admin/incremental-from-last [post]
 func (c *AdminController) IncrementalFromLast(ctx *gin.Context) {
-	tenantID, ok := middlewares.GetTenantID(ctx)
-	if !ok {
-		return
-	}
+	tenantID := middlewares.MustGetTenantName(ctx)
 	if os.Getenv("ADMIN_SECRET") != "" && ctx.GetHeader("X-Admin-Secret") != os.Getenv("ADMIN_SECRET") {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
 		return
@@ -210,7 +204,7 @@ func (c *AdminController) IncrementalFromLast(ctx *gin.Context) {
 		ctx.JSON(http.StatusServiceUnavailable, gin.H{"error": "incremental service not configured"})
 		return
 	}
-	out, err := c.incr.Run(ctx, incr.Params{TenantID: tenantID.String(), CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Since: sincePtr, End: endPtr, Force: req.Force, DryRun: req.DryRun, Concurrency: req.Concurrency})
+	out, err := c.incr.Run(ctx, incr.Params{TenantID: tenantID, CPF: req.CPF, DataTypes: req.DataTypes, AssetTypes: req.AssetTypes, Since: sincePtr, End: endPtr, Force: req.Force, DryRun: req.DryRun, Concurrency: req.Concurrency})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

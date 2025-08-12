@@ -47,7 +47,13 @@ func (r *Repository) Reset(ctx context.Context, tenantID string, cpf, mode, arch
 	// RAW
 	if mode == "archive" {
 		if err := tx.Exec(`INSERT INTO b3_raw_data_client_archive
-            SELECT *, now() AS archived_at, ? AS archived_by FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
+            (id, cpf, data_type, asset_type, period_start, period_end, page, payload_json, payload_hash, 
+             source_version, endpoint_path, http_status, fetched_at, retry_count, request_id, 
+             normalized_at, normalized_count, tenant_id, archived_at, archived_by)
+            SELECT id, cpf, data_type, asset_type, period_start, period_end, page, payload_json, payload_hash,
+                   source_version, endpoint_path, http_status, fetched_at, retry_count, request_id,
+                   normalized_at, normalized_count, tenant_id, now(), ?
+            FROM b3_raw_data_client WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
 			return nil, err
 		}
 		res.RawMoved = int(tx.RowsAffected)
@@ -64,7 +70,13 @@ func (r *Repository) Reset(ctx context.Context, tenantID string, cpf, mode, arch
 	// Normalized transactions
 	if mode == "archive" {
 		if err := tx.Exec(`INSERT INTO b3_normalized_transactions_archive
-            SELECT *, now() AS archived_at, ? AS archived_by FROM b3_normalized_transactions WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
+            (id, cpf, asset_type, source_version, raw_id, sequence_in_raw, trade_id, broker_code, 
+             trade_date, settlement_date, ticker, isin, side, quantity, price, gross_value, 
+             currency, extra_json, normalized_hash, normalized_at, tenant_id, archived_at, archived_by)
+            SELECT id, cpf, asset_type, source_version, raw_id, sequence_in_raw, trade_id, broker_code,
+                   trade_date, settlement_date, ticker, isin, side, quantity, price, gross_value,
+                   currency, extra_json, normalized_hash, normalized_at, tenant_id, now(), ?
+            FROM b3_normalized_transactions WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
 			return nil, err
 		}
 		res.NormTxMoved = int(tx.RowsAffected)
@@ -81,7 +93,13 @@ func (r *Repository) Reset(ctx context.Context, tenantID string, cpf, mode, arch
 	// Normalized positions
 	if mode == "archive" {
 		if err := tx.Exec(`INSERT INTO b3_normalized_positions_archive
-            SELECT *, now() AS archived_at, ? AS archived_by FROM b3_normalized_positions WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
+            (id, cpf, asset_type, source_version, raw_id, sequence_in_raw, reference_date, ticker, 
+             isin, quantity, avg_price, position_value, currency, extra_json, normalized_hash, 
+             normalized_at, tenant_id, archived_at, archived_by)
+            SELECT id, cpf, asset_type, source_version, raw_id, sequence_in_raw, reference_date, ticker,
+                   isin, quantity, avg_price, position_value, currency, extra_json, normalized_hash,
+                   normalized_at, tenant_id, now(), ?
+            FROM b3_normalized_positions WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
 			return nil, err
 		}
 		res.NormPosMoved = int(tx.RowsAffected)
