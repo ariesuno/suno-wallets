@@ -36,7 +36,23 @@ func NewB3OfficialClient(cfg *b3cfg.B3Config, getBearer func(context.Context) (s
 		return nil, fmt.Errorf("%w: %v", b3err.ErrTLSConfig, err)
 	}
 
-	baseTransport := &http.Transport{TLSClientConfig: tlsConfig}
+	// Otimizar transporte HTTP para alta performance
+	baseTransport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		// Connection pooling otimizations
+		MaxIdleConns:        100,              // máximo de conexões idle
+		MaxConnsPerHost:     20,               // máximo de conexões por host
+		MaxIdleConnsPerHost: 20,               // máximo de conexões idle por host
+		IdleConnTimeout:     90 * time.Second, // timeout para conexões idle
+		// Timeouts (corretos para http.Transport)
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+		// Keep-alive
+		DisableKeepAlives: false,
+		// Compression
+		DisableCompression: false,
+	}
+
 	var transport http.RoundTripper = baseTransport
 	if cfg.CustomTransport != nil {
 		transport = cfg.CustomTransport

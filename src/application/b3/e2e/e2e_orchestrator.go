@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	appingest "suno-wallets/src/application/b3/ingest"
@@ -63,6 +64,8 @@ type Orchestrator struct {
 	resetRepo ResetRepository
 	ingest    IngestPort
 	normalize NormalizePort
+	// Performance configs
+	maxConcurrentIngests int // número máximo de ingestões paralelas
 }
 
 // IngestPort define a porta usada pelo orquestrador para ingestão
@@ -76,12 +79,45 @@ type NormalizePort interface {
 }
 
 func NewOrchestrator(resetRepo ResetRepository, ingestSvc *appingest.Service, normSvc *appnorm.Service) *Orchestrator {
-	return &Orchestrator{resetRepo: resetRepo, ingest: ingestSvc, normalize: normSvc}
+	return &Orchestrator{
+		resetRepo:            resetRepo,
+		ingest:               ingestSvc,
+		normalize:            normSvc,
+		maxConcurrentIngests: 10, // default: 10 workers paralelos
+	}
 }
 
 // NewOrchestratorPorts permite injeção de fakes/mocks nos testes
 func NewOrchestratorPorts(resetRepo ResetRepository, ingest IngestPort, normalize NormalizePort) *Orchestrator {
-	return &Orchestrator{resetRepo: resetRepo, ingest: ingest, normalize: normalize}
+	return &Orchestrator{
+		resetRepo:            resetRepo,
+		ingest:               ingest,
+		normalize:            normalize,
+		maxConcurrentIngests: 10, // default: 10 workers paralelos
+	}
+}
+
+// WithConcurrency permite configurar o número de workers paralelos
+func (o *Orchestrator) WithConcurrency(maxConcurrent int) *Orchestrator {
+	if maxConcurrent > 0 {
+		o.maxConcurrentIngests = maxConcurrent
+	}
+	return o
+}
+
+// ingestJob representa um trabalho de ingestão para o worker pool
+type ingestJob struct {
+	assetType string
+	dataType  string
+	window    [2]time.Time
+	params    Params
+}
+
+// ingestResult representa o resultado de uma ingestão
+type ingestResult struct {
+	job    ingestJob
+	result *appingest.Summary
+	err    error
 }
 
 // Run executa o fluxo fim-a-fim. Mantém idempotência delegando às camadas de ingest/normalize.
@@ -141,59 +177,32 @@ func (o *Orchestrator) Run(ctx context.Context, p Params) (*Summary, error) {
 	resetDuration := time.Since(started).Milliseconds()
 	helpers.LogInfo("e2e reset done", merge(logBase, map[string]any{"durationMs": resetDuration}))
 
-	// Ingestão histórica por mês e tipo
-	for _, assetType := range p.AssetTypes {
-		for _, dataType := range p.DataTypes {
-			months := monthWindows(p.Start, p.End)
-			for _, w := range months {
-				// Chamar ingest com force conforme parâmetro
-				ingSum, err := o.ingest.Ingest(ctx, appingest.IngestParams{
-					TenantID:  p.TenantID,
-					CPF:       p.CPF,
-					DataType:  dataType,
-					AssetType: assetType,
-					Start:     w[0].Format("2006-01-02"),
-					End:       w[1].Format("2006-01-02"),
-					FetchAll:  true,
-					Force:     p.Force,
-					DryRun:    false,
-				})
-				if err != nil {
-					observability.IncE2EError("ingest")
-					helpers.LogError("e2e ingest failed", err, merge(logBase, map[string]any{"dataType": dataType, "assetType": assetType}))
-					return nil, fmt.Errorf("ingest failed for %s/%s: %w", dataType, assetType, err)
-				}
-				sum.Raw.Saved += ingSum.Saved
-				sum.Raw.Skipped += ingSum.Skipped
-				sum.Raw.Errors += ingSum.Errors
-				sum.Raw.MonthsProcessed += ingSum.MonthsProcessed
-				sum.Raw.PagesProcessed += ingSum.PagesProcessed
-			}
+	// Ingestão histórica com priorização inteligente
+	ingestStart := time.Now()
+	if err := o.runPrioritizedIngestion(ctx, p, sum, logBase); err != nil {
+		return nil, err
+	}
+	ingestDuration := time.Since(ingestStart).Milliseconds()
+	helpers.LogInfo("e2e prioritized ingestion completed", merge(logBase, map[string]any{
+		"durationMs": ingestDuration,
+		"rawSaved":   sum.Raw.Saved,
+		"workers":    o.maxConcurrentIngests,
+	}))
 
-			// Normalização para o período inteiro deste dataType/assetType
-			normSum, err := o.normalize.Run(ctx, appnorm.RunParams{
-				TenantID:  p.TenantID,
-				CPF:       p.CPF,
-				DataType:  dataType,
-				AssetType: assetType,
-				Start:     p.Start,
-				End:       p.End,
-				Force:     p.Force,
-				DryRun:    false,
-			})
-			if err != nil {
-				observability.IncE2EError("normalize")
-				helpers.LogError("e2e normalize failed", err, merge(logBase, map[string]any{"dataType": dataType, "assetType": assetType}))
-				return nil, fmt.Errorf("normalize failed for %s/%s: %w", dataType, assetType, err)
-			}
-			sum.Normalized.Inserted += normSum.Inserted
-			sum.Normalized.Updated += normSum.Updated
-			sum.Normalized.Skipped += normSum.Skipped
-			sum.Normalized.Errors += normSum.Errors
-
-			observability.ObserveE2ERun("success", p.Mode, dataType, assetType, started)
-			helpers.LogInfo("e2e stage done", merge(logBase, map[string]any{"stage": "normalize", "dataType": dataType, "assetType": assetType}))
+	// Normalização apenas se houver dados raw
+	if sum.Raw.Saved > 0 {
+		normalizeStart := time.Now()
+		if err := o.runPipelineNormalization(ctx, p, sum, logBase); err != nil {
+			return nil, err
 		}
+		normalizeDuration := time.Since(normalizeStart).Milliseconds()
+		helpers.LogInfo("e2e pipeline normalization completed", merge(logBase, map[string]any{
+			"durationMs":    normalizeDuration,
+			"transInserted": sum.Normalized.Inserted,
+			"transUpdated":  sum.Normalized.Updated,
+		}))
+	} else {
+		helpers.LogInfo("e2e normalization skipped - no raw data found", logBase)
 	}
 
 	sum.FinishedAt = time.Now()
@@ -238,6 +247,254 @@ func maskCPF(cpf string) string {
 	return "*********" + cpf[9:]
 }
 
+// runPrioritizedIngestion executa ingestão com priorização inteligente
+// 1. Primeiro executa transações (se não houver, não precisa buscar posições)
+// 2. Depois executa posições apenas se houver transações
+func (o *Orchestrator) runPrioritizedIngestion(ctx context.Context, p Params, sum *Summary, logBase map[string]any) error {
+	// Etapa 1: Buscar transações primeiro
+	hasTransactions := false
+	for _, assetType := range p.AssetTypes {
+		if contains(p.DataTypes, "transactions") {
+			transSum, err := o.runDataTypeIngestion(ctx, p, assetType, "transactions", logBase)
+			if err != nil {
+				return fmt.Errorf("failed to ingest transactions for %s: %w", assetType, err)
+			}
+			if transSum != nil {
+				sum.Raw.Saved += transSum.Saved
+				sum.Raw.Skipped += transSum.Skipped
+				sum.Raw.Errors += transSum.Errors
+				sum.Raw.MonthsProcessed += transSum.MonthsProcessed
+				sum.Raw.PagesProcessed += transSum.PagesProcessed
+
+				if transSum.Saved > 0 {
+					hasTransactions = true
+				}
+			}
+		}
+	}
+
+	// Etapa 2: Buscar posições apenas se houver transações
+	if hasTransactions && contains(p.DataTypes, "positions") {
+		for _, assetType := range p.AssetTypes {
+			posSum, err := o.runDataTypeIngestion(ctx, p, assetType, "positions", logBase)
+			if err != nil {
+				return fmt.Errorf("failed to ingest positions for %s: %w", assetType, err)
+			}
+			if posSum != nil {
+				sum.Raw.Saved += posSum.Saved
+				sum.Raw.Skipped += posSum.Skipped
+				sum.Raw.Errors += posSum.Errors
+				sum.Raw.MonthsProcessed += posSum.MonthsProcessed
+				sum.Raw.PagesProcessed += posSum.PagesProcessed
+			}
+		}
+		helpers.LogInfo("e2e positions ingestion completed", merge(logBase, map[string]any{
+			"hasTransactions": hasTransactions,
+		}))
+	} else if !hasTransactions {
+		helpers.LogInfo("e2e positions ingestion skipped - no transactions found", logBase)
+	}
+
+	return nil
+}
+
+// runDataTypeIngestion executa ingestão para um tipo de dados específico
+func (o *Orchestrator) runDataTypeIngestion(ctx context.Context, p Params, assetType, dataType string, logBase map[string]any) (*appingest.Summary, error) {
+	var start, end string
+
+	// Para posições, usar apenas o dia anterior (otimização)
+	if dataType == "positions" {
+		yesterday := p.End.AddDate(0, 0, -1)
+		start = yesterday.Format("2006-01-02")
+		end = yesterday.Format("2006-01-02")
+		helpers.LogInfo("e2e positions ingestion optimized", merge(logBase, map[string]any{
+			"dataType": dataType,
+			"period":   start,
+		}))
+	} else {
+		// Para transações, usar período completo
+		start = p.Start.Format("2006-01-02")
+		end = p.End.Format("2006-01-02")
+	}
+
+	return o.ingest.Ingest(ctx, appingest.IngestParams{
+		TenantID:  p.TenantID,
+		CPF:       p.CPF,
+		DataType:  dataType,
+		AssetType: assetType,
+		Start:     start,
+		End:       end,
+		FetchAll:  true,
+		Force:     p.Force,
+		DryRun:    false,
+	})
+}
+
+// runParallelIngestion executa ingestão paralela usando worker pool (método antigo mantido para compatibilidade)
+func (o *Orchestrator) runParallelIngestion(ctx context.Context, p Params, sum *Summary, logBase map[string]any) error {
+	// Preparar todos os jobs de ingestão
+	var jobs []ingestJob
+	months := monthWindows(p.Start, p.End)
+
+	for _, assetType := range p.AssetTypes {
+		for _, dataType := range p.DataTypes {
+			for _, w := range months {
+				jobs = append(jobs, ingestJob{
+					assetType: assetType,
+					dataType:  dataType,
+					window:    w,
+					params:    p,
+				})
+			}
+		}
+	}
+
+	// Canal para jobs e resultados
+	jobChan := make(chan ingestJob, len(jobs))
+	resultChan := make(chan ingestResult, len(jobs))
+
+	// Worker pool
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, o.maxConcurrentIngests)
+
+	// Start workers
+	for i := 0; i < o.maxConcurrentIngests; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for job := range jobChan {
+				semaphore <- struct{}{} // acquire semaphore
+
+				// Execute ingestion
+				result, err := o.ingest.Ingest(ctx, appingest.IngestParams{
+					TenantID:  job.params.TenantID,
+					CPF:       job.params.CPF,
+					DataType:  job.dataType,
+					AssetType: job.assetType,
+					Start:     job.window[0].Format("2006-01-02"),
+					End:       job.window[1].Format("2006-01-02"),
+					FetchAll:  true,
+					Force:     job.params.Force,
+					DryRun:    false,
+				})
+
+				resultChan <- ingestResult{
+					job:    job,
+					result: result,
+					err:    err,
+				}
+
+				<-semaphore // release semaphore
+			}
+		}()
+	}
+
+	// Send jobs to workers
+	go func() {
+		defer close(jobChan)
+		for _, job := range jobs {
+			jobChan <- job
+		}
+	}()
+
+	// Collect results
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	// Process results
+	var errs []error
+	for result := range resultChan {
+		if result.err != nil {
+			observability.IncE2EError("ingest")
+			helpers.LogError("e2e parallel ingest failed", result.err, merge(logBase, map[string]any{
+				"dataType":  result.job.dataType,
+				"assetType": result.job.assetType,
+				"window":    result.job.window[0].Format("2006-01-02"),
+			}))
+			errs = append(errs, fmt.Errorf("ingest failed for %s/%s: %w", result.job.dataType, result.job.assetType, result.err))
+		} else if result.result != nil {
+			// Accumulate metrics (thread-safe with channels)
+			sum.Raw.Saved += result.result.Saved
+			sum.Raw.Skipped += result.result.Skipped
+			sum.Raw.Errors += result.result.Errors
+			sum.Raw.MonthsProcessed += result.result.MonthsProcessed
+			sum.Raw.PagesProcessed += result.result.PagesProcessed
+		}
+	}
+
+	// Return first error if any occurred
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	return nil
+}
+
+// runPipelineNormalization executa normalização em pipeline por tipo
+func (o *Orchestrator) runPipelineNormalization(ctx context.Context, p Params, sum *Summary, logBase map[string]any) error {
+	// Normalization pipeline: processa cada combinação dataType/assetType em paralelo
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	var errs []error
+
+	for _, assetType := range p.AssetTypes {
+		for _, dataType := range p.DataTypes {
+			wg.Add(1)
+			go func(dt, at string) {
+				defer wg.Done()
+
+				normSum, err := o.normalize.Run(ctx, appnorm.RunParams{
+					TenantID:  p.TenantID,
+					CPF:       p.CPF,
+					DataType:  dt,
+					AssetType: at,
+					Start:     p.Start,
+					End:       p.End,
+					Force:     p.Force,
+					DryRun:    false,
+				})
+
+				mutex.Lock()
+				defer mutex.Unlock()
+
+				if err != nil {
+					observability.IncE2EError("normalize")
+					helpers.LogError("e2e pipeline normalize failed", err, merge(logBase, map[string]any{
+						"dataType":  dt,
+						"assetType": at,
+					}))
+					errs = append(errs, fmt.Errorf("normalize failed for %s/%s: %w", dt, at, err))
+				} else if normSum != nil {
+					sum.Normalized.Inserted += normSum.Inserted
+					sum.Normalized.Updated += normSum.Updated
+					sum.Normalized.Skipped += normSum.Skipped
+					sum.Normalized.Errors += normSum.Errors
+
+					observability.ObserveE2ERun("success", p.Mode, dt, at, time.Now())
+					helpers.LogInfo("e2e normalize stage done", merge(logBase, map[string]any{
+						"stage":     "normalize",
+						"dataType":  dt,
+						"assetType": at,
+						"inserted":  normSum.Inserted,
+						"updated":   normSum.Updated,
+					}))
+				}
+			}(dataType, assetType)
+		}
+	}
+
+	wg.Wait()
+
+	// Return first error if any occurred
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	return nil
+}
+
 // merge combina mapas base + extra para logging
 func merge(base map[string]any, extra map[string]any) map[string]any {
 	out := make(map[string]any, len(base)+len(extra))
@@ -248,4 +505,14 @@ func merge(base map[string]any, extra map[string]any) map[string]any {
 		out[k] = v
 	}
 	return out
+}
+
+// contains verifica se um slice contém um elemento
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }

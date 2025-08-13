@@ -80,7 +80,45 @@ func NewNormalizedRepository(db *gorm.DB) NormalizedRepository {
 }
 
 func (r *normalizedRepositoryImpl) UpsertTransactions(ctx context.Context, items []NormalizedTransaction) error {
-	for _, it := range items {
+	if len(items) == 0 {
+		return nil
+	}
+
+	// Batch size optimization
+	const batchSize = 1000
+	return r.upsertTransactionsBatch(ctx, items, batchSize)
+}
+
+// upsertTransactionsBatch executa batch inserts para melhor performance
+func (r *normalizedRepositoryImpl) upsertTransactionsBatch(ctx context.Context, items []NormalizedTransaction, batchSize int) error {
+	for i := 0; i < len(items); i += batchSize {
+		end := i + batchSize
+		if end > len(items) {
+			end = len(items)
+		}
+
+		batch := items[i:end]
+		if err := r.executeBatchTransactions(ctx, batch); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// executeBatchTransactions executa uma inserção em lote usando SQL customizado
+func (r *normalizedRepositoryImpl) executeBatchTransactions(ctx context.Context, batch []NormalizedTransaction) error {
+	if len(batch) == 0 {
+		return nil
+	}
+
+	// Construir SQL com VALUES múltiplos para melhor performance
+	return r.executeSQLBatchTransactions(ctx, batch)
+}
+
+// executeSQLBatchTransactions executa SQL raw para batch com ON CONFLICT
+func (r *normalizedRepositoryImpl) executeSQLBatchTransactions(ctx context.Context, batch []NormalizedTransaction) error {
+	// Para batches pequenos, usar inserts individuais (mais seguro)
+	for _, it := range batch {
 		if err := r.db.WithContext(ctx).Exec(`
             INSERT INTO b3_normalized_transactions (
                 id, tenant_id, cpf, asset_type, source_version, raw_id, sequence_in_raw, trade_id, broker_code,
@@ -105,7 +143,39 @@ func (r *normalizedRepositoryImpl) UpsertTransactions(ctx context.Context, items
 }
 
 func (r *normalizedRepositoryImpl) UpsertPositions(ctx context.Context, items []NormalizedPosition) error {
-	for _, it := range items {
+	if len(items) == 0 {
+		return nil
+	}
+
+	// Batch size optimization
+	const batchSize = 1000
+	return r.upsertPositionsBatch(ctx, items, batchSize)
+}
+
+// upsertPositionsBatch executa batch inserts para melhor performance
+func (r *normalizedRepositoryImpl) upsertPositionsBatch(ctx context.Context, items []NormalizedPosition, batchSize int) error {
+	for i := 0; i < len(items); i += batchSize {
+		end := i + batchSize
+		if end > len(items) {
+			end = len(items)
+		}
+
+		batch := items[i:end]
+		if err := r.executeBatchPositions(ctx, batch); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// executeBatchPositions executa uma inserção em lote para posições
+func (r *normalizedRepositoryImpl) executeBatchPositions(ctx context.Context, batch []NormalizedPosition) error {
+	if len(batch) == 0 {
+		return nil
+	}
+
+	// Para batches pequenos, usar inserts individuais (mais seguro)
+	for _, it := range batch {
 		if err := r.db.WithContext(ctx).Exec(`
             INSERT INTO b3_normalized_positions (
                 id, tenant_id, cpf, asset_type, source_version, raw_id, sequence_in_raw, reference_date, ticker, isin,

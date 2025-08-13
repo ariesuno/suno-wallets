@@ -72,10 +72,14 @@ func (r *Repository) Reset(ctx context.Context, tenantID string, cpf, mode, arch
 		if err := tx.Exec(`INSERT INTO b3_normalized_transactions_archive
             (id, cpf, asset_type, source_version, raw_id, sequence_in_raw, trade_id, broker_code, 
              trade_date, settlement_date, ticker, isin, side, quantity, price, gross_value, 
-             currency, extra_json, normalized_hash, normalized_at, tenant_id, archived_at, archived_by)
+             currency, market_name, participant_name, participant_document, asset_trading_code,
+             expiration_date, option_exercise_value, original_trade_price, original_adjustment_value,
+             trade_datetime, normalized_hash, normalized_at, tenant_id, archived_at, archived_by)
             SELECT id, cpf, asset_type, source_version, raw_id, sequence_in_raw, trade_id, broker_code,
                    trade_date, settlement_date, ticker, isin, side, quantity, price, gross_value,
-                   currency, extra_json, normalized_hash, normalized_at, tenant_id, now(), ?
+                   currency, market_name, participant_name, participant_document, asset_trading_code,
+                   expiration_date, option_exercise_value, original_trade_price, original_adjustment_value,
+                   trade_datetime, normalized_hash, normalized_at, tenant_id, now(), ?
             FROM b3_normalized_transactions WHERE tenant_id = ? AND cpf = ?`, archivedBy, tenantID, cpf).Error; err != nil {
 			return nil, err
 		}

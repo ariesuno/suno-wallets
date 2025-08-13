@@ -137,14 +137,23 @@ func normalizeSide(b3Side string) string {
 
 // parseB3DateTime converte data/hora B3 para time.Time
 func parseB3DateTime(dateTimeStr string) time.Time {
+	// Verificar se a string não está vazia
+	if len(dateTimeStr) == 0 {
+		return time.Time{}
+	}
+
 	// Formato B3: "2021-03-16T13:19:21"
 	if parsed, err := time.Parse("2006-01-02T15:04:05", dateTimeStr); err == nil {
 		return parsed
 	}
-	// Fallback para apenas data
-	if parsed, err := time.Parse("2006-01-02", dateTimeStr[:10]); err == nil {
-		return parsed
+
+	// Fallback para apenas data (verificar se tem pelo menos 10 caracteres)
+	if len(dateTimeStr) >= 10 {
+		if parsed, err := time.Parse("2006-01-02", dateTimeStr[:10]); err == nil {
+			return parsed
+		}
 	}
+
 	return time.Time{}
 }
 

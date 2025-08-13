@@ -16,8 +16,8 @@ import (
 	ingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	possvc "suno-wallets/src/application/b3/positions"
-	apprecon "suno-wallets/src/application/b3/reconciliation"
 	reactivationsvc "suno-wallets/src/application/b3/reactivation"
+	apprecon "suno-wallets/src/application/b3/reconciliation"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
 	completesync "suno-wallets/src/application/b3/sync"
@@ -25,6 +25,7 @@ import (
 	cpsvc "suno-wallets/src/application/clientpolicy"
 	opsapp "suno-wallets/src/application/ops"
 	"suno-wallets/src/application/usecases"
+	workersvc "suno-wallets/src/application/worker"
 	adminrepo "suno-wallets/src/infrastructure/admin"
 	b3client "suno-wallets/src/infrastructure/b3/client"
 	b3auth "suno-wallets/src/infrastructure/b3/client/auth"
@@ -39,6 +40,7 @@ import (
 	cprepo "suno-wallets/src/infrastructure/clientpolicy"
 	"suno-wallets/src/infrastructure/observability"
 	opsinfra "suno-wallets/src/infrastructure/ops"
+	"suno-wallets/src/infrastructure/queue"
 	"suno-wallets/src/infrastructure/repositories"
 	"suno-wallets/src/shared/build"
 	"suno-wallets/src/shared/config"
@@ -81,8 +83,14 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	// Inicializar controllers
 	healthController := controllers.NewHealthController(db)
 
+	// Inicializar Redis client
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisHost + ":" + cfg.RedisPort,
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	})
+
 	// Observability health (liveness/readiness/details) sem tenant
-	var redisClient *redis.Client
 	obsHealth := obsctl.NewHealthController(db, redisClient)
 	// B3 client + service
 	b3Conf := &b3cfg.B3Config{
@@ -186,6 +194,24 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	// Complete Sync Orchestrator (fluxo completo inteligente)
 	completeSyncOrch := completesync.NewCompleteSyncOrchestrator(reactivationSvc, e2eOrch, incrementalSvc, reconSvc, syncRepoIncr)
 	completeSyncController := b3controllers.NewCompleteSyncController(completeSyncOrch)
+
+	// Job Queue para processamento assíncrono (Fase 2)
+	jobQueue := queue.NewRedisJobQueue(redisClient)
+	asyncSyncController := b3controllers.NewAsyncSyncController(jobQueue)
+
+	// Worker Pool para background processing (Fase 2)
+	workerPoolSize := 5 // 5 workers paralelos por padrão
+	workerPool := workersvc.NewWorkerPool(workerPoolSize, jobQueue, completeSyncOrch)
+
+	// Start worker pool em background
+	go func() {
+		bgCtx := context.Background()
+		workerPool.Start(bgCtx)
+		helpers.LogInfo("worker pool started for async processing", map[string]interface{}{
+			"poolSize": workerPoolSize,
+		})
+	}()
+
 	walletController := controllers.NewWalletController(walletUseCase)
 
 	// Rotas de saúde (sem middleware de tenant)
@@ -260,6 +286,14 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			// Complete Sync endpoints (fluxo completo inteligente)
 			b3Group.POST("/sync/complete-ingestion", completeSyncController.ExecuteCompleteSync)
 			b3Group.GET("/sync/status-analysis", completeSyncController.GetSyncStatus)
+
+			// Async endpoints (Fase 2 - processamento assíncrono)
+			asyncGroup := b3Group.Group("/async")
+			{
+				asyncGroup.POST("/sync/complete-ingestion", asyncSyncController.QueueCompleteSync)
+				asyncGroup.GET("/jobs/:jobId/status", asyncSyncController.GetJobStatus)
+				asyncGroup.GET("/jobs", asyncSyncController.ListJobs)
+			}
 			// Admin: reset and refetch E2E
 			b3Group.POST("/admin/reset-and-refetch", adminController.ResetAndRefetch)
 			// Admin: incremental from last

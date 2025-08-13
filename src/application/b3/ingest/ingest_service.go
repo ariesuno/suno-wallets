@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	b3err "suno-wallets/src/infrastructure/b3/errors"
 	"suno-wallets/src/infrastructure/b3/persistence"
 	"suno-wallets/src/infrastructure/observability"
 	hashx "suno-wallets/src/shared/hash"
@@ -76,7 +77,19 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 	sum := &Summary{}
 	startT, _ := time.Parse("2006-01-02", p.Start)
 	endT, _ := time.Parse("2006-01-02", p.End)
-	wins := monthWindows(startT, endT)
+
+	var wins [][2]time.Time
+
+	// Para posições, buscar apenas o dia anterior (otimização)
+	if p.DataType == "positions" {
+		// Para posições, usar apenas o dia anterior
+		yesterday := endT.AddDate(0, 0, -1)
+		wins = [][2]time.Time{{yesterday, yesterday}}
+	} else {
+		// Para transações, usar histórico completo mês a mês
+		wins = monthWindows(startT, endT)
+	}
+
 	sum.MonthsProcessed = len(wins)
 
 	for _, w := range wins {
@@ -122,13 +135,33 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 		}
 
 		if p.FetchAll {
-			_ = s.client.Paginate(ctx, http.MethodGet, path, baseQuery, p.CPF, true, fetch)
+			if err := s.client.Paginate(ctx, http.MethodGet, path, baseQuery, p.CPF, true, fetch); err != nil {
+				// Se HTTP 422, cliente não tem dados neste período - continuar tentando próximo período
+				if b3err.IsStatusCode(err, 422) {
+					observability.IncRawSkipped(1)
+					continue // Normal: cliente pode não ter dados em alguns períodos
+				}
+				// Outros erros são falhas reais de conectividade/autenticação
+				sum.Errors++
+				observability.IncRawErrors(1)
+				return sum, fmt.Errorf("failed to fetch data for period %s: %w", w[0].Format("2006-01-02"), err)
+			}
 		} else {
-			_, _ = s.client.MakeRequest(ctx, http.MethodGet, path, map[string]string{
+			if _, err := s.client.MakeRequest(ctx, http.MethodGet, path, map[string]string{
 				"referenceStartDate": baseQuery["referenceStartDate"],
 				"referenceEndDate":   baseQuery["referenceEndDate"],
 				"page":               "1",
-			}, p.CPF, true)
+			}, p.CPF, true); err != nil {
+				// Se HTTP 422, cliente não tem dados neste período - continuar tentando próximo período
+				if b3err.IsStatusCode(err, 422) {
+					observability.IncRawSkipped(1)
+					continue // Normal: cliente pode não ter dados em alguns períodos
+				}
+				// Outros erros são falhas reais de conectividade/autenticação
+				sum.Errors++
+				observability.IncRawErrors(1)
+				return sum, fmt.Errorf("failed to fetch data for period %s: %w", w[0].Format("2006-01-02"), err)
+			}
 		}
 
 		// marcar mês
