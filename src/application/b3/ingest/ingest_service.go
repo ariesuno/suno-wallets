@@ -87,15 +87,29 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 		wins = [][2]time.Time{{yesterday, yesterday}}
 	} else {
 		// Para transações, usar histórico completo mês a mês
+		fmt.Printf("DEBUG: monthWindows input - start=%s, end=%s\n", startT.Format("2006-01-02"), endT.Format("2006-01-02"))
 		wins = monthWindows(startT, endT)
+		fmt.Printf("DEBUG: monthWindows output - generated %d windows\n", len(wins))
+		if len(wins) > 0 {
+			fmt.Printf("DEBUG: First window: [%s, %s]\n", wins[0][0].Format("2006-01-02"), wins[0][1].Format("2006-01-02"))
+			fmt.Printf("DEBUG: Last window: [%s, %s]\n", wins[len(wins)-1][0].Format("2006-01-02"), wins[len(wins)-1][1].Format("2006-01-02"))
+		}
 	}
 
 	sum.MonthsProcessed = len(wins)
 
 	for _, w := range wins {
+		// Debug para verificar todas as janelas
+		if w[0].Year() == 2025 && w[0].Month() == 8 {
+			fmt.Printf("DEBUG: Found August window [%s, %s]\n", w[0].Format("2006-01-02"), w[1].Format("2006-01-02"))
+		}
+
 		// checar período já buscado
 		existing, _ := s.repo.GetMonth(ctx, p.TenantID, p.CPF, p.DataType, p.AssetType, w[0])
 		if existing != nil && existing.Completed && !p.Force {
+			if w[0].Year() == 2025 && w[0].Month() == 8 {
+				fmt.Printf("DEBUG: August period already exists - skipping\n")
+			}
 			sum.Skipped++
 			observability.IncRawSkipped(1)
 			continue
@@ -136,15 +150,16 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 
 		if p.FetchAll {
 			if err := s.client.Paginate(ctx, http.MethodGet, path, baseQuery, p.CPF, true, fetch); err != nil {
-				// Se HTTP 422, cliente não tem dados neste período - continuar tentando próximo período
+				// Se HTTP 422, cliente não tem dados neste período - continuar e marcar período
 				if b3err.IsStatusCode(err, 422) {
 					observability.IncRawSkipped(1)
-					continue // Normal: cliente pode não ter dados em alguns períodos
+					// Continuar para marcar período como consultado
+				} else {
+					// Outros erros são falhas reais de conectividade/autenticação
+					sum.Errors++
+					observability.IncRawErrors(1)
+					return sum, fmt.Errorf("failed to fetch data for period %s: %w", w[0].Format("2006-01-02"), err)
 				}
-				// Outros erros são falhas reais de conectividade/autenticação
-				sum.Errors++
-				observability.IncRawErrors(1)
-				return sum, fmt.Errorf("failed to fetch data for period %s: %w", w[0].Format("2006-01-02"), err)
 			}
 		} else {
 			if _, err := s.client.MakeRequest(ctx, http.MethodGet, path, map[string]string{
@@ -152,19 +167,23 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 				"referenceEndDate":   baseQuery["referenceEndDate"],
 				"page":               "1",
 			}, p.CPF, true); err != nil {
-				// Se HTTP 422, cliente não tem dados neste período - continuar tentando próximo período
+				// Se HTTP 422, cliente não tem dados neste período - continuar e marcar período
 				if b3err.IsStatusCode(err, 422) {
 					observability.IncRawSkipped(1)
-					continue // Normal: cliente pode não ter dados em alguns períodos
+					// Continuar para marcar período como consultado
+				} else {
+					// Outros erros são falhas reais de conectividade/autenticação
+					sum.Errors++
+					observability.IncRawErrors(1)
+					return sum, fmt.Errorf("failed to fetch data for period %s: %w", w[0].Format("2006-01-02"), err)
 				}
-				// Outros erros são falhas reais de conectividade/autenticação
-				sum.Errors++
-				observability.IncRawErrors(1)
-				return sum, fmt.Errorf("failed to fetch data for period %s: %w", w[0].Format("2006-01-02"), err)
 			}
 		}
 
 		// marcar mês
+		if w[0].Year() == 2025 && w[0].Month() == 8 {
+			fmt.Printf("DEBUG: About to mark August period [%s, %s]\n", w[0].Format("2006-01-02"), w[1].Format("2006-01-02"))
+		}
 		_ = s.repo.MarkMonth(ctx, &persistence.FetchedPeriod{ID: uuid.New(), TenantID: p.TenantID, CPF: p.CPF,
 			DataType: p.DataType, AssetType: p.AssetType, MonthStart: w[0], MonthEnd: w[1], Pages: sum.PagesProcessed, Completed: true})
 		observability.IncRawMonthsCompleted(1)
@@ -174,4 +193,12 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 	sum.DryRun = p.DryRun
 	sum.Force = p.Force
 	return sum, nil
+}
+
+// maskCPF mascara CPF mantendo apenas os 3 primeiros dígitos
+func maskCPF(cpf string) string {
+	if len(cpf) < 3 {
+		return "***"
+	}
+	return cpf[:3] + "********"
 }

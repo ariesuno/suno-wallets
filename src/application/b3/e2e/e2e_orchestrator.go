@@ -312,9 +312,14 @@ func (o *Orchestrator) runDataTypeIngestion(ctx context.Context, p Params, asset
 			"period":   start,
 		}))
 	} else {
-		// Para transações, usar período completo
+		// Para transações, usar período completo até D-1 (ontem)
 		start = p.Start.Format("2006-01-02")
 		end = p.End.Format("2006-01-02")
+		helpers.LogInfo("e2e transactions ingestion period", merge(logBase, map[string]any{
+			"dataType": dataType,
+			"start":    start,
+			"end":      end,
+		}))
 	}
 
 	return o.ingest.Ingest(ctx, appingest.IngestParams{

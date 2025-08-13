@@ -51,21 +51,21 @@ type CompleteSyncParams struct {
 }
 
 type CompleteSyncResult struct {
-	Strategy              string                         `json:"strategy"`
-	ClientStatus          string                         `json:"clientStatus"` // new, existing_current, existing_outdated
-	ExecutionPlan         string                         `json:"executionPlan"`
-	ReactivationPlan      *reactivation.ReactivationPlan `json:"reactivationPlan,omitempty"`
-	E2EResult             *appE2E.Summary                `json:"e2eResult,omitempty"`
-	IncrementalResult     *incremental.Summary           `json:"incrementalResult,omitempty"`
-	ReconciliationResult  map[string]interface{}         `json:"reconciliationResult,omitempty"`
-	StartedAt             time.Time                      `json:"startedAt"`
-	FinishedAt            time.Time                      `json:"finishedAt"`
-	DurationMs            int64                          `json:"durationMs"`
-	Success               bool                           `json:"success"`
-	ErrorMessage          string                         `json:"errorMessage,omitempty"`
-	ProcessedDataTypes    []string                       `json:"processedDataTypes"`
-	NewDataIngested       bool                           `json:"newDataIngested"`
-	DataSummary           DataSummary                    `json:"dataSummary"`
+	Strategy             string                         `json:"strategy"`
+	ClientStatus         string                         `json:"clientStatus"` // new, existing_current, existing_outdated
+	ExecutionPlan        string                         `json:"executionPlan"`
+	ReactivationPlan     *reactivation.ReactivationPlan `json:"reactivationPlan,omitempty"`
+	E2EResult            *appE2E.Summary                `json:"e2eResult,omitempty"`
+	IncrementalResult    *incremental.Summary           `json:"incrementalResult,omitempty"`
+	ReconciliationResult map[string]interface{}         `json:"reconciliationResult,omitempty"`
+	StartedAt            time.Time                      `json:"startedAt"`
+	FinishedAt           time.Time                      `json:"finishedAt"`
+	DurationMs           int64                          `json:"durationMs"`
+	Success              bool                           `json:"success"`
+	ErrorMessage         string                         `json:"errorMessage,omitempty"`
+	ProcessedDataTypes   []string                       `json:"processedDataTypes"`
+	NewDataIngested      bool                           `json:"newDataIngested"`
+	DataSummary          DataSummary                    `json:"dataSummary"`
 }
 
 type DataSummary struct {
@@ -233,6 +233,8 @@ func (s *CompleteSyncOrchestrator) ExecuteCompleteSync(ctx context.Context, para
 // executeFullHistoricalIngestion executa ingestão histórica completa para cliente novo
 func (s *CompleteSyncOrchestrator) executeFullHistoricalIngestion(ctx context.Context, params CompleteSyncParams, logBase map[string]interface{}) (*appE2E.Summary, error) {
 	epochDate, _ := time.Parse("2006-01-02", "2019-11-01") // Data de início da API B3
+	// Para transações, processar até D-1 (ontem) para incluir mês corrente completo
+	yesterday := time.Now().AddDate(0, 0, -1)
 
 	return s.e2eOrchestrator.Run(ctx, appE2E.Params{
 		TenantID:    params.TenantID,
@@ -240,7 +242,7 @@ func (s *CompleteSyncOrchestrator) executeFullHistoricalIngestion(ctx context.Co
 		AssetTypes:  params.AssetTypes,
 		DataTypes:   params.DataTypes,
 		Start:       epochDate,
-		End:         time.Now(),
+		End:         yesterday,
 		Force:       params.Force,
 		DryRun:      false, // Já validado no nível superior
 		Mode:        "archive",
