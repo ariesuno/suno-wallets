@@ -80,9 +80,6 @@ func NormalizeTransactions(tenantID string, cpf, assetType string, rawID uuid.UU
 				rawID.String(), itoa(sequenceIndex),
 			)
 
-			// Serializar dados extras para auditoria
-			extraJSON, _ := json.Marshal(trade)
-
 			normalizedTx := NormalizedTransaction{
 				ID:             uuid.New(),
 				TenantID:       tenantID,
@@ -102,7 +99,18 @@ func NormalizeTransactions(tenantID string, cpf, assetType string, rawID uuid.UU
 				Price:          ftoa(trade.PriceValue),
 				GrossValue:     strptr(ftoa(trade.GrossAmount)),
 				Currency:       strptr("BRL"), // B3 sempre em BRL
-				ExtraJSON:      extraJSON,
+
+				// New structured fields (extracted from previous extra_json)
+				MarketName:              strptr(trade.MarketName),
+				ParticipantName:         strptr(trade.ParticipantName),
+				ParticipantDocument:     strptr(trade.ParticipantDocumentNumber),
+				AssetTradingCode:        strptr(trade.AssetTradingObjectCode),
+				ExpirationDate:          parseB3ExpirationDate(trade.ExpirationDate),
+				OptionExerciseValue:     strptr(ftoa(trade.OptionExerciseValue)),
+				OriginalTradePrice:      strptr(ftoa(trade.OriginalTradePriceValue)),
+				OriginalAdjustmentValue: strptr(ftoa(trade.OriginalTotalAdjustmentValue)),
+				TradeDateTime:           timeptr(parseB3DateTime(trade.TradeDateTime)),
+
 				NormalizedHash: nHash,
 				NormalizedAt:   time.Now(),
 			}
@@ -164,6 +172,12 @@ func extractBrokerCode(cnpj string) string {
 	return cleaned
 }
 
-// Funções auxiliares definidas em helpers.go
+// Funções auxiliares
 
-// helpers extraídos para helpers.go
+// timeptr retorna um ponteiro para time.Time
+func timeptr(t time.Time) *time.Time {
+	if t.IsZero() {
+		return nil
+	}
+	return &t
+}

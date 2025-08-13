@@ -32,11 +32,10 @@ func NormalizePositions(tenantID string, cpf, assetType string, rawID uuid.UUID,
 		isin := strptr(stringify(m["isin"]))
 		cur := strptr(stringify(m["currency"]))
 		nHash := hashx.ComputeNormalizedHash(tenantID, cpf, assetType, ref.Format("2006-01-02"), ticker, qty, rawID.String(), itoa(i))
-		extra, _ := json.Marshal(m)
 		out = append(out, NormalizedPosition{
 			ID: uuid.New(), TenantID: tenantID, CPF: cpf, AssetType: assetType, SourceVersion: "v3", RawID: rawID,
 			SequenceInRaw: i, ReferenceDate: ref, Ticker: ticker, ISIN: isin, Quantity: qty, AvgPrice: optstr(avg), PositionValue: optstr(val),
-			Currency: cur, ExtraJSON: extra, NormalizedHash: nHash, NormalizedAt: time.Now(),
+			Currency: cur, NormalizedHash: nHash, NormalizedAt: time.Now(),
 		})
 	}
 	return out, nil
