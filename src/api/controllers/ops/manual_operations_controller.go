@@ -20,6 +20,18 @@ func NewManualOperationsController(svc *appops.ManualOperationsService) *ManualO
 	return &ManualOperationsController{svc: svc}
 }
 
+// Create godoc
+// @Summary Criar operação manual
+// @Description Cria uma nova operação manual no sistema de ledger. Permite inserir transações que não foram capturadas automaticamente da B3.
+// @Tags Operations
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param request body object true "Dados da operação manual" example({"cpf": "12345678901", "ticker": "PETR4", "assetType": "equity", "operationDate": "2024-01-15", "operationType": "buy", "quantity": 100, "unitPrice": 25.50, "currency": "BRL"})
+// @Success 201 {object} map[string]interface{} "Operação criada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 409 {object} map[string]string "Política B3_ONLY bloqueia operações manuais"
+// @Router /ops/manual [post]
 func (c2 *ManualOperationsController) Create(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {
@@ -53,6 +65,18 @@ func (c2 *ManualOperationsController) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
+// Update godoc
+// @Summary Atualizar operação manual
+// @Description Atualiza uma operação manual existente identificada pelo ID.
+// @Tags Operations
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param id path string true "ID da operação (UUID)" example(123e4567-e89b-12d3-a456-426614174000)
+// @Param request body object true "Dados atualizados da operação" example({"cpf": "12345678901", "ticker": "PETR4", "assetType": "equity", "operationDate": "2024-01-15", "operationType": "sell", "quantity": 50, "unitPrice": 26.00, "currency": "BRL"})
+// @Success 200 {object} map[string]interface{} "Operação atualizada com sucesso"
+// @Failure 400 {object} map[string]string "ID ou dados inválidos"
+// @Router /ops/manual/{id} [put]
 func (c2 *ManualOperationsController) Update(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {
@@ -87,6 +111,16 @@ func (c2 *ManualOperationsController) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"id": id})
 }
 
+// Delete godoc
+// @Summary Excluir operação manual
+// @Description Executa soft delete de uma operação manual específica.
+// @Tags Operations
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param id path string true "ID da operação (UUID)" example(123e4567-e89b-12d3-a456-426614174000)
+// @Success 200 {object} map[string]interface{} "Operação excluída com sucesso"
+// @Failure 400 {object} map[string]string "ID inválido ou erro na exclusão"
+// @Router /ops/manual/{id} [delete]
 func (c2 *ManualOperationsController) Delete(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {
@@ -105,7 +139,16 @@ func (c2 *ManualOperationsController) Delete(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"deleted": true})
 }
 
-// GET /ops/manual (lista paginada)
+// List godoc
+// @Summary Listar operações manuais
+// @Description Retorna lista paginada de operações manuais, com filtro opcional por CPF.
+// @Tags Operations
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string false "Filtrar por CPF específico" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Lista paginada de operações manuais"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /ops/manual [get]
 func (c2 *ManualOperationsController) List(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {

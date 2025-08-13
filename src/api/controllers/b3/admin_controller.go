@@ -38,17 +38,17 @@ type resetAndRefetchRequest struct {
 }
 
 // ResetAndRefetch godoc
-// @Summary Reset seguro (admin) e reingestão histórica completa com normalização
-// @Description Admin-only: exige confirmação e validação de tenant. Suporta dryRun, force e modos archive/hard-delete.
+// @Summary Reset e reingestão histórica completa B3 (Admin)
+// @Description Operação administrativa crítica que reset os dados de um cliente e refaz ingestão histórica completa da B3 com normalização. Requer confirmação explícita e autenticação de admin. Suporta modos archive/hard-delete e dry-run.
 // @Tags B3 Admin
 // @Accept json
 // @Produce json
-// @Param X-Tenant-Id header string true "ID do inquilino (UUID)"
-// @Param X-Admin-Secret header string false "Segredo admin (fallback simples)"
-// @Param request body resetAndRefetchRequest true "Parâmetros"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 403 {object} map[string]string
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param X-Admin-Secret header string false "Chave secreta de admin (se configurada)"
+// @Param request body resetAndRefetchRequest true "Parâmetros da operação reset" example({"cpf": "12345678901", "assetTypes": ["equity"], "dataTypes": ["transactions", "positions"], "mode": "archive", "confirm": "RESET_AND_REFETCH", "dryRun": false})
+// @Success 200 {object} map[string]interface{} "Resultado da operação reset e reingestão"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos ou confirmação ausente"
+// @Failure 403 {object} map[string]string "Acesso negado - requer permissão de admin"
 // @Router /b3/admin/reset-and-refetch [post]
 func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)
@@ -158,10 +158,18 @@ func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
 }
 
 // IncrementalFromLast godoc
-// @Summary Executa incremental a partir do último marco ou since fornecido
+// @Summary Sincronização incremental inteligente B3 (Admin)
+// @Description Executa sincronização incremental inteligente a partir do último marco de sincronização ou data específica. Detecta gaps e sincroniza apenas os períodos necessários. Requer autenticação de admin.
 // @Tags B3 Admin
 // @Accept json
 // @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param X-Admin-Secret header string false "Chave secreta de admin (se configurada)"
+// @Param request body object true "Parâmetros da sincronização incremental" example({"cpf": "12345678901", "dataTypes": ["transactions", "positions"], "assetTypes": ["equity"], "since": "2024-01-01", "dryRun": false, "concurrency": 2})
+// @Success 200 {object} map[string]interface{} "Resultado da sincronização incremental"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos"
+// @Failure 403 {object} map[string]string "Acesso negado - requer permissão de admin"
+// @Failure 503 {object} map[string]string "Serviço incremental não configurado"
 // @Router /b3/admin/incremental-from-last [post]
 func (c *AdminController) IncrementalFromLast(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)

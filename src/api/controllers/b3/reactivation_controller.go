@@ -21,7 +21,18 @@ func NewReactivationController(svc *reactivation.Service) *ReactivationControlle
 	return &ReactivationController{svc: svc}
 }
 
-// POST /b3/admin/reactivation/analyze - Analisa estratégia de reativação (admin-only)
+// AnalyzeReactivation godoc
+// @Summary Analisar estratégia de reativação (Admin)
+// @Description Analisa a situação de sincronização de um cliente e sugere a melhor estratégia para reativação, considerando gaps de dados e última sincronização.
+// @Tags B3 Reactivation
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param request body object true "Parâmetros de análise" example({"cpf": "12345678901", "currentDate": "2024-01-15"})
+// @Success 200 {object} map[string]interface{} "Plano de reativação sugerido"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos"
+// @Failure 500 {object} map[string]string "Erro na análise"
+// @Router /b3/admin/reactivation/analyze [post]
 func (c *ReactivationController) AnalyzeReactivation(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)
 
@@ -83,7 +94,18 @@ func (c *ReactivationController) AnalyzeReactivation(ctx *gin.Context) {
 	})
 }
 
-// POST /b3/admin/reactivation/execute - Executa plano de reativação (admin-only)
+// ExecuteReactivation godoc
+// @Summary Executar plano de reativação (Admin)
+// @Description Executa a estratégia de reativação previamente analisada, sincronizando dados faltantes do cliente com a B3. Suporta modo dry-run para simulação.
+// @Tags B3 Reactivation
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param request body object true "Parâmetros de execução" example({"cpf": "12345678901", "currentDate": "2024-01-15", "dryRun": false})
+// @Success 200 {object} map[string]interface{} "Resultado da execução"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos"
+// @Failure 500 {object} map[string]string "Erro na execução"
+// @Router /b3/admin/reactivation/execute [post]
 func (c *ReactivationController) ExecuteReactivation(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)
 
@@ -147,7 +169,17 @@ func (c *ReactivationController) ExecuteReactivation(ctx *gin.Context) {
 	})
 }
 
-// GET /b3/client/reactivation/status - Status de reativação para o cliente (público)
+// GetReactivationStatus godoc
+// @Summary Status de reativação do cliente
+// @Description Verifica o status atual de sincronização do cliente e informa se há necessidade de reativação, sem executar operações.
+// @Tags B3 Reactivation
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Status de reativação"
+// @Failure 400 {object} map[string]string "CPF inválido"
+// @Failure 500 {object} map[string]string "Erro na verificação"
+// @Router /b3/client/reactivation/status [get]
 func (c *ReactivationController) GetReactivationStatus(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)
 

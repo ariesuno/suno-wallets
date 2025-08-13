@@ -1,6 +1,19 @@
 basePath: /api/v1
 definitions:
-  b3.ingestRequest:
+  src_api_controllers.HealthResponse:
+    properties:
+      services:
+        additionalProperties:
+          type: string
+        type: object
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  src_api_controllers_b3.ingestRequest:
     properties:
       assetType:
         description: 'default: equity'
@@ -26,7 +39,7 @@ definitions:
     - end
     - start
     type: object
-  b3.normalizeRequest:
+  src_api_controllers_b3.normalizeRequest:
     properties:
       assetType:
         type: string
@@ -48,7 +61,39 @@ definitions:
     - end
     - start
     type: object
-  b3.runRequest:
+  src_api_controllers_b3.resetAndRefetchRequest:
+    properties:
+      assetTypes:
+        items:
+          type: string
+        type: array
+      confirm:
+        description: must be RESET_AND_REFETCH
+        type: string
+      confirmHard:
+        description: must be YES_DELETE when hard-delete
+        type: string
+      cpf:
+        type: string
+      dataTypes:
+        items:
+          type: string
+        type: array
+      dryRun:
+        type: boolean
+      endOverride:
+        type: string
+      force:
+        type: boolean
+      mode:
+        description: archive|hard-delete
+        type: string
+      startOverride:
+        type: string
+    required:
+    - cpf
+    type: object
+  src_api_controllers_b3.runRequest:
     properties:
       assetTypes:
         example:
@@ -77,48 +122,7 @@ definitions:
         example: single|tenant
         type: string
     type: object
-  controllers.HealthResponse:
-    properties:
-      services:
-        additionalProperties:
-          type: string
-        type: object
-      status:
-        type: string
-      timestamp:
-        type: string
-      version:
-        type: string
-    type: object
-  dto.PositionsPreviewResponse:
-    properties:
-      asset_type:
-        type: string
-      end:
-        type: string
-      pages:
-        type: integer
-      payloads:
-        items: {}
-        type: array
-      start:
-        type: string
-    type: object
-  dto.TransactionsPreviewResponse:
-    properties:
-      asset_type:
-        type: string
-      end:
-        type: string
-      pages:
-        type: integer
-      payloads:
-        items: {}
-        type: array
-      start:
-        type: string
-    type: object
-  dtos.CreateWalletRequest:
+  suno-wallets_src_application_dtos.CreateWalletRequest:
     properties:
       allow_debit:
         type: boolean
@@ -149,7 +153,7 @@ definitions:
         type: string
       type:
         allOf:
-        - $ref: '#/definitions/entities.WalletType'
+        - $ref: '#/definitions/suno-wallets_src_domain_entities.WalletType'
         enum:
         - personal
         - business
@@ -163,16 +167,16 @@ definitions:
     - tenant_id
     - type
     type: object
-  dtos.ListWalletsResponse:
+  suno-wallets_src_application_dtos.ListWalletsResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/dtos.WalletResponse'
+          $ref: '#/definitions/suno-wallets_src_application_dtos.WalletResponse'
         type: array
       meta:
-        $ref: '#/definitions/dtos.PaginationMeta'
+        $ref: '#/definitions/suno-wallets_src_application_dtos.PaginationMeta'
     type: object
-  dtos.PaginationMeta:
+  suno-wallets_src_application_dtos.PaginationMeta:
     properties:
       limit:
         type: integer
@@ -183,7 +187,7 @@ definitions:
       total_pages:
         type: integer
     type: object
-  dtos.UpdateWalletRequest:
+  suno-wallets_src_application_dtos.UpdateWalletRequest:
     properties:
       allow_debit:
         type: boolean
@@ -203,7 +207,7 @@ definitions:
       name:
         type: string
       status:
-        $ref: '#/definitions/entities.WalletStatus'
+        $ref: '#/definitions/suno-wallets_src_domain_entities.WalletStatus'
       tenant_id:
         type: string
       updated_by:
@@ -212,7 +216,7 @@ definitions:
     - id
     - tenant_id
     type: object
-  dtos.WalletResponse:
+  suno-wallets_src_application_dtos.WalletResponse:
     properties:
       allow_debit:
         type: boolean
@@ -250,56 +254,17 @@ definitions:
       owner_type:
         type: string
       status:
-        $ref: '#/definitions/entities.WalletStatus'
+        $ref: '#/definitions/suno-wallets_src_domain_entities.WalletStatus'
       tenant_id:
         type: string
       type:
-        $ref: '#/definitions/entities.WalletType'
+        $ref: '#/definitions/suno-wallets_src_domain_entities.WalletType'
       updated_at:
         type: string
       updated_by:
         type: string
     type: object
-  reports.RawDateRangeResponse:
-    type: object
-    properties:
-      cpf: { type: string }
-      from: { type: string }
-      to: { type: string }
-      dataTypes:
-        type: array
-        items: { type: string }
-      assetTypes:
-        type: array
-        items: { type: string }
-  reports.SummaryResponse:
-    type: object
-    properties:
-      cpf: { type: string }
-      from: { type: string }
-      to: { type: string }
-      monthsWithTransactions: { type: integer }
-      totalTransactions: { type: integer }
-      tickersCount: { type: integer }
-      positionsCount: { type: integer }
-      grossValueBRLSum: { type: string }
-      notes: { type: string }
-  reports.TickersItem:
-    type: object
-    properties:
-      ticker: { type: string }
-      quantityTotal: { type: string }
-  reports.TickersResponse:
-    type: object
-    properties:
-      cpf: { type: string }
-      from: { type: string }
-      to: { type: string }
-      tickers:
-        type: array
-        items:
-          $ref: '#/definitions/reports.TickersItem'
-  entities.WalletStatus:
+  suno-wallets_src_domain_entities.WalletStatus:
     enum:
     - active
     - inactive
@@ -311,7 +276,7 @@ definitions:
     - WalletStatusInactive
     - WalletStatusBlocked
     - WalletStatusSuspended
-  entities.WalletType:
+  suno-wallets_src_domain_entities.WalletType:
     enum:
     - personal
     - business
@@ -321,6 +286,34 @@ definitions:
     - WalletTypePersonal
     - WalletTypeBusiness
     - WalletTypeCorporate
+  suno-wallets_src_shared_dto.PositionsPreviewResponse:
+    properties:
+      asset_type:
+        type: string
+      end:
+        type: string
+      pages:
+        type: integer
+      payloads:
+        items: {}
+        type: array
+      start:
+        type: string
+    type: object
+  suno-wallets_src_shared_dto.TransactionsPreviewResponse:
+    properties:
+      asset_type:
+        type: string
+      end:
+        type: string
+      pages:
+        type: integer
+      payloads:
+        items: {}
+        type: array
+      start:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -335,485 +328,263 @@ info:
   title: Suno Wallets API
   version: "1.0"
 paths:
-  /b3/reconciliation/scan:
-    post:
-      tags: [B3 Reconciliation]
-      summary: Executa scan de inconsistências (admin-only)
-      consumes: [application/json]
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        description: ID do inquilino (UUID)
-        required: true
-        type: string
-      - in: header
-        name: X-Admin-Secret
-        description: Segredo admin (quando configurado)
-        required: false
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            tickers:
-              type: array
-              items: { type: string }
-            from: { type: string }
-            to: { type: string }
-            dryRun: { type: boolean }
-            maxSamplesPerType: { type: integer }
-            concurrency: { type: integer }
-      produces: [application/json]
-      responses:
-        "200": { description: OK, schema: { type: object, additionalProperties: true } }
-        "400": { description: Bad Request, schema: { type: object, additionalProperties: { type: string } } }
-        "403": { description: Forbidden, schema: { type: object, additionalProperties: { type: string } } }
-  /b3/reconciliation/inconsistencies:
+  /admin/backoffice/actions:
     get:
-      tags: [B3 Reconciliation]
-      summary: Lista inconsistências
+      description: Retorna lista paginada de ações administrativas com filtros opcionais
+        por CPF, tipo de ação e status.
       parameters:
-      - in: header
-        name: X-Tenant-Id
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
         required: true
         type: string
-      - in: query
+      - description: Filtrar por CPF específico
+        example: "12345678901"
+        in: query
         name: cpf
         type: string
-      - in: query
+      - description: Filtrar por tipo de ação
+        example: DELETE_CLIENT_DATA
+        in: query
+        name: action
+        type: string
+      - description: Filtrar por status (PENDING, CONFIRMED, EXPIRED)
+        example: PENDING
+        in: query
         name: status
         type: string
-      - in: query
-        name: type
-        type: string
-      - in: query
-        name: ticker
-        type: string
-      produces: [application/json]
-      responses:
-        "200": { description: OK, schema: { type: object, additionalProperties: true } }
-        "400": { description: Bad Request, schema: { type: object, additionalProperties: { type: string } } }
-  /b3/reconciliation/inconsistencies/{id}:
-    get:
-      tags: [B3 Reconciliation]
-      summary: Detalhe de inconsistência
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      produces: [application/json]
-      responses:
-        "200": { description: OK, schema: { type: object, additionalProperties: true } }
-        "400": { description: Bad Request, schema: { type: object, additionalProperties: { type: string } } }
-
-  /ops/manual:
-    post:
-      tags: [Manual Ops]
-      summary: Cria operação USER_MANUAL
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            ticker: { type: string }
-            assetType: { type: string }
-            operationDate: { type: string }
-            operationType: { type: string }
-            quantity: { type: number }
-            unitPrice: { type: number }
-            currency: { type: string }
-      responses:
-        "201": { description: Created }
-        "409": { description: Conflict (B3_ONLY policy) }
-        "400": { description: Bad Request }
-    put:
-      tags: [Manual Ops]
-      summary: Atualiza USER_MANUAL ativa
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema: { type: object }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-    delete:
-      tags: [Manual Ops]
-      summary: Soft delete de USER_MANUAL
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-
-  /ops/dedup/scan:
-    post:
-      tags: [Ops Dedup]
-      summary: Gera candidatos de dedup
-      parameters:
-      - in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema: { type: object }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-
-  /ops/dedup/resolve:
-    post:
-      tags: [Ops Dedup]
-      summary: Resolve candidatos (MERGE|OVERRIDE|IGNORE)
-  /ops/timeline:
-    get:
-      tags: [Timeline]
-      summary: Lista timeline unificada (keyset)
-      parameters:
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      - in: query
-        name: tickers
-        required: false
-        type: string
-        description: Lista separada por vírgula
-      - in: query
-        name: from
-        type: string
-      - in: query
-        name: to
-        type: string
-      - in: query
-        name: sources
-        type: string
-      - in: query
-        name: assetTypes
-        type: string
-      - in: query
-        name: canonicalize
-        type: boolean
-      - in: query
+      - description: 'Número da página (padrão: 1)'
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 'Tamanho da página (padrão: 50)'
+        example: 50
+        in: query
         name: pageSize
         type: integer
-      - in: query
-        name: cursor
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-        "5xx": { description: Server Error }
-
-  /ops/timeline/export:
-    get:
-      tags: [Timeline]
-      summary: Export da timeline (admin)
-      parameters:
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      - in: query
-        name: limit
-        required: false
-        type: integer
-      - in: query
-        name: format
-        type: string
-        enum: [csv, json]
-      - in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /ops/reconciliation/summary:
-    get:
-      tags: [Reconciliation]
-      summary: Snapshot do resumo de reconciliação
-      parameters:
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "5xx": { description: Server Error }
-
-  /admin/client/policy:
-    get:
-      tags: [Client Policy]
-      summary: Obtém a policy atual de um CPF
-      parameters:
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-    post:
-      tags: [Client Policy]
-      summary: Upsert da policy (admin)
-      parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            mode: { type: string, enum: [B3_ONLY, MANUAL_ONLY, HYBRID] }
-            reason: { type: string }
-      responses:
-        "201": { description: Created }
-        "400": { description: Bad Request }
-
-  /admin/client/policy/audit:
-    get:
-      tags: [Client Policy]
-      summary: Lista audit log da policy
-      parameters:
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-
-  /admin/client/policy/dry-run:
-    post:
-      tags: [Client Policy]
-      summary: Simula impacto de alteração de policy
-      parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            newMode: { type: string, enum: [B3_ONLY, MANUAL_ONLY, HYBRID] }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-      parameters:
-      - in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema: { type: object }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-
-  /ops/dedup/candidates:
-    get:
-      tags: [Ops Dedup]
-      summary: Lista candidatos
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: query
-        name: cpf
-        type: string
-      - in: query
-        name: status
-        type: string
-      responses:
-        "200": { description: OK }
-  /health/live:
-    get:
-      tags:
-      - Observability
-      summary: Liveness
-      description: Verifica se o processo está vivo.
       produces:
       - application/json
       responses:
         "200":
-          description: OK
-  /health/ready:
+          description: Lista paginada de ações administrativas
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Listar ações administrativas (Admin)
+      tags:
+      - Admin Backoffice
+  /admin/backoffice/actions/{id}:
     get:
-      tags:
-      - Observability
-      summary: Readiness
-      description: Verifica DB/Redis/Migrations; 200 somente se pronto.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "503":
-          description: Service Unavailable
-  /health/details:
-    get:
-      tags:
-      - Observability
-      summary: Health details
-      description: Status por componente, latências e counters.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-  /metrics:
-    get:
-      tags:
-      - Observability
-      summary: Prometheus metrics
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: OK
-  /b3/admin/reset-and-refetch:
-    post:
-      tags:
-      - B3 Admin
-      summary: Reset seguro (admin) e reingestão histórica com normalização
-      consumes:
-      - application/json
+      description: Retorna detalhes completos de uma ação administrativa específica
+        identificada pelo ID.
       parameters:
-      - description: ID do inquilino (UUID)
+      - description: ID do inquilino (tenant)
+        example: status_invest
         in: header
-        name: X-Tenant-Id
+        name: X-Tenant-ID
         required: true
         type: string
-      - description: Segredo admin (quando configurado)
-        in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      - in: body
-        name: request
+      - description: ID da ação administrativa (UUID)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: path
+        name: id
         required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            assetTypes: { type: array, items: { type: string } }
-            dataTypes: { type: array, items: { type: string } }
-            startOverride: { type: string }
-            endOverride: { type: string }
-            force: { type: boolean }
-            dryRun: { type: boolean }
-            mode: { type: string, enum: ["archive","hard-delete"] }
-            confirm: { type: string }
-            confirmHard: { type: string }
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Sumário da execução
+          description: Detalhes da ação administrativa
           schema:
             additionalProperties: true
             type: object
         "400":
-          description: Requisição inválida
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter detalhes de ação administrativa (Admin)
+      tags:
+      - Admin Backoffice
+  /admin/backoffice/actions/confirm:
+    post:
+      description: Confirma e executa uma ação administrativa previamente solicitada
+        usando ID e token de confirmação. Requer role ADMIN.
+      parameters:
+      - description: Role do usuário (deve ser ADMIN)
+        example: ADMIN
+        in: header
+        name: X-Role
+        required: true
+        type: string
+      - description: ID da ação solicitada
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Token de confirmação gerado na solicitação
+        example: abc123def456
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ação confirmada e executada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID/token inválido ou ação expirada
           schema:
             additionalProperties:
               type: string
             type: object
         "403":
-          description: Acesso negado
+          description: Acesso negado - requer role ADMIN
           schema:
             additionalProperties:
               type: string
             type: object
-  /b3/client/last-sync:
-    get:
+      summary: Confirmar ação administrativa
+      tags:
+      - Admin Backoffice
+  /admin/backoffice/actions/request:
+    post:
+      consumes:
+      - application/json
+      description: Cria uma solicitação de ação administrativa que requer confirmação
+        posterior. Suporta TTL configurável e payload personalizado. Requer role ADMIN
+        ou SUPPORT.
       parameters:
-      - description: ID do inquilino
+      - description: ID do inquilino (tenant)
+        example: status_invest
         in: header
-        name: X-Tenant-Id
+        name: X-Tenant-ID
         required: true
         type: string
-      - description: CPF
-        in: query
-        name: cpf
+      - description: Role do usuário (ADMIN ou SUPPORT)
+        example: ADMIN
+        in: header
+        name: X-Role
         required: true
         type: string
+      - description: Dados da solicitação de ação
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Ação solicitada com token de confirmação
           schema:
             additionalProperties: true
             type: object
         "400":
-          description: Bad Request
+          description: Dados inválidos
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Últimos marcos de sync por CPF
+        "403":
+          description: Role insuficiente - requer ADMIN ou SUPPORT
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Solicitar ação administrativa
       tags:
-      - B3 Sync
-  /b3/client/status:
+      - Admin Backoffice
+  /admin/backoffice/export/ledger:
     get:
+      description: Exporta o ledger completo de operações de um cliente específico.
+        Permite filtrar dados da B3 e configurar limite de registros.
       parameters:
-      - description: ID do inquilino
+      - description: ID do inquilino (tenant)
+        example: status_invest
         in: header
-        name: X-Tenant-Id
+        name: X-Tenant-ID
         required: true
         type: string
-      - description: CPF
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: 'Limite de registros (padrão: 50000)'
+        example: 50000
+        in: query
+        name: limit
+        type: integer
+      - description: 'Excluir dados da B3 do export (padrão: false)'
+        example: false
+        in: query
+        name: excludeB3
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ledger exportado do cliente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF obrigatório
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Exportar ledger do cliente (Admin)
+      tags:
+      - Admin Backoffice
+  /admin/backoffice/profile:
+    get:
+      description: Retorna informações detalhadas do perfil de um cliente, incluindo
+        dados de sincronização, políticas ativas e estatísticas de operações.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
         in: query
         name: cpf
         required: true
@@ -822,110 +593,714 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Perfil completo do cliente
           schema:
             additionalProperties: true
             type: object
-  /b3/client/sync-window:
-    get:
+        "400":
+          description: CPF obrigatório ou tenant ausente
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Perfil completo do cliente (Admin)
       tags:
-      - B3 Sync
-      summary: Inspeção de janela de sync (somente leitura)
+      - Admin Backoffice
+  /admin/backoffice/search:
+    get:
+      description: Busca clientes e informações relacionadas usando termo de pesquisa.
+        Suporta busca por CPF, nome, email ou outras informações do cliente.
       parameters:
-      - description: ID do inquilino
+      - description: ID do inquilino (tenant)
+        example: status_invest
         in: header
-        name: X-Tenant-Id
+        name: X-Tenant-ID
         required: true
         type: string
-      - description: CPF
+      - description: Termo de busca (CPF, nome, email, etc.)
+        example: "12345678901"
+        in: query
+        name: query
+        type: string
+      - description: 'Limite de resultados (padrão: 20)'
+        example: 20
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultados da busca
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Buscar clientes e dados (Admin)
+      tags:
+      - Admin Backoffice
+  /admin/client/policy:
+    get:
+      description: Retorna a política de fonte de dados ativa para um cliente específico
+        (B3_ONLY, MANUAL_ONLY ou HYBRID).
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
         in: query
         name: cpf
         required: true
         type: string
-      - description: Tipo de dado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Política ativa do cliente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF obrigatório
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter política do cliente (Admin)
+      tags:
+      - Client Policy
+    post:
+      consumes:
+      - application/json
+      description: Cria ou atualiza a política de fonte de dados para um cliente.
+        Suporta B3_ONLY, MANUAL_ONLY e HYBRID.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Dados da política
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Política configurada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Definir política do cliente (Admin)
+      tags:
+      - Client Policy
+  /admin/client/policy/audit:
+    get:
+      description: Retorna o histórico de mudanças na política de fonte de dados de
+        um cliente específico.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Histórico de mudanças da política
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF obrigatório
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Histórico de mudanças de política (Admin)
+      tags:
+      - Client Policy
+  /admin/client/policy/dry-run:
+    post:
+      consumes:
+      - application/json
+      description: Simula o impacto de alterar a política de um cliente, mostrando
+        jobs afetados, endpoints bloqueados e mudanças no sistema.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Simulação de mudança
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Análise de impacto da mudança
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Simular impacto de mudança de política (Admin)
+      tags:
+      - Client Policy
+  /b3/admin/incremental-from-last:
+    post:
+      consumes:
+      - application/json
+      description: Executa sincronização incremental inteligente a partir do último
+        marco de sincronização ou data específica. Detecta gaps e sincroniza apenas
+        os períodos necessários. Requer autenticação de admin.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: Parâmetros da sincronização incremental
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado da sincronização incremental
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Serviço incremental não configurado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sincronização incremental inteligente B3 (Admin)
+      tags:
+      - B3 Admin
+  /b3/admin/reactivation/analyze:
+    post:
+      consumes:
+      - application/json
+      description: Analisa a situação de sincronização de um cliente e sugere a melhor
+        estratégia para reativação, considerando gaps de dados e última sincronização.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Parâmetros de análise
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Plano de reativação sugerido
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na análise
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Analisar estratégia de reativação (Admin)
+      tags:
+      - B3 Reactivation
+  /b3/admin/reactivation/execute:
+    post:
+      consumes:
+      - application/json
+      description: Executa a estratégia de reativação previamente analisada, sincronizando
+        dados faltantes do cliente com a B3. Suporta modo dry-run para simulação.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Parâmetros de execução
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado da execução
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na execução
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Executar plano de reativação (Admin)
+      tags:
+      - B3 Reactivation
+  /b3/admin/reset-and-refetch:
+    post:
+      consumes:
+      - application/json
+      description: Operação administrativa crítica que reset os dados de um cliente
+        e refaz ingestão histórica completa da B3 com normalização. Requer confirmação
+        explícita e autenticação de admin. Suporta modos archive/hard-delete e dry-run.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: Parâmetros da operação reset
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/src_api_controllers_b3.resetAndRefetchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado da operação reset e reingestão
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos ou confirmação ausente
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Reset e reingestão histórica completa B3 (Admin)
+      tags:
+      - B3 Admin
+  /b3/client/last-sync:
+    get:
+      description: Retorna os timestamps das últimas sincronizações de transações
+        e posições para um CPF específico, útil para controle de incrementais.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Timestamps das últimas sincronizações
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter últimas sincronizações do cliente
+      tags:
+      - B3 Sync
+  /b3/client/raw-date-range:
+    get:
+      description: Retorna as datas mínima e máxima dos dados brutos (raw) armazenados
+        para um CPF específico. Útil para verificar o período de cobertura dos dados
+        coletados da B3.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Período de cobertura dos dados
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Relatório de datas dos dados brutos
+      tags:
+      - B3 Reports
+  /b3/client/reactivation/status:
+    get:
+      description: Verifica o status atual de sincronização do cliente e informa se
+        há necessidade de reativação, sem executar operações.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status de reativação
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na verificação
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Status de reativação do cliente
+      tags:
+      - B3 Reactivation
+  /b3/client/status:
+    get:
+      description: Retorna status detalhado da sincronização de um cliente, incluindo
+        flags de ativação, necessidade de reprocessamento, últimas sincronizações,
+        resultados e contadores de falha.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status completo de sincronização
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter status de sincronização do cliente
+      tags:
+      - B3 Sync
+  /b3/client/summary:
+    get:
+      description: Retorna um resumo estatístico das transações e posições do cliente
+        em um período específico, incluindo contadores, valores totais e distribuição
+        por tipo de ativo.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: Data inicial no formato YYYY-MM-DD
+        example: "2024-01-01"
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Data final no formato YYYY-MM-DD
+        example: "2024-12-31"
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resumo estatístico do período
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos (CPF ou datas)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Relatório resumo de transações e posições
+      tags:
+      - B3 Reports
+  /b3/client/sync-window:
+    get:
+      description: Calcula e retorna informações sobre a janela de sincronização incremental
+        para um cliente, incluindo período de cobertura e estimativas de páginas a
+        processar.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: Tipo de dados (transactions ou positions)
+        example: transactions
         in: query
         name: type
         required: true
         type: string
-      - description: Desde (YYYY-MM-DD)
+      - description: Data inicial no formato YYYY-MM-DD
+        example: "2024-01-01"
         in: query
         name: since
-        required: false
         type: string
-      - description: Até (YYYY-MM-DD)
+      - description: Data final no formato YYYY-MM-DD
+        example: "2024-12-31"
         in: query
         name: end
-        required: false
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Informações da janela de sincronização
           schema:
-            type: object
             additionalProperties: true
-  /b3/admin/incremental-from-last:
-    post:
+            type: object
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Janela de sincronização incremental
       tags:
-      - B3 Admin
-      summary: Executa incremental a partir do último marco ou since
-      consumes:
-      - application/json
+      - B3 Utilities
+  /b3/client/tickers:
+    get:
+      description: Retorna lista paginada dos tickers (códigos de ativos) negociados
+        pelo cliente em um período específico, com informações de volume e frequência.
       parameters:
-      - description: ID do inquilino (UUID)
+      - description: ID do inquilino (tenant)
+        example: status_invest
         in: header
-        name: X-Tenant-Id
+        name: X-Tenant-ID
         required: true
         type: string
-      - description: Segredo admin (quando configurado)
-        in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      - in: body
-        name: request
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
         required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            dataTypes: { type: array, items: { type: string } }
-            assetTypes: { type: array, items: { type: string } }
-            since: { type: string }
-            endOverride: { type: string }
-            dryRun: { type: boolean }
-            force: { type: boolean }
-            concurrency: { type: integer }
+        type: string
+      - description: Data inicial no formato YYYY-MM-DD
+        example: "2024-01-01"
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Data final no formato YYYY-MM-DD
+        example: "2024-12-31"
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Limite de registros por página (1-1000)
+        example: 100
+        in: query
+        name: limit
+        type: integer
+      - description: Número de registros para pular
+        example: 0
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Sumário de execução incremental
+          description: Lista paginada de tickers
           schema:
-            type: object
             additionalProperties: true
+            type: object
         "400":
-          description: Requisição inválida
-          schema:
-            type: object
-            additionalProperties:
-              type: string
-        "403":
-          description: Acesso negado
-          schema:
-            type: object
-            additionalProperties:
-              type: string
-        "400":
-          description: Bad Request
+          description: Parâmetros inválidos
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Consulta estado de sync por CPF
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Relatório de tickers (códigos de ativos)
       tags:
-      - B3 Sync
+      - B3 Reports
   /b3/fetch/historical:
     post:
       consumes:
@@ -938,7 +1313,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/b3.ingestRequest'
+          $ref: '#/definitions/src_api_controllers_b3.ingestRequest'
       produces:
       - application/json
       responses:
@@ -947,138 +1322,6 @@ paths:
           schema:
             additionalProperties: true
             type: object
-  /b3/client/raw-date-range:
-    get:
-      tags:
-      - B3 Reports
-      summary: Intervalo temporal no RAW por CPF (somente leitura)
-      parameters:
-      - description: ID do inquilino
-        in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - description: CPF (11 dígitos)
-        in: query
-        name: cpf
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/reports.RawDateRangeResponse'
-        "400":
-          description: Bad Request
-          schema:
-            type: object
-            additionalProperties:
-              type: string
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-        "500": { description: Internal Server Error }
-  /b3/client/summary:
-    get:
-      tags:
-      - B3 Reports
-      summary: Sumário agregado por CPF e intervalo (somente leitura)
-      parameters:
-      - description: ID do inquilino
-        in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - description: CPF (11 dígitos)
-        in: query
-        name: cpf
-        required: true
-        type: string
-      - description: Data inicial (YYYY-MM-DD)
-        in: query
-        name: from
-        required: true
-        type: string
-      - description: Data final (YYYY-MM-DD)
-        in: query
-        name: to
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/reports.SummaryResponse'
-        "400":
-          description: Bad Request
-          schema:
-            type: object
-            additionalProperties:
-              type: string
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-        "500": { description: Internal Server Error }
-  /b3/client/tickers:
-    get:
-      tags:
-      - B3 Reports
-      summary: Consolidação por ticker no intervalo (somente leitura)
-      parameters:
-      - description: ID do inquilino
-        in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - description: CPF (11 dígitos)
-        in: query
-        name: cpf
-        required: true
-        type: string
-      - description: Data inicial (YYYY-MM-DD)
-        in: query
-        name: from
-        required: true
-        type: string
-      - description: Data final (YYYY-MM-DD)
-        in: query
-        name: to
-        required: true
-        type: string
-      - description: Limite de linhas (1..1000)
-        in: query
-        name: limit
-        required: false
-        type: integer
-      - description: Offset (>=0)
-        in: query
-        name: offset
-        required: false
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/reports.TickersResponse'
-        "400":
-          description: Bad Request
-          schema:
-            type: object
-            additionalProperties:
-              type: string
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-        "500": { description: Internal Server Error }
-        "400":
-          description: Bad Request
-          schema:
-            type: object
-            additionalProperties:
-              type: string
         "400":
           description: Bad Request
           schema:
@@ -1132,7 +1375,7 @@ paths:
         "200":
           description: Exemplo de sucesso
           schema:
-            $ref: '#/definitions/dto.PositionsPreviewResponse'
+            $ref: '#/definitions/suno-wallets_src_shared_dto.PositionsPreviewResponse'
         "400":
           description: Parâmetros inválidos
           schema:
@@ -1211,7 +1454,7 @@ paths:
         "200":
           description: Exemplo de sucesso
           schema:
-            $ref: '#/definitions/dto.TransactionsPreviewResponse'
+            $ref: '#/definitions/suno-wallets_src_shared_dto.TransactionsPreviewResponse'
         "400":
           description: Parâmetros inválidos
           schema:
@@ -1224,7 +1467,8 @@ paths:
   /b3/health/auth:
     get:
       description: Controlado por flag OBS_ALLOW_B3_AUTH_HEALTH. Quando habilitado,
-        checa presença de configuração de OAuth/mTLS (sem vazar segredos).
+        valida Client Credentials (token) e montagem mTLS (.p12). Não chama endpoints
+        de dados, nem loga segredos.
       produces:
       - application/json
       responses:
@@ -1242,82 +1486,6 @@ paths:
       summary: B3 auth health
       tags:
       - B3
-  /b3/test/connection:
-    get:
-      summary: Testa conexão B3 e retorna relatório de transações/posições
-      tags: [B3 Test]
-      produces: [application/json]
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: query
-        name: cpf
-        required: true
-        type: string
-        description: CPF do cliente (11 dígitos)
-      - in: query
-        name: yearMonth
-        required: true
-        type: string
-        description: Mês de referência no formato YYYY-MM (ex 2024-01)
-      responses:
-        "200":
-          description: Relatório de teste B3
-          schema:
-            type: object
-            properties:
-              success: { type: boolean }
-              connectionStatus: { type: string }
-              period:
-                type: object
-                properties:
-                  yearMonth: { type: string }
-                  start: { type: string }
-                  end: { type: string }
-              cpf: { type: string }
-              report:
-                type: object
-                properties:
-                  connectionTest:
-                    type: object
-                    properties:
-                      authenticationOK: { type: boolean }
-                      apiReachable: { type: boolean }
-                      responseTime: { type: string }
-                      error: { type: string }
-                  transactions:
-                    type: object
-                    properties:
-                      totalRecords: { type: integer }
-                      totalPages: { type: integer }
-                      sampleRecords: { type: array }
-                      assetTypes: { type: object }
-                      operationTypes: { type: object }
-                      tickers: { type: array }
-                      dateRange: { type: object }
-                      error: { type: string }
-                  positions:
-                    type: object
-                    properties:
-                      totalRecords: { type: integer }
-                      totalPages: { type: integer }
-                      sampleRecords: { type: array }
-                      assetTypes: { type: object }
-                      tickers: { type: array }
-                      dateRange: { type: object }
-                      error: { type: string }
-                  summary:
-                    type: object
-                    properties:
-                      totalTransactions: { type: integer }
-                      totalPositions: { type: integer }
-                      uniqueTickers: { type: array }
-                      testDuration: { type: string }
-                      dataQuality: { type: string }
-        "400": { description: Bad Request }
-        "500": { description: Internal Server Error }
   /b3/normalize/run:
     post:
       consumes:
@@ -1335,7 +1503,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/b3.normalizeRequest'
+          $ref: '#/definitions/src_api_controllers_b3.normalizeRequest'
       produces:
       - application/json
       responses:
@@ -1353,39 +1521,364 @@ paths:
       summary: Normalização de RAW (transactions v2 / positions v3)
       tags:
       - B3 Data (Normalization)
-  /b3/sync/run:
+  /b3/reconciliation/auto-fix:
     post:
       consumes:
       - application/json
+      description: Executa correção automática de inconsistências detectadas no sistema
+        de reconciliação. Suporta filtros por CPF, tipos e tickers específicos. Requer
+        autenticação de admin.
       parameters:
-      - description: ID do inquilino
+      - description: ID do inquilino (tenant)
+        example: status_invest
         in: header
-        name: X-Tenant-Id
+        name: X-Tenant-ID
         required: true
         type: string
-      - description: Parâmetros
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: Parâmetros da correção automática
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/b3.runRequest'
+          type: object
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Resultado da correção automática
           schema:
             additionalProperties: true
             type: object
         "400":
-          description: Bad Request
+          description: Parâmetros inválidos
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Executa sync incremental (diário)
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na execução da correção
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Executar correção automática (Admin)
+      tags:
+      - B3 Reconciliation
+  /b3/reconciliation/auto-fix/{id}:
+    post:
+      description: Executa correção automática de uma inconsistência específica identificada
+        pelo ID. Requer autenticação de admin.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: ID da inconsistência (UUID)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Modo simulação (não aplica correções)
+        example: false
+        in: query
+        name: dryRun
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado da correção específica
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Inconsistência não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na execução da correção
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Corrigir inconsistência específica (Admin)
+      tags:
+      - B3 Reconciliation
+  /b3/reconciliation/inconsistencies:
+    get:
+      description: Retorna lista paginada de inconsistências detectadas no sistema
+        de reconciliação, com filtros opcionais por CPF, status, tipo, ticker e período.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Filtrar por CPF específico
+        example: "12345678901"
+        in: query
+        name: cpf
+        type: string
+      - description: Filtrar por status (open, resolved, ignored)
+        example: open
+        in: query
+        name: status
+        type: string
+      - description: Filtrar por tipo de inconsistência
+        example: position_mismatch
+        in: query
+        name: type
+        type: string
+      - description: Filtrar por ticker/código do ativo
+        example: PETR4
+        in: query
+        name: ticker
+        type: string
+      - description: Data inicial no formato YYYY-MM-DD
+        example: "2024-01-01"
+        in: query
+        name: from
+        type: string
+      - description: Data final no formato YYYY-MM-DD
+        example: "2024-12-31"
+        in: query
+        name: to
+        type: string
+      - description: 'Número da página (padrão: 1)'
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 'Tamanho da página (1-200, padrão: 50)'
+        example: 50
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista paginada de inconsistências
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Listar inconsistências detectadas
+      tags:
+      - B3 Reconciliation
+  /b3/reconciliation/inconsistencies/{id}:
+    get:
+      description: Retorna detalhes completos de uma inconsistência específica identificada
+        pelo ID.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID da inconsistência (UUID)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detalhes da inconsistência
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obter inconsistência específica
+      tags:
+      - B3 Reconciliation
+  /b3/reconciliation/scan:
+    post:
+      consumes:
+      - application/json
+      description: Executa um scan completo de reconciliação para detectar inconsistências
+        entre dados normalizados e posições calculadas. Requer autenticação de admin.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: Parâmetros do scan
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado do scan de reconciliação
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na execução do scan
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Executar scan de reconciliação (Admin)
+      tags:
+      - B3 Reconciliation
+  /b3/sync/run:
+    post:
+      consumes:
+      - application/json
+      description: Executa sincronização incremental com a B3 para atualizar dados
+        de transações e posições. Suporta escopo single (CPF específico) ou tenant
+        (todos os CPFs). Inclui controles de força, dry-run e limite.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Parâmetros da sincronização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/src_api_controllers_b3.runRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado da sincronização com contadores
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos ou erro na sincronização
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Executar sincronização incremental B3
       tags:
       - B3 Sync
+  /b3/test/connection:
+    get:
+      description: Testa a conectividade com a API da B3 usando credenciais do cliente
+        e retorna relatório detalhado de status. Este endpoint é essencial para validar
+        se as credenciais estão funcionando antes de executar operações de sincronização.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: Período para teste no formato YYYY-MM
+        example: 2024-01
+        in: query
+        name: yearMonth
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conexão bem-sucedida
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos (CPF ou yearMonth)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Falha na conexão com B3
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Teste de conexão com a B3
+      tags:
+      - B3 Test
   /health:
     get:
       description: Verifica se a aplicação e seus serviços dependentes estão funcionando
@@ -1395,14 +1888,62 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controllers.HealthResponse'
+            $ref: '#/definitions/src_api_controllers.HealthResponse'
         "503":
           description: Service Unavailable
           schema:
-            $ref: '#/definitions/controllers.HealthResponse'
+            $ref: '#/definitions/src_api_controllers.HealthResponse'
       summary: Health check
       tags:
       - health
+  /health/details:
+    get:
+      description: Status detalhado dos componentes, com latências e counters básicos.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health details
+      tags:
+      - Observability
+  /health/live:
+    get:
+      description: Verifica se o processo está vivo (não consulta dependências).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Liveness
+      tags:
+      - Observability
+  /health/ready:
+    get:
+      description: Retorna 200 somente quando DB, Redis (se configurado) e migrações
+        estão OK.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Readiness
+      tags:
+      - Observability
   /live:
     get:
       description: Verifica se a aplicação está viva (para Kubernetes)
@@ -1417,6 +1958,471 @@ paths:
       summary: Liveness check
       tags:
       - health
+  /ops/dedup/candidates:
+    get:
+      description: Retorna lista paginada de candidatos de deduplicação detectados,
+        com filtros opcionais por CPF e status.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Filtrar por CPF específico
+        example: "12345678901"
+        in: query
+        name: cpf
+        type: string
+      - description: Filtrar por status (PENDING, RESOLVED, IGNORED)
+        example: PENDING
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de candidatos de deduplicação
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Listar candidatos de deduplicação
+      tags:
+      - Operations Dedup
+  /ops/dedup/resolve:
+    post:
+      consumes:
+      - application/json
+      description: Resolve candidatos de deduplicação aplicando ações específicas
+        (manter, remover, mesclar). Requer autenticação de admin.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: Parâmetros de resolução
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resolução aplicada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos ou erro na resolução
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Resolver candidatos de deduplicação (Admin)
+      tags:
+      - Operations Dedup
+  /ops/dedup/scan:
+    post:
+      consumes:
+      - application/json
+      description: Executa varredura para detectar possíveis transações duplicadas
+        no sistema. Requer autenticação de admin.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: Parâmetros do scan de deduplicação
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado do scan - candidatos criados
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na execução do scan
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Executar scan de deduplicação (Admin)
+      tags:
+      - Operations Dedup
+  /ops/manual:
+    get:
+      description: Retorna lista paginada de operações manuais, com filtro opcional
+        por CPF.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Filtrar por CPF específico
+        example: "12345678901"
+        in: query
+        name: cpf
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista paginada de operações manuais
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Listar operações manuais
+      tags:
+      - Operations
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova operação manual no sistema de ledger. Permite inserir
+        transações que não foram capturadas automaticamente da B3.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Dados da operação manual
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Operação criada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Política B3_ONLY bloqueia operações manuais
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Criar operação manual
+      tags:
+      - Operations
+  /ops/manual/{id}:
+    delete:
+      description: Executa soft delete de uma operação manual específica.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID da operação (UUID)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Operação excluída com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido ou erro na exclusão
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Excluir operação manual
+      tags:
+      - Operations
+    put:
+      consumes:
+      - application/json
+      description: Atualiza uma operação manual existente identificada pelo ID.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID da operação (UUID)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados atualizados da operação
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Operação atualizada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID ou dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualizar operação manual
+      tags:
+      - Operations
+  /ops/reconciliation/summary:
+    get:
+      description: Retorna resumo estatístico do status de reconciliação de um cliente,
+        incluindo contadores de inconsistências, distribuição por tipos e informações
+        de última reconciliação.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resumo de reconciliação do cliente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF obrigatório
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Resumo de reconciliação do cliente
+      tags:
+      - Operations Reconciliation Summary
+  /ops/timeline:
+    get:
+      description: Retorna timeline paginada das operações de um cliente, com filtros
+        avançados por tickers, fontes, tipos de ativo e período. Suporta canonicalização
+        de dados.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: Lista de tickers separados por vírgula
+        example: PETR4,VALE3
+        in: query
+        name: tickers
+        type: string
+      - description: Lista de fontes separadas por vírgula (B3_RAW, USER_MANUAL)
+        example: B3_RAW,USER_MANUAL
+        in: query
+        name: sources
+        type: string
+      - description: Lista de tipos de ativo separados por vírgula
+        example: equity,fund
+        in: query
+        name: assetTypes
+        type: string
+      - description: Data inicial no formato YYYY-MM-DD
+        example: "2024-01-01"
+        in: query
+        name: from
+        type: string
+      - description: Data final no formato YYYY-MM-DD
+        example: "2024-12-31"
+        in: query
+        name: to
+        type: string
+      - description: 'Aplicar canonicalização de dados (padrão: true)'
+        example: true
+        in: query
+        name: canonicalize
+        type: boolean
+      - description: 'Tamanho da página (padrão: 100)'
+        example: 100
+        in: query
+        name: pageSize
+        type: integer
+      - description: Cursor para paginação (keyset)
+        example: abc123def456
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Timeline paginada de operações
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF obrigatório
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Timeline de operações do cliente
+      tags:
+      - Operations Timeline
+  /ops/timeline/export:
+    get:
+      description: Exporta timeline completa de operações de um cliente em formato
+        CSV ou JSON. Requer autenticação de admin e suporte a limite configurável.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Chave secreta de admin (se configurada)
+        in: header
+        name: X-Admin-Secret
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      - description: 'Formato do export (csv ou json, padrão: csv)'
+        example: csv
+        in: query
+        name: format
+        type: string
+      - description: 'Limite de registros (padrão: 50000)'
+        example: 50000
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - text/csv
+      - application/json
+      responses:
+        "200":
+          description: Arquivo CSV ou dados JSON exportados
+          schema:
+            type: string
+        "400":
+          description: CPF obrigatório
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Acesso negado - requer permissão de admin
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Exportar timeline completa (Admin)
+      tags:
+      - Operations Timeline
   /ready:
     get:
       description: Verifica se a aplicação está pronta para receber requisições
@@ -1485,7 +2491,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.ListWalletsResponse'
+            $ref: '#/definitions/suno-wallets_src_application_dtos.ListWalletsResponse'
         "400":
           description: Bad Request
           schema:
@@ -1514,14 +2520,14 @@ paths:
         name: wallet
         required: true
         schema:
-          $ref: '#/definitions/dtos.CreateWalletRequest'
+          $ref: '#/definitions/suno-wallets_src_application_dtos.CreateWalletRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dtos.WalletResponse'
+            $ref: '#/definitions/suno-wallets_src_application_dtos.WalletResponse'
         "400":
           description: Bad Request
           schema:
@@ -1596,7 +2602,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.WalletResponse'
+            $ref: '#/definitions/suno-wallets_src_application_dtos.WalletResponse'
         "400":
           description: Bad Request
           schema:
@@ -1635,14 +2641,14 @@ paths:
         name: wallet
         required: true
         schema:
-          $ref: '#/definitions/dtos.UpdateWalletRequest'
+          $ref: '#/definitions/suno-wallets_src_application_dtos.UpdateWalletRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.WalletResponse'
+            $ref: '#/definitions/suno-wallets_src_application_dtos.WalletResponse'
         "400":
           description: Bad Request
           schema:
@@ -1682,7 +2688,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dtos.WalletResponse'
+              $ref: '#/definitions/suno-wallets_src_application_dtos.WalletResponse'
             type: array
         "400":
           description: Bad Request
@@ -1697,341 +2703,6 @@ paths:
       summary: Buscar carteiras por proprietário
       tags:
       - wallets
-
-  /b3/reconciliation/auto-fix:
-    post:
-      tags: [B3 Reconciliation]
-      summary: Auto-fix de inconsistências (admin-only)
-      consumes: [application/json]
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            cpf: { type: string }
-            dryRun: { type: boolean }
-            maxFixes: { type: integer }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /b3/reconciliation/auto-fix/{id}:
-    post:
-      tags: [B3 Reconciliation]
-      summary: Auto-fix de inconsistência específica (admin-only)
-      consumes: [application/json]
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            dryRun: { type: boolean }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-        "404": { description: Not Found }
-
-  /ops/manual/{id}:
-    put:
-      tags: [Manual Ops]
-      summary: Atualiza operação manual
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            ticker: { type: string }
-            quantity: { type: number }
-            unitPrice: { type: number }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "404": { description: Not Found }
-    delete:
-      tags: [Manual Ops]
-      summary: Soft delete de operação manual
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "404": { description: Not Found }
-
-  /ops/manual:
-    get:
-      tags: [Manual Ops]
-      summary: Lista operações manuais
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: query
-        name: cpf
-        type: string
-      - in: query
-        name: pageSize
-        type: integer
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-
-  /ops/dedup/resolve:
-    post:
-      tags: [Ops Dedup]
-      summary: Resolve candidatos de deduplicação (admin-only)
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Admin-Secret
-        required: false
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            candidateId: { type: string }
-            action: { type: string, enum: [MERGE, OVERRIDE, IGNORE] }
-            reason: { type: string }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/profile:
-    get:
-      tags: [Backoffice Admin]
-      summary: Perfil operacional agregado
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/search:
-    get:
-      tags: [Backoffice Admin]
-      summary: Busca CPFs por critério
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      - in: query
-        name: query
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/actions:
-    get:
-      tags: [Backoffice Admin]
-      summary: Lista ações administrativas
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/actions/{id}:
-    get:
-      tags: [Backoffice Admin]
-      summary: Detalhe de ação administrativa
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      - in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200": { description: OK }
-        "404": { description: Not Found }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/export/ledger:
-    get:
-      tags: [Backoffice Admin]
-      summary: Export do ledger unificado
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      - in: query
-        name: cpf
-        required: true
-        type: string
-      - in: query
-        name: format
-        type: string
-        enum: [csv, json]
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/actions/request:
-    post:
-      tags: [Backoffice Admin]
-      summary: Solicita ação administrativa
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            actionType: { type: string }
-            cpf: { type: string }
-            params: { type: object }
-      responses:
-        "201": { description: Created }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /admin/backoffice/actions/confirm:
-    post:
-      tags: [Backoffice Admin]
-      summary: Confirma e executa ação administrativa
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: header
-        name: X-Role
-        required: true
-        type: string
-      - in: body
-        name: request
-        required: true
-        schema:
-          type: object
-          properties:
-            actionId: { type: string }
-            confirmToken: { type: string }
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-        "403": { description: Forbidden }
-
-  /b3/transactions/{cpf}:
-    get:
-      tags: [B3 Data]
-      summary: Alias compatível para transactions preview
-      parameters:
-      - in: header
-        name: X-Tenant-Id
-        required: true
-        type: string
-      - in: path
-        name: cpf
-        required: true
-        type: string
-      - in: query
-        name: assetType
-        type: string
-      - in: query
-        name: start
-        type: string
-      - in: query
-        name: end
-        type: string
-      responses:
-        "200": { description: OK }
-        "400": { description: Bad Request }
-
 securityDefinitions:
   TenantID:
     description: ID do inquilino para multi-tenancy

@@ -18,26 +18,375 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
-        "/b3/client/last-sync": {
+        "/admin/backoffice/actions": {
             "get": {
+                "description": "Retorna lista paginada de ações administrativas com filtros opcionais por CPF, tipo de ação e status.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "B3 Sync"
+                    "Admin Backoffice"
                 ],
-                "summary": "Últimos marcos de sync por CPF",
+                "summary": "Listar ações administrativas (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID do inquilino",
-                        "name": "X-Tenant-Id",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "CPF",
+                        "example": "12345678901",
+                        "description": "Filtrar por CPF específico",
+                        "name": "cpf",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "DELETE_CLIENT_DATA",
+                        "description": "Filtrar por tipo de ação",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "PENDING",
+                        "description": "Filtrar por status (PENDING, CONFIRMED, EXPIRED)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Número da página (padrão: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 50,
+                        "description": "Tamanho da página (padrão: 50)",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de ações administrativas",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/backoffice/actions/confirm": {
+            "post": {
+                "description": "Confirma e executa uma ação administrativa previamente solicitada usando ID e token de confirmação. Requer role ADMIN.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backoffice"
+                ],
+                "summary": "Confirmar ação administrativa",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "ADMIN",
+                        "description": "Role do usuário (deve ser ADMIN)",
+                        "name": "X-Role",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID da ação solicitada",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "abc123def456",
+                        "description": "Token de confirmação gerado na solicitação",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ação confirmada e executada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID/token inválido ou ação expirada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer role ADMIN",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/backoffice/actions/request": {
+            "post": {
+                "description": "Cria uma solicitação de ação administrativa que requer confirmação posterior. Suporta TTL configurável e payload personalizado. Requer role ADMIN ou SUPPORT.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backoffice"
+                ],
+                "summary": "Solicitar ação administrativa",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "ADMIN",
+                        "description": "Role do usuário (ADMIN ou SUPPORT)",
+                        "name": "X-Role",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados da solicitação de ação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Ação solicitada com token de confirmação",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Role insuficiente - requer ADMIN ou SUPPORT",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/backoffice/actions/{id}": {
+            "get": {
+                "description": "Retorna detalhes completos de uma ação administrativa específica identificada pelo ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backoffice"
+                ],
+                "summary": "Obter detalhes de ação administrativa (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID da ação administrativa (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da ação administrativa",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/backoffice/export/ledger": {
+            "get": {
+                "description": "Exporta o ledger completo de operações de um cliente específico. Permite filtrar dados da B3 e configurar limite de registros.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backoffice"
+                ],
+                "summary": "Exportar ledger do cliente (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 50000,
+                        "description": "Limite de registros (padrão: 50000)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "Excluir dados da B3 do export (padrão: false)",
+                        "name": "excludeB3",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ledger exportado do cliente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF obrigatório",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/backoffice/profile": {
+            "get": {
+                "description": "Retorna informações detalhadas do perfil de um cliente, incluindo dados de sincronização, políticas ativas e estatísticas de operações.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backoffice"
+                ],
+                "summary": "Perfil completo do cliente (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
                         "name": "cpf",
                         "in": "query",
                         "required": true
@@ -45,14 +394,720 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Perfil completo do cliente",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "CPF obrigatório ou tenant ausente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/backoffice/search": {
+            "get": {
+                "description": "Busca clientes e informações relacionadas usando termo de pesquisa. Suporta busca por CPF, nome, email ou outras informações do cliente.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backoffice"
+                ],
+                "summary": "Buscar clientes e dados (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "Termo de busca (CPF, nome, email, etc.)",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 20,
+                        "description": "Limite de resultados (padrão: 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados da busca",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/client/policy": {
+            "get": {
+                "description": "Retorna a política de fonte de dados ativa para um cliente específico (B3_ONLY, MANUAL_ONLY ou HYBRID).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client Policy"
+                ],
+                "summary": "Obter política do cliente (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Política ativa do cliente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF obrigatório",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria ou atualiza a política de fonte de dados para um cliente. Suporta B3_ONLY, MANUAL_ONLY e HYBRID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client Policy"
+                ],
+                "summary": "Definir política do cliente (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados da política",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Política configurada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/client/policy/audit": {
+            "get": {
+                "description": "Retorna o histórico de mudanças na política de fonte de dados de um cliente específico.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client Policy"
+                ],
+                "summary": "Histórico de mudanças de política (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Histórico de mudanças da política",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF obrigatório",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/client/policy/dry-run": {
+            "post": {
+                "description": "Simula o impacto de alterar a política de um cliente, mostrando jobs afetados, endpoints bloqueados e mudanças no sistema.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client Policy"
+                ],
+                "summary": "Simular impacto de mudança de política (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Simulação de mudança",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Análise de impacto da mudança",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/admin/incremental-from-last": {
+            "post": {
+                "description": "Executa sincronização incremental inteligente a partir do último marco de sincronização ou data específica. Detecta gaps e sincroniza apenas os períodos necessários. Requer autenticação de admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Admin"
+                ],
+                "summary": "Sincronização incremental inteligente B3 (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Parâmetros da sincronização incremental",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da sincronização incremental",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Serviço incremental não configurado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/admin/reactivation/analyze": {
+            "post": {
+                "description": "Analisa a situação de sincronização de um cliente e sugere a melhor estratégia para reativação, considerando gaps de dados e última sincronização.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reactivation"
+                ],
+                "summary": "Analisar estratégia de reativação (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Parâmetros de análise",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plano de reativação sugerido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na análise",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/admin/reactivation/execute": {
+            "post": {
+                "description": "Executa a estratégia de reativação previamente analisada, sincronizando dados faltantes do cliente com a B3. Suporta modo dry-run para simulação.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reactivation"
+                ],
+                "summary": "Executar plano de reativação (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Parâmetros de execução",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da execução",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na execução",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/admin/reset-and-refetch": {
+            "post": {
+                "description": "Operação administrativa crítica que reset os dados de um cliente e refaz ingestão histórica completa da B3 com normalização. Requer confirmação explícita e autenticação de admin. Suporta modos archive/hard-delete e dry-run.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Admin"
+                ],
+                "summary": "Reset e reingestão histórica completa B3 (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Parâmetros da operação reset",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/src_api_controllers_b3.resetAndRefetchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da operação reset e reingestão",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos ou confirmação ausente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/client/last-sync": {
+            "get": {
+                "description": "Retorna os timestamps das últimas sincronizações de transações e posições para um CPF específico, útil para controle de incrementais.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Sync"
+                ],
+                "summary": "Obter últimas sincronizações do cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Timestamps das últimas sincronizações",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/client/raw-date-range": {
+            "get": {
+                "description": "Retorna as datas mínima e máxima dos dados brutos (raw) armazenados para um CPF específico. Útil para verificar o período de cobertura dos dados coletados da B3.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reports"
+                ],
+                "summary": "Relatório de datas dos dados brutos",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Período de cobertura dos dados",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/client/reactivation/status": {
+            "get": {
+                "description": "Verifica o status atual de sincronização do cliente e informa se há necessidade de reativação, sem executar operações.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reactivation"
+                ],
+                "summary": "Status de reativação do cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status de reativação",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na verificação",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -65,24 +1120,27 @@
         },
         "/b3/client/status": {
             "get": {
+                "description": "Retorna status detalhado da sincronização de um cliente, incluindo flags de ativação, necessidade de reprocessamento, últimas sincronizações, resultados e contadores de falha.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "B3 Sync"
                 ],
-                "summary": "Consulta estado de sync por CPF",
+                "summary": "Obter status de sincronização do cliente",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID do inquilino",
-                        "name": "X-Tenant-Id",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "CPF",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
                         "name": "cpf",
                         "in": "query",
                         "required": true
@@ -90,14 +1148,244 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Status completo de sincronização",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "CPF inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/client/summary": {
+            "get": {
+                "description": "Retorna um resumo estatístico das transações e posições do cliente em um período específico, incluindo contadores, valores totais e distribuição por tipo de ativo.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reports"
+                ],
+                "summary": "Relatório resumo de transações e posições",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01",
+                        "description": "Data inicial no formato YYYY-MM-DD",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-12-31",
+                        "description": "Data final no formato YYYY-MM-DD",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resumo estatístico do período",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos (CPF ou datas)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/client/sync-window": {
+            "get": {
+                "description": "Calcula e retorna informações sobre a janela de sincronização incremental para um cliente, incluindo período de cobertura e estimativas de páginas a processar.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Utilities"
+                ],
+                "summary": "Janela de sincronização incremental",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "transactions",
+                        "description": "Tipo de dados (transactions ou positions)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01",
+                        "description": "Data inicial no formato YYYY-MM-DD",
+                        "name": "since",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-12-31",
+                        "description": "Data final no formato YYYY-MM-DD",
+                        "name": "end",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Informações da janela de sincronização",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/client/tickers": {
+            "get": {
+                "description": "Retorna lista paginada dos tickers (códigos de ativos) negociados pelo cliente em um período específico, com informações de volume e frequência.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reports"
+                ],
+                "summary": "Relatório de tickers (códigos de ativos)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01",
+                        "description": "Data inicial no formato YYYY-MM-DD",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-12-31",
+                        "description": "Data final no formato YYYY-MM-DD",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 100,
+                        "description": "Limite de registros por página (1-1000)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 0,
+                        "description": "Número de registros para pular",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de tickers",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -128,7 +1416,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/b3.ingestRequest"
+                            "$ref": "#/definitions/src_api_controllers_b3.ingestRequest"
                         }
                     }
                 ],
@@ -213,7 +1501,7 @@
                     "200": {
                         "description": "Exemplo de sucesso",
                         "schema": {
-                            "$ref": "#/definitions/dto.PositionsPreviewResponse"
+                            "$ref": "#/definitions/suno-wallets_src_shared_dto.PositionsPreviewResponse"
                         }
                     },
                     "400": {
@@ -325,7 +1613,7 @@
                     "200": {
                         "description": "Exemplo de sucesso",
                         "schema": {
-                            "$ref": "#/definitions/dto.TransactionsPreviewResponse"
+                            "$ref": "#/definitions/suno-wallets_src_shared_dto.TransactionsPreviewResponse"
                         }
                     },
                     "400": {
@@ -342,7 +1630,7 @@
         },
         "/b3/health/auth": {
             "get": {
-                "description": "Controlado por flag OBS_ALLOW_B3_AUTH_HEALTH. Quando habilitado, checa presença de configuração de OAuth/mTLS (sem vazar segredos).",
+                "description": "Controlado por flag OBS_ALLOW_B3_AUTH_HEALTH. Quando habilitado, valida Client Credentials (token) e montagem mTLS (.p12). Não chama endpoints de dados, nem loga segredos.",
                 "produces": [
                     "application/json"
                 ],
@@ -397,7 +1685,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/b3.normalizeRequest"
+                            "$ref": "#/definitions/src_api_controllers_b3.normalizeRequest"
                         }
                     }
                 ],
@@ -421,8 +1709,402 @@
                 }
             }
         },
+        "/b3/reconciliation/auto-fix": {
+            "post": {
+                "description": "Executa correção automática de inconsistências detectadas no sistema de reconciliação. Suporta filtros por CPF, tipos e tickers específicos. Requer autenticação de admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reconciliation"
+                ],
+                "summary": "Executar correção automática (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Parâmetros da correção automática",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da correção automática",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na execução da correção",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/reconciliation/auto-fix/{id}": {
+            "post": {
+                "description": "Executa correção automática de uma inconsistência específica identificada pelo ID. Requer autenticação de admin.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reconciliation"
+                ],
+                "summary": "Corrigir inconsistência específica (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID da inconsistência (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "Modo simulação (não aplica correções)",
+                        "name": "dryRun",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da correção específica",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Inconsistência não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na execução da correção",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/reconciliation/inconsistencies": {
+            "get": {
+                "description": "Retorna lista paginada de inconsistências detectadas no sistema de reconciliação, com filtros opcionais por CPF, status, tipo, ticker e período.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reconciliation"
+                ],
+                "summary": "Listar inconsistências detectadas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "Filtrar por CPF específico",
+                        "name": "cpf",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "open",
+                        "description": "Filtrar por status (open, resolved, ignored)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "position_mismatch",
+                        "description": "Filtrar por tipo de inconsistência",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "PETR4",
+                        "description": "Filtrar por ticker/código do ativo",
+                        "name": "ticker",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01",
+                        "description": "Data inicial no formato YYYY-MM-DD",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-12-31",
+                        "description": "Data final no formato YYYY-MM-DD",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Número da página (padrão: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 50,
+                        "description": "Tamanho da página (1-200, padrão: 50)",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de inconsistências",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/reconciliation/inconsistencies/{id}": {
+            "get": {
+                "description": "Retorna detalhes completos de uma inconsistência específica identificada pelo ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reconciliation"
+                ],
+                "summary": "Obter inconsistência específica",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID da inconsistência (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da inconsistência",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/reconciliation/scan": {
+            "post": {
+                "description": "Executa um scan completo de reconciliação para detectar inconsistências entre dados normalizados e posições calculadas. Requer autenticação de admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Reconciliation"
+                ],
+                "summary": "Executar scan de reconciliação (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Parâmetros do scan",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado do scan de reconciliação",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na execução do scan",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/b3/sync/run": {
             "post": {
+                "description": "Executa sincronização incremental com a B3 para atualizar dados de transações e posições. Suporta escopo single (CPF específico) ou tenant (todos os CPFs). Inclui controles de força, dry-run e limite.",
                 "consumes": [
                     "application/json"
                 ],
@@ -432,35 +2114,101 @@
                 "tags": [
                     "B3 Sync"
                 ],
-                "summary": "Executa sync incremental (diário)",
+                "summary": "Executar sincronização incremental B3",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID do inquilino",
-                        "name": "X-Tenant-Id",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
                         "in": "header",
                         "required": true
                     },
                     {
-                        "description": "Parâmetros",
+                        "description": "Parâmetros da sincronização",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/b3.runRequest"
+                            "$ref": "#/definitions/src_api_controllers_b3.runRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Resultado da sincronização com contadores",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Parâmetros inválidos ou erro na sincronização",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/test/connection": {
+            "get": {
+                "description": "Testa a conectividade com a API da B3 usando credenciais do cliente e retorna relatório detalhado de status. Este endpoint é essencial para validar se as credenciais estão funcionando antes de executar operações de sincronização.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Test"
+                ],
+                "summary": "Teste de conexão com a B3",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01",
+                        "description": "Período para teste no formato YYYY-MM",
+                        "name": "yearMonth",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conexão bem-sucedida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos (CPF ou yearMonth)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha na conexão com B3",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -485,13 +2233,83 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.HealthResponse"
+                            "$ref": "#/definitions/src_api_controllers.HealthResponse"
                         }
                     },
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
-                            "$ref": "#/definitions/controllers.HealthResponse"
+                            "$ref": "#/definitions/src_api_controllers.HealthResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/details": {
+            "get": {
+                "description": "Status detalhado dos componentes, com latências e counters básicos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Observability"
+                ],
+                "summary": "Health details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/health/live": {
+            "get": {
+                "description": "Verifica se o processo está vivo (não consulta dependências).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Observability"
+                ],
+                "summary": "Liveness",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/health/ready": {
+            "get": {
+                "description": "Retorna 200 somente quando DB, Redis (se configurado) e migrações estão OK.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Observability"
+                ],
+                "summary": "Readiness",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -513,6 +2331,671 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/dedup/candidates": {
+            "get": {
+                "description": "Retorna lista paginada de candidatos de deduplicação detectados, com filtros opcionais por CPF e status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations Dedup"
+                ],
+                "summary": "Listar candidatos de deduplicação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "Filtrar por CPF específico",
+                        "name": "cpf",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "PENDING",
+                        "description": "Filtrar por status (PENDING, RESOLVED, IGNORED)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de candidatos de deduplicação",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/dedup/resolve": {
+            "post": {
+                "description": "Resolve candidatos de deduplicação aplicando ações específicas (manter, remover, mesclar). Requer autenticação de admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations Dedup"
+                ],
+                "summary": "Resolver candidatos de deduplicação (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Parâmetros de resolução",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resolução aplicada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos ou erro na resolução",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/dedup/scan": {
+            "post": {
+                "description": "Executa varredura para detectar possíveis transações duplicadas no sistema. Requer autenticação de admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations Dedup"
+                ],
+                "summary": "Executar scan de deduplicação (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Parâmetros do scan de deduplicação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado do scan - candidatos criados",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na execução do scan",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/manual": {
+            "get": {
+                "description": "Retorna lista paginada de operações manuais, com filtro opcional por CPF.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Listar operações manuais",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "Filtrar por CPF específico",
+                        "name": "cpf",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de operações manuais",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria uma nova operação manual no sistema de ledger. Permite inserir transações que não foram capturadas automaticamente da B3.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Criar operação manual",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados da operação manual",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Operação criada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Política B3_ONLY bloqueia operações manuais",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/manual/{id}": {
+            "put": {
+                "description": "Atualiza uma operação manual existente identificada pelo ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Atualizar operação manual",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID da operação (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados atualizados da operação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação atualizada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID ou dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Executa soft delete de uma operação manual específica.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations"
+                ],
+                "summary": "Excluir operação manual",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID da operação (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação excluída com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro na exclusão",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/reconciliation/summary": {
+            "get": {
+                "description": "Retorna resumo estatístico do status de reconciliação de um cliente, incluindo contadores de inconsistências, distribuição por tipos e informações de última reconciliação.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations Reconciliation Summary"
+                ],
+                "summary": "Resumo de reconciliação do cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resumo de reconciliação do cliente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF obrigatório",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/timeline": {
+            "get": {
+                "description": "Retorna timeline paginada das operações de um cliente, com filtros avançados por tickers, fontes, tipos de ativo e período. Suporta canonicalização de dados.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations Timeline"
+                ],
+                "summary": "Timeline de operações do cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "PETR4,VALE3",
+                        "description": "Lista de tickers separados por vírgula",
+                        "name": "tickers",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "B3_RAW,USER_MANUAL",
+                        "description": "Lista de fontes separadas por vírgula (B3_RAW, USER_MANUAL)",
+                        "name": "sources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "equity,fund",
+                        "description": "Lista de tipos de ativo separados por vírgula",
+                        "name": "assetTypes",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01",
+                        "description": "Data inicial no formato YYYY-MM-DD",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-12-31",
+                        "description": "Data final no formato YYYY-MM-DD",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": true,
+                        "description": "Aplicar canonicalização de dados (padrão: true)",
+                        "name": "canonicalize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 100,
+                        "description": "Tamanho da página (padrão: 100)",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "abc123def456",
+                        "description": "Cursor para paginação (keyset)",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Timeline paginada de operações",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF obrigatório",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ops/timeline/export": {
+            "get": {
+                "description": "Exporta timeline completa de operações de um cliente em formato CSV ou JSON. Requer autenticação de admin e suporte a limite configurável.",
+                "produces": [
+                    "text/csv",
+                    "application/json"
+                ],
+                "tags": [
+                    "Operations Timeline"
+                ],
+                "summary": "Exportar timeline completa (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave secreta de admin (se configurada)",
+                        "name": "X-Admin-Secret",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "csv",
+                        "description": "Formato do export (csv ou json, padrão: csv)",
+                        "name": "format",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 50000,
+                        "description": "Limite de registros (padrão: 50000)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo CSV ou dados JSON exportados",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "CPF obrigatório",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado - requer permissão de admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -619,7 +3102,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dtos.ListWalletsResponse"
+                            "$ref": "#/definitions/suno-wallets_src_application_dtos.ListWalletsResponse"
                         }
                     },
                     "400": {
@@ -664,7 +3147,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.CreateWalletRequest"
+                            "$ref": "#/definitions/suno-wallets_src_application_dtos.CreateWalletRequest"
                         }
                     }
                 ],
@@ -672,7 +3155,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dtos.WalletResponse"
+                            "$ref": "#/definitions/suno-wallets_src_application_dtos.WalletResponse"
                         }
                     },
                     "400": {
@@ -731,7 +3214,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dtos.WalletResponse"
+                                "$ref": "#/definitions/suno-wallets_src_application_dtos.WalletResponse"
                             }
                         }
                     },
@@ -782,7 +3265,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dtos.WalletResponse"
+                            "$ref": "#/definitions/suno-wallets_src_application_dtos.WalletResponse"
                         }
                     },
                     "400": {
@@ -841,7 +3324,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.UpdateWalletRequest"
+                            "$ref": "#/definitions/suno-wallets_src_application_dtos.UpdateWalletRequest"
                         }
                     }
                 ],
@@ -849,7 +3332,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dtos.WalletResponse"
+                            "$ref": "#/definitions/suno-wallets_src_application_dtos.WalletResponse"
                         }
                     },
                     "400": {
@@ -930,7 +3413,27 @@
         }
     },
     "definitions": {
-        "b3.ingestRequest": {
+        "src_api_controllers.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "services": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "src_api_controllers_b3.ingestRequest": {
             "type": "object",
             "required": [
                 "cpf",
@@ -967,7 +3470,7 @@
                 }
             }
         },
-        "b3.normalizeRequest": {
+        "src_api_controllers_b3.normalizeRequest": {
             "type": "object",
             "required": [
                 "cpf",
@@ -999,7 +3502,54 @@
                 }
             }
         },
-        "b3.runRequest": {
+        "src_api_controllers_b3.resetAndRefetchRequest": {
+            "type": "object",
+            "required": [
+                "cpf"
+            ],
+            "properties": {
+                "assetTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "confirm": {
+                    "description": "must be RESET_AND_REFETCH",
+                    "type": "string"
+                },
+                "confirmHard": {
+                    "description": "must be YES_DELETE when hard-delete",
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "dataTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "endOverride": {
+                    "type": "string"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "description": "archive|hard-delete",
+                    "type": "string"
+                },
+                "startOverride": {
+                    "type": "string"
+                }
+            }
+        },
+        "src_api_controllers_b3.runRequest": {
             "type": "object",
             "properties": {
                 "assetTypes": {
@@ -1041,69 +3591,7 @@
                 }
             }
         },
-        "controllers.HealthResponse": {
-            "type": "object",
-            "properties": {
-                "services": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "status": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.PositionsPreviewResponse": {
-            "type": "object",
-            "properties": {
-                "asset_type": {
-                    "type": "string"
-                },
-                "end": {
-                    "type": "string"
-                },
-                "pages": {
-                    "type": "integer"
-                },
-                "payloads": {
-                    "type": "array",
-                    "items": {}
-                },
-                "start": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.TransactionsPreviewResponse": {
-            "type": "object",
-            "properties": {
-                "asset_type": {
-                    "type": "string"
-                },
-                "end": {
-                    "type": "string"
-                },
-                "pages": {
-                    "type": "integer"
-                },
-                "payloads": {
-                    "type": "array",
-                    "items": {}
-                },
-                "start": {
-                    "type": "string"
-                }
-            }
-        },
-        "dtos.CreateWalletRequest": {
+        "suno-wallets_src_application_dtos.CreateWalletRequest": {
             "type": "object",
             "required": [
                 "created_by",
@@ -1162,27 +3650,27 @@
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/entities.WalletType"
+                            "$ref": "#/definitions/suno-wallets_src_domain_entities.WalletType"
                         }
                     ]
                 }
             }
         },
-        "dtos.ListWalletsResponse": {
+        "suno-wallets_src_application_dtos.ListWalletsResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dtos.WalletResponse"
+                        "$ref": "#/definitions/suno-wallets_src_application_dtos.WalletResponse"
                     }
                 },
                 "meta": {
-                    "$ref": "#/definitions/dtos.PaginationMeta"
+                    "$ref": "#/definitions/suno-wallets_src_application_dtos.PaginationMeta"
                 }
             }
         },
-        "dtos.PaginationMeta": {
+        "suno-wallets_src_application_dtos.PaginationMeta": {
             "type": "object",
             "properties": {
                 "limit": {
@@ -1199,7 +3687,7 @@
                 }
             }
         },
-        "dtos.UpdateWalletRequest": {
+        "suno-wallets_src_application_dtos.UpdateWalletRequest": {
             "type": "object",
             "required": [
                 "id",
@@ -1232,7 +3720,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/entities.WalletStatus"
+                    "$ref": "#/definitions/suno-wallets_src_domain_entities.WalletStatus"
                 },
                 "tenant_id": {
                     "type": "string"
@@ -1242,7 +3730,7 @@
                 }
             }
         },
-        "dtos.WalletResponse": {
+        "suno-wallets_src_application_dtos.WalletResponse": {
             "type": "object",
             "properties": {
                 "allow_debit": {
@@ -1298,13 +3786,13 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/entities.WalletStatus"
+                    "$ref": "#/definitions/suno-wallets_src_domain_entities.WalletStatus"
                 },
                 "tenant_id": {
                     "type": "string"
                 },
                 "type": {
-                    "$ref": "#/definitions/entities.WalletType"
+                    "$ref": "#/definitions/suno-wallets_src_domain_entities.WalletType"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1314,7 +3802,7 @@
                 }
             }
         },
-        "entities.WalletStatus": {
+        "suno-wallets_src_domain_entities.WalletStatus": {
             "type": "string",
             "enum": [
                 "active",
@@ -1329,7 +3817,7 @@
                 "WalletStatusSuspended"
             ]
         },
-        "entities.WalletType": {
+        "suno-wallets_src_domain_entities.WalletType": {
             "type": "string",
             "enum": [
                 "personal",
@@ -1341,6 +3829,48 @@
                 "WalletTypeBusiness",
                 "WalletTypeCorporate"
             ]
+        },
+        "suno-wallets_src_shared_dto.PositionsPreviewResponse": {
+            "type": "object",
+            "properties": {
+                "asset_type": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "payloads": {
+                    "type": "array",
+                    "items": {}
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
+        },
+        "suno-wallets_src_shared_dto.TransactionsPreviewResponse": {
+            "type": "object",
+            "properties": {
+                "asset_type": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "payloads": {
+                    "type": "array",
+                    "items": {}
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {

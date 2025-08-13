@@ -61,11 +61,11 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	// Middlewares globais
 	router.Use(gin.Recovery())
 	router.Use(middlewares.CORSMiddleware(cfg))
-	router.Use(middlewares.SecurityHeaders())
+	router.Use(middlewares.SecurityHeaders()) // Agora com lógica para pular Swagger
 	router.Use(middlewares.TraceMiddleware())
 	router.Use(observability.PrometheusMiddleware())
 
-	// Configurar Swagger
+	// Configurar Swagger usando o padrão recomendado
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// Configurar métricas Prometheus
 	observability.RegisterMetricsRoute(router)

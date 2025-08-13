@@ -27,14 +27,15 @@ type runRequest struct {
 }
 
 // Run godoc
-// @Summary Executa sync incremental (diário)
+// @Summary Executar sincronização incremental B3
+// @Description Executa sincronização incremental com a B3 para atualizar dados de transações e posições. Suporta escopo single (CPF específico) ou tenant (todos os CPFs). Inclui controles de força, dry-run e limite.
 // @Tags B3 Sync
 // @Accept json
 // @Produce json
-// @Param X-Tenant-Id header string true "ID do inquilino"
-// @Param request body runRequest true "Parâmetros"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param request body runRequest true "Parâmetros da sincronização" example({"scope": "single", "cpf": "12345678901", "dataTypes": ["transactions", "positions"], "assetTypes": ["equity"], "force": false, "dryRun": false, "limit": 100})
+// @Success 200 {object} map[string]interface{} "Resultado da sincronização com contadores"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos ou erro na sincronização"
 // @Router /b3/sync/run [post]
 func (c *SyncController) Run(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)
@@ -58,13 +59,14 @@ func (c *SyncController) Run(ctx *gin.Context) {
 }
 
 // LastSync godoc
-// @Summary Últimos marcos de sync por CPF
+// @Summary Obter últimas sincronizações do cliente
+// @Description Retorna os timestamps das últimas sincronizações de transações e posições para um CPF específico, útil para controle de incrementais.
 // @Tags B3 Sync
 // @Produce json
-// @Param X-Tenant-Id header string true "ID do inquilino"
-// @Param cpf query string true "CPF"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Timestamps das últimas sincronizações"
+// @Failure 400 {object} map[string]string "CPF inválido"
 // @Router /b3/client/last-sync [get]
 func (c *SyncController) LastSync(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)
@@ -86,13 +88,14 @@ func (c *SyncController) LastSync(ctx *gin.Context) {
 }
 
 // Status godoc
-// @Summary Consulta estado de sync por CPF
+// @Summary Obter status de sincronização do cliente
+// @Description Retorna status detalhado da sincronização de um cliente, incluindo flags de ativação, necessidade de reprocessamento, últimas sincronizações, resultados e contadores de falha.
 // @Tags B3 Sync
 // @Produce json
-// @Param X-Tenant-Id header string true "ID do inquilino"
-// @Param cpf query string true "CPF"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Status completo de sincronização"
+// @Failure 400 {object} map[string]string "CPF inválido"
 // @Router /b3/client/status [get]
 func (c *SyncController) Status(ctx *gin.Context) {
 	tenantID := middlewares.MustGetTenantName(ctx)

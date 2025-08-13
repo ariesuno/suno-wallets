@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	_ "suno-wallets/docs" // Import para gerar documentação Swagger
 	"suno-wallets/src/api/routes"
 	"suno-wallets/src/infrastructure/database"
 	"suno-wallets/src/infrastructure/migration"

@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"strings"
 	"suno-wallets/src/shared/config"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,12 @@ func CORSMiddleware(cfg *config.Config) gin.HandlerFunc {
 // SecurityHeaders adiciona headers de segurança
 func SecurityHeaders() gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
+		// Pular headers de segurança restritivos para Swagger
+		if strings.HasPrefix(c.Request.URL.Path, "/swagger") {
+			c.Next()
+			return
+		}
+
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")
 		c.Header("X-XSS-Protection", "1; mode=block")

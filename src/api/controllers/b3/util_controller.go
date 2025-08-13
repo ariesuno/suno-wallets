@@ -17,7 +17,19 @@ type UtilController struct{ svc *incr.Service }
 
 func NewUtilController(svc *incr.Service) *UtilController { return &UtilController{svc: svc} }
 
-// GET /b3/client/sync-window
+// SyncWindow godoc
+// @Summary Janela de sincronização incremental
+// @Description Calcula e retorna informações sobre a janela de sincronização incremental para um cliente, incluindo período de cobertura e estimativas de páginas a processar.
+// @Tags B3 Utilities
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Param type query string true "Tipo de dados (transactions ou positions)" example(transactions)
+// @Param since query string false "Data inicial no formato YYYY-MM-DD" example(2024-01-01)
+// @Param end query string false "Data final no formato YYYY-MM-DD" example(2024-12-31)
+// @Success 200 {object} map[string]interface{} "Informações da janela de sincronização"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos"
+// @Router /b3/client/sync-window [get]
 func (c *UtilController) SyncWindow(ctx *gin.Context) {
 	// Usar o middleware para obter o tenant ID (já validado)
 	tenantID := middlewares.MustGetTenantName(ctx)

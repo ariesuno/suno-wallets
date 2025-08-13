@@ -20,7 +20,17 @@ type ReportsController struct{ svc *app.Service }
 
 func NewReportsController(svc *app.Service) *ReportsController { return &ReportsController{svc: svc} }
 
-// GET /b3/client/raw-date-range?cpf=...
+// RawDateRange godoc
+// @Summary Relatório de datas dos dados brutos
+// @Description Retorna as datas mínima e máxima dos dados brutos (raw) armazenados para um CPF específico. Útil para verificar o período de cobertura dos dados coletados da B3.
+// @Tags B3 Reports
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Período de cobertura dos dados"
+// @Failure 400 {object} map[string]string "CPF inválido"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /b3/client/raw-date-range [get]
 func (c *ReportsController) RawDateRange(ctx *gin.Context) {
 	started := time.Now()
 	endpoint := "raw-date-range"
@@ -44,7 +54,19 @@ func (c *ReportsController) RawDateRange(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, out)
 }
 
-// GET /b3/client/summary?cpf=...&from=...&to=...
+// Summary godoc
+// @Summary Relatório resumo de transações e posições
+// @Description Retorna um resumo estatístico das transações e posições do cliente em um período específico, incluindo contadores, valores totais e distribuição por tipo de ativo.
+// @Tags B3 Reports
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Param from query string true "Data inicial no formato YYYY-MM-DD" example(2024-01-01)
+// @Param to query string true "Data final no formato YYYY-MM-DD" example(2024-12-31)
+// @Success 200 {object} map[string]interface{} "Resumo estatístico do período"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos (CPF ou datas)"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /b3/client/summary [get]
 func (c *ReportsController) Summary(ctx *gin.Context) {
 	started := time.Now()
 	endpoint := "summary"
@@ -80,7 +102,21 @@ func (c *ReportsController) Summary(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, out)
 }
 
-// GET /b3/client/tickers?cpf=...&from=...&to=...
+// Tickers godoc
+// @Summary Relatório de tickers (códigos de ativos)
+// @Description Retorna lista paginada dos tickers (códigos de ativos) negociados pelo cliente em um período específico, com informações de volume e frequência.
+// @Tags B3 Reports
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Param from query string true "Data inicial no formato YYYY-MM-DD" example(2024-01-01)
+// @Param to query string true "Data final no formato YYYY-MM-DD" example(2024-12-31)
+// @Param limit query int false "Limite de registros por página (1-1000)" example(100)
+// @Param offset query int false "Número de registros para pular" example(0)
+// @Success 200 {object} map[string]interface{} "Lista paginada de tickers"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /b3/client/tickers [get]
 func (c *ReportsController) Tickers(ctx *gin.Context) {
 	started := time.Now()
 	endpoint := "tickers"

@@ -21,7 +21,18 @@ func NewTestController(svc *diagnostics.Service) *TestController {
 	return &TestController{svc: svc}
 }
 
-// GET /b3/test/connection - Testa conexão e retorna relatório básico
+// TestConnection godoc
+// @Summary Teste de conexão com a B3
+// @Description Testa a conectividade com a API da B3 usando credenciais do cliente e retorna relatório detalhado de status. Este endpoint é essencial para validar se as credenciais estão funcionando antes de executar operações de sincronização.
+// @Tags B3 Test
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Param yearMonth query string true "Período para teste no formato YYYY-MM" example(2024-01)
+// @Success 200 {object} map[string]interface{} "Conexão bem-sucedida"
+// @Failure 400 {object} map[string]string "Parâmetros inválidos (CPF ou yearMonth)"
+// @Failure 500 {object} map[string]string "Falha na conexão com B3"
+// @Router /b3/test/connection [get]
 func (c *TestController) TestConnection(ctx *gin.Context) {
 	// Usar o middleware para obter o tenant name (já validado)
 	tenantID := middlewares.MustGetTenantName(ctx)

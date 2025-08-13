@@ -15,6 +15,16 @@ type Controller struct{ svc *appsvc.Service }
 
 func NewController(s *appsvc.Service) *Controller { return &Controller{svc: s} }
 
+// Get godoc
+// @Summary Obter política do cliente (Admin)
+// @Description Retorna a política de fonte de dados ativa para um cliente específico (B3_ONLY, MANUAL_ONLY ou HYBRID).
+// @Tags Client Policy
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Política ativa do cliente"
+// @Failure 400 {object} map[string]string "CPF obrigatório"
+// @Router /admin/client/policy [get]
 func (c *Controller) Get(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {
@@ -30,6 +40,18 @@ func (c *Controller) Get(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"mode": mode})
 }
 
+// Upsert godoc
+// @Summary Definir política do cliente (Admin)
+// @Description Cria ou atualiza a política de fonte de dados para um cliente. Suporta B3_ONLY, MANUAL_ONLY e HYBRID.
+// @Tags Client Policy
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param request body object true "Dados da política" example({"cpf": "12345678901", "mode": "B3_ONLY", "reason": "Integração automática"})
+// @Success 201 {object} map[string]interface{} "Política configurada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /admin/client/policy [post]
 func (c *Controller) Upsert(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {
@@ -57,6 +79,17 @@ func (c *Controller) Upsert(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"status": "ok"})
 }
 
+// Audit godoc
+// @Summary Histórico de mudanças de política (Admin)
+// @Description Retorna o histórico de mudanças na política de fonte de dados de um cliente específico.
+// @Tags Client Policy
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Success 200 {object} map[string]interface{} "Histórico de mudanças da política"
+// @Failure 400 {object} map[string]string "CPF obrigatório"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /admin/client/policy/audit [get]
 func (c *Controller) Audit(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {
@@ -76,7 +109,17 @@ func (c *Controller) Audit(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"items": items})
 }
 
-// Dry-run de impacto (admin)
+// DryRun godoc
+// @Summary Simular impacto de mudança de política (Admin)
+// @Description Simula o impacto de alterar a política de um cliente, mostrando jobs afetados, endpoints bloqueados e mudanças no sistema.
+// @Tags Client Policy
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param request body object true "Simulação de mudança" example({"cpf": "12345678901", "newMode": "MANUAL_ONLY"})
+// @Success 200 {object} map[string]interface{} "Análise de impacto da mudança"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Router /admin/client/policy/dry-run [post]
 func (c *Controller) DryRun(ctx *gin.Context) {
 	tenantID, ok := middlewares.GetTenantID(ctx)
 	if !ok {

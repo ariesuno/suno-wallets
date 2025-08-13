@@ -31,6 +31,25 @@ func NewTimelineControllerWithPolicy(s *appops.TimelineService, pol *cpsvc.Servi
 	return &TimelineController{svc: s, enforcer: appops.NewReadEnforcer(pol)}
 }
 
+// Get godoc
+// @Summary Timeline de operações do cliente
+// @Description Retorna timeline paginada das operações de um cliente, com filtros avançados por tickers, fontes, tipos de ativo e período. Suporta canonicalização de dados.
+// @Tags Operations Timeline
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Param tickers query string false "Lista de tickers separados por vírgula" example(PETR4,VALE3)
+// @Param sources query string false "Lista de fontes separadas por vírgula (B3_RAW, USER_MANUAL)" example(B3_RAW,USER_MANUAL)
+// @Param assetTypes query string false "Lista de tipos de ativo separados por vírgula" example(equity,fund)
+// @Param from query string false "Data inicial no formato YYYY-MM-DD" example(2024-01-01)
+// @Param to query string false "Data final no formato YYYY-MM-DD" example(2024-12-31)
+// @Param canonicalize query bool false "Aplicar canonicalização de dados (padrão: true)" example(true)
+// @Param pageSize query int false "Tamanho da página (padrão: 100)" example(100)
+// @Param cursor query string false "Cursor para paginação (keyset)" example(abc123def456)
+// @Success 200 {object} map[string]interface{} "Timeline paginada de operações"
+// @Failure 400 {object} map[string]string "CPF obrigatório"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /ops/timeline [get]
 func (tc *TimelineController) Get(ctx *gin.Context) {
 	started := time.Now()
 	tenantID, ok := middlewares.GetTenantID(ctx)
@@ -98,6 +117,21 @@ func (tc *TimelineController) Get(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"items": items, "nextCursor": next, "count": len(items)})
 }
 
+// Export godoc
+// @Summary Exportar timeline completa (Admin)
+// @Description Exporta timeline completa de operações de um cliente em formato CSV ou JSON. Requer autenticação de admin e suporte a limite configurável.
+// @Tags Operations Timeline
+// @Produce text/csv,application/json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param X-Admin-Secret header string false "Chave secreta de admin (se configurada)"
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(12345678901)
+// @Param format query string false "Formato do export (csv ou json, padrão: csv)" example(csv)
+// @Param limit query int false "Limite de registros (padrão: 50000)" example(50000)
+// @Success 200 {string} string "Arquivo CSV ou dados JSON exportados"
+// @Failure 400 {object} map[string]string "CPF obrigatório"
+// @Failure 403 {object} map[string]string "Acesso negado - requer permissão de admin"
+// @Failure 500 {object} map[string]string "Erro interno do servidor"
+// @Router /ops/timeline/export [get]
 func (tc *TimelineController) Export(ctx *gin.Context) {
 	started := time.Now()
 	tenantID, ok := middlewares.GetTenantID(ctx)
