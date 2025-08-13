@@ -13,7 +13,12 @@
         },
         {
             "key": "tenantId",
-            "value": "550e8400-e29b-41d4-a716-446655440001",
+            "value": "status_invest",
+            "type": "string"
+        },
+        {
+            "key": "testCpf",
+            "value": "12345678901",
             "type": "string"
         }
     ],
@@ -134,6 +139,98 @@
                                 "metrics"
                             ]
                         }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "B3 Complete Sync",
+            "description": "Endpoints para sincronização completa e inteligente B3",
+            "item": [
+                {
+                    "name": "Complete Sync - Ingestion",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+                        },
+                        "description": "Executa fluxo completo e inteligente de sincronização B3"
+                    }
+                },
+                {
+                    "name": "Complete Sync - Status Analysis",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf={{testCpf}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "b3", "sync", "status-analysis"],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Analisa status de sincronização sem executar ações"
+                    }
+                },
+                {
+                    "name": "Complete Sync - Dry Run",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": true,\n  \"force\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+                        },
+                        "description": "Simula fluxo de sincronização sem modificações"
                     }
                 }
             ]

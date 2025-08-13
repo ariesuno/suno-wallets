@@ -1,0 +1,49 @@
+meta {
+  name: Complete Sync - Dry Run
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/b3/sync/complete-ingestion
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  X-Tenant-ID: {{tenantId}}
+}
+
+body:json {
+  {
+    "cpf": "{{testCpf}}",
+    "assetTypes": ["equity"],
+    "dataTypes": ["transactions", "positions"],
+    "includeReconciliation": false,
+    "dryRun": true,
+    "force": false
+  }
+}
+
+docs {
+  # Complete Sync - Dry Run
+  
+  Executa simulação do fluxo completo de sincronização sem realizar modificações reais.
+  Útil para:
+  - Validar estratégia antes da execução real
+  - Estimar tempo de processamento
+  - Verificar configurações sem impacto
+  
+  ## Diferenças do modo normal:
+  - Não ingere dados reais
+  - Não executa normalização
+  - Não realiza reconciliação
+  - Apenas retorna plano de execução e análise
+  
+  ## Resposta inclui:
+  - Estratégia determinada
+  - Plano de execução detalhado
+  - Estimativas de tempo
+  - Status do cliente analisado
+}

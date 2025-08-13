@@ -1,0 +1,39 @@
+meta {
+  name: Complete Sync - Status Analysis
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/b3/sync/status-analysis
+  body: none
+  auth: none
+}
+
+params:query {
+  cpf: {{testCpf}}
+}
+
+headers {
+  X-Tenant-ID: {{tenantId}}
+}
+
+docs {
+  # Complete Sync - Status Analysis
+  
+  Analisa o status atual de sincronização de um cliente sem executar nenhuma ação.
+  Retorna a estratégia recomendada e informações de última sincronização.
+  
+  ## Retorna:
+  - `strategy`: Estratégia recomendada (FULL_HISTORICAL, INCREMENTAL_ONLY, HYBRID_OPTIMIZED)
+  - `clientStatus`: Status do cliente (new, existing_current, existing_outdated)
+  - `recommendedPlan`: Plano de execução sugerido
+  - `estimatedDuration`: Tempo estimado em minutos
+  - `gapDays`: Dias desde última sincronização
+  - `lastSyncDate`: Data da última sincronização (se houver)
+  
+  ## Use Cases:
+  - Validação prévia antes de executar sync
+  - Planejamento de capacidade
+  - Verificação de status sem impacto
+}

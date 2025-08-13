@@ -1,0 +1,332 @@
+{
+  "info": {
+    "name": "B3 Complete Sync",
+    "description": "Coleção para endpoints de sincronização completa e inteligente B3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "status_invest",
+      "type": "string"
+    },
+    {
+      "key": "testCpf",
+      "value": "12345678901",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Complete Sync - Ingestion",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "X-Tenant-ID",
+            "value": "{{tenantId}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+        },
+        "description": "Executa fluxo completo e inteligente de sincronização B3: analisa automaticamente o status do cliente (novo vs existente), escolhe a estratégia ideal (ingestão histórica completa vs incremental vs reativação híbrida), executa todo o pipeline de ingestão e normalização, e opcionalmente realiza reconciliação."
+      },
+      "response": [
+        {
+          "name": "Success - Cliente Novo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "status_invest"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"12345678901\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"strategy\": \"FULL_HISTORICAL\",\n  \"clientStatus\": \"new\",\n  \"executionPlan\": \"complete_historical_ingestion\",\n  \"success\": true,\n  \"newDataIngested\": true,\n  \"dataSummary\": {\n    \"rawRecordsIngested\": 1500,\n    \"transactionsNormalized\": 800,\n    \"positionsNormalized\": 400,\n    \"inconsistenciesFound\": 2\n  },\n  \"durationMs\": 1800000\n}"
+        },
+        {
+          "name": "Success - Cliente Existente",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "status_invest"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"98765432100\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": false,\n  \"force\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"strategy\": \"INCREMENTAL_ONLY\",\n  \"clientStatus\": \"existing_current\",\n  \"executionPlan\": \"incremental_sync_ingestion\",\n  \"success\": true,\n  \"newDataIngested\": true,\n  \"dataSummary\": {\n    \"rawRecordsIngested\": 5,\n    \"transactionsNormalized\": 5,\n    \"positionsNormalized\": 0\n  },\n  \"durationMs\": 60000\n}"
+        }
+      ]
+    },
+    {
+      "name": "Complete Sync - Status Analysis",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Tenant-ID",
+            "value": "{{tenantId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf={{testCpf}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "b3", "sync", "status-analysis"],
+          "query": [
+            {
+              "key": "cpf",
+              "value": "{{testCpf}}"
+            }
+          ]
+        },
+        "description": "Analisa o status atual de sincronização de um cliente sem executar nenhuma ação, retornando a estratégia recomendada e informações de última sincronização."
+      },
+      "response": [
+        {
+          "name": "Analysis - Cliente Novo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Tenant-ID",
+                "value": "status_invest"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf=12345678901",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "b3", "sync", "status-analysis"],
+              "query": [
+                {
+                  "key": "cpf",
+                  "value": "12345678901"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"strategy\": \"FULL_HISTORICAL\",\n  \"clientStatus\": \"new\",\n  \"recommendedPlan\": \"complete_historical_ingestion_dry_run\",\n  \"estimatedDuration\": 140,\n  \"gapDays\": 2112,\n  \"lastSyncDate\": null,\n  \"analysisTime\": 22\n}"
+        },
+        {
+          "name": "Analysis - Cliente Existente",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Tenant-ID",
+                "value": "status_invest"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf=98765432100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "b3", "sync", "status-analysis"],
+              "query": [
+                {
+                  "key": "cpf",
+                  "value": "98765432100"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"strategy\": \"INCREMENTAL_ONLY\",\n  \"clientStatus\": \"existing_current\",\n  \"recommendedPlan\": \"incremental_sync_ingestion_dry_run\",\n  \"estimatedDuration\": 1,\n  \"gapDays\": 5,\n  \"lastSyncDate\": \"2024-01-10T15:30:00Z\",\n  \"analysisTime\": 8\n}"
+        }
+      ]
+    },
+    {
+      "name": "Complete Sync - Dry Run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "X-Tenant-ID",
+            "value": "{{tenantId}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": true,\n  \"force\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+        },
+        "description": "Executa simulação do fluxo completo de sincronização sem realizar modificações reais. Útil para validar estratégia antes da execução real."
+      },
+      "response": [
+        {
+          "name": "Dry Run - Success",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "status_invest"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"12345678901\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": true,\n  \"force\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"strategy\": \"FULL_HISTORICAL\",\n  \"clientStatus\": \"new\",\n  \"executionPlan\": \"complete_historical_ingestion_dry_run\",\n  \"success\": true,\n  \"newDataIngested\": false,\n  \"dataSummary\": {\n    \"rawRecordsIngested\": 0,\n    \"transactionsNormalized\": 0,\n    \"positionsNormalized\": 0\n  },\n  \"durationMs\": 6\n}"
+        }
+      ]
+    },
+    {
+      "name": "Complete Sync - Force Reprocessing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "X-Tenant-ID",
+            "value": "{{tenantId}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "b3", "sync", "complete-ingestion"]
+        },
+        "description": "Executa sincronização completa forçando reprocessamento, útil para reativação de clientes inativos ou correção de dados inconsistentes."
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+meta {
+  name: Complete Sync - Ingestion
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/b3/sync/complete-ingestion
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  X-Tenant-ID: {{tenantId}}
+}
+
+body:json {
+  {
+    "cpf": "{{testCpf}}",
+    "assetTypes": ["equity"],
+    "dataTypes": ["transactions", "positions"],
+    "includeReconciliation": true,
+    "dryRun": false,
+    "force": false
+  }
+}
+
+docs {
+  # Complete Sync - Ingestion
+  
+  Executa fluxo completo e inteligente de sincronização B3:
+  - Analisa automaticamente o status do cliente (novo vs existente)
+  - Escolhe a estratégia ideal (histórico completo vs incremental vs híbrido)
+  - Executa todo o pipeline (ingestão + normalização + reconciliação opcional)
+  
+  ## Estratégias Automáticas:
+  - **FULL_HISTORICAL**: Cliente novo - ingestão completa desde 2019-11-01
+  - **INCREMENTAL_ONLY**: Cliente atual (gap ≤ 30 dias) - sync incremental
+  - **HYBRID_OPTIMIZED**: Cliente desatualizado (gap > 30 dias) - reativação inteligente
+  
+  ## Parâmetros:
+  - `cpf`: CPF do cliente (obrigatório)
+  - `assetTypes`: Tipos de ativo (default: ["equity"])
+  - `dataTypes`: Tipos de dados (default: ["transactions", "positions"])
+  - `includeReconciliation`: Executar reconciliação após ingestão
+  - `dryRun`: Modo simulação (apenas análise)
+  - `force`: Forçar reprocessamento
+  
+  ## Use Cases:
+  - Onboarding de cliente novo
+  - Sincronização diária automática
+  - Reativação de cliente inativo
+}
