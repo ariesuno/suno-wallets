@@ -13,6 +13,27 @@ definitions:
       version:
         type: string
     type: object
+  src_api_controllers_b3.completeSyncRequest:
+    properties:
+      assetTypes:
+        items:
+          type: string
+        type: array
+      cpf:
+        type: string
+      dataTypes:
+        items:
+          type: string
+        type: array
+      dryRun:
+        type: boolean
+      force:
+        type: boolean
+      includeReconciliation:
+        type: boolean
+    required:
+    - cpf
+    type: object
   src_api_controllers_b3.ingestRequest:
     properties:
       assetType:
@@ -121,6 +142,203 @@ definitions:
       scope:
         example: single|tenant
         type: string
+    type: object
+  suno-wallets_src_application_b3_e2e.Summary:
+    properties:
+      dryRun:
+        type: boolean
+      durationMs:
+        format: int64
+        type: integer
+      finishedAt:
+        type: string
+      force:
+        type: boolean
+      mode:
+        type: string
+      normalized:
+        properties:
+          errors:
+            type: integer
+          inserted:
+            type: integer
+          skipped:
+            type: integer
+          updated:
+            type: integer
+        type: object
+      raw:
+        properties:
+          errors:
+            type: integer
+          monthsProcessed:
+            type: integer
+          pagesProcessed:
+            type: integer
+          saved:
+            type: integer
+          skipped:
+            type: integer
+        type: object
+      startedAt:
+        type: string
+    type: object
+  suno-wallets_src_application_b3_incremental.Summary:
+    properties:
+      dryRun:
+        type: boolean
+      durationMs:
+        type: integer
+      finishedAt:
+        type: string
+      force:
+        type: boolean
+      positions:
+        $ref: '#/definitions/suno-wallets_src_application_b3_incremental.TypeSummary'
+      startedAt:
+        type: string
+      transactions:
+        $ref: '#/definitions/suno-wallets_src_application_b3_incremental.TypeSummary'
+    type: object
+  suno-wallets_src_application_b3_incremental.TypeSummary:
+    properties:
+      from:
+        type: string
+      normalized:
+        $ref: '#/definitions/suno-wallets_src_application_b3_normalize.Summary'
+      raw:
+        $ref: '#/definitions/suno-wallets_src_application_b3_ingest.Summary'
+      to:
+        type: string
+    type: object
+  suno-wallets_src_application_b3_ingest.Summary:
+    properties:
+      dryRun:
+        type: boolean
+      errors:
+        type: integer
+      force:
+        type: boolean
+      monthsProcessed:
+        type: integer
+      pagesProcessed:
+        type: integer
+      saved:
+        type: integer
+      skipped:
+        type: integer
+    type: object
+  suno-wallets_src_application_b3_normalize.Summary:
+    properties:
+      errors:
+        type: integer
+      inserted:
+        type: integer
+      rawProcessed:
+        type: integer
+      skipped:
+        type: integer
+      updated:
+        type: integer
+    type: object
+  suno-wallets_src_application_b3_reactivation.ReactivationPlan:
+    properties:
+      estimatedMinutes:
+        type: integer
+      gapDays:
+        type: integer
+      lastSyncDate:
+        type: string
+      reason:
+        type: string
+      steps:
+        items:
+          $ref: '#/definitions/suno-wallets_src_application_b3_reactivation.ReactivationStep'
+        type: array
+      strategy:
+        $ref: '#/definitions/suno-wallets_src_application_b3_reactivation.ReactivationStrategy'
+    type: object
+  suno-wallets_src_application_b3_reactivation.ReactivationStep:
+    properties:
+      dataTypes:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      fromDate:
+        type: string
+      toDate:
+        type: string
+      type:
+        description: '"historical_monthly", "incremental_daily"'
+        type: string
+    type: object
+  suno-wallets_src_application_b3_reactivation.ReactivationStrategy:
+    enum:
+    - FULL_HISTORICAL
+    - INCREMENTAL_ONLY
+    - HYBRID_OPTIMIZED
+    type: string
+    x-enum-comments:
+      StrategyFullHistorical: Cliente novo - histórico completo
+      StrategyHybridOptimized: Gap grande - mix de consolidado + incremental
+      StrategyIncrementalOnly: Gap pequeno - só incremental
+    x-enum-descriptions:
+    - Cliente novo - histórico completo
+    - Gap pequeno - só incremental
+    - Gap grande - mix de consolidado + incremental
+    x-enum-varnames:
+    - StrategyFullHistorical
+    - StrategyIncrementalOnly
+    - StrategyHybridOptimized
+  suno-wallets_src_application_b3_sync.CompleteSyncResult:
+    properties:
+      clientStatus:
+        description: new, existing_current, existing_outdated
+        type: string
+      dataSummary:
+        $ref: '#/definitions/suno-wallets_src_application_b3_sync.DataSummary'
+      durationMs:
+        type: integer
+      e2eResult:
+        $ref: '#/definitions/suno-wallets_src_application_b3_e2e.Summary'
+      errorMessage:
+        type: string
+      executionPlan:
+        type: string
+      finishedAt:
+        type: string
+      incrementalResult:
+        $ref: '#/definitions/suno-wallets_src_application_b3_incremental.Summary'
+      newDataIngested:
+        type: boolean
+      processedDataTypes:
+        items:
+          type: string
+        type: array
+      reactivationPlan:
+        $ref: '#/definitions/suno-wallets_src_application_b3_reactivation.ReactivationPlan'
+      reconciliationResult:
+        additionalProperties: true
+        type: object
+      startedAt:
+        type: string
+      strategy:
+        type: string
+      success:
+        type: boolean
+    type: object
+  suno-wallets_src_application_b3_sync.DataSummary:
+    properties:
+      inconsistenciesFound:
+        type: integer
+      positionsNormalized:
+        type: integer
+      rawRecordsIngested:
+        type: integer
+      transactionsNormalized:
+        type: integer
     type: object
   suno-wallets_src_application_dtos.CreateWalletRequest:
     properties:
@@ -1795,6 +2013,51 @@ paths:
       summary: Executar scan de reconciliação (Admin)
       tags:
       - B3 Reconciliation
+  /b3/sync/complete-ingestion:
+    post:
+      consumes:
+      - application/json
+      description: 'Executa fluxo completo e inteligente de sincronização B3: analisa
+        automaticamente o status do cliente (novo vs existente), escolhe a estratégia
+        ideal (ingestão histórica completa vs incremental vs reativação híbrida),
+        executa todo o pipeline de ingestão e normalização, e opcionalmente realiza
+        reconciliação. Este é o endpoint unificado para processamento completo de
+        dados B3.'
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Parâmetros da sincronização completa
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/src_api_controllers_b3.completeSyncRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado da sincronização completa
+          schema:
+            $ref: '#/definitions/suno-wallets_src_application_b3_sync.CompleteSyncResult'
+        "400":
+          description: Parâmetros inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na sincronização
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sincronização completa e ingestão B3
+      tags:
+      - B3 Complete Sync
   /b3/sync/run:
     post:
       consumes:
@@ -1832,6 +2095,47 @@ paths:
       summary: Executar sincronização incremental B3
       tags:
       - B3 Sync
+  /b3/sync/status-analysis:
+    get:
+      description: Analisa o status atual de sincronização de um cliente sem executar
+        nenhuma ação, retornando a estratégia recomendada e informações de última
+        sincronização.
+      parameters:
+      - description: ID do inquilino (tenant)
+        example: status_invest
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: CPF do cliente (11 dígitos, apenas números)
+        example: "12345678901"
+        in: query
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status e estratégia recomendada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: CPF inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro na análise
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Status de sincronização do cliente
+      tags:
+      - B3 Complete Sync
   /b3/test/connection:
     get:
       description: Testa a conectividade com a API da B3 usando credenciais do cliente

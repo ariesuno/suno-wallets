@@ -49,6 +49,23 @@ var (
 		[]string{"asset_type", "result"},
 	)
 
+	// Métricas do Complete Sync Orchestrator
+	completeSyncOrchestratorTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "complete_sync_orchestrator_total",
+			Help: "Total de execuções do complete sync orchestrator",
+		},
+		[]string{"status"},
+	)
+	completeSyncOrchestratorDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "complete_sync_orchestrator_duration_seconds",
+			Help:    "Duração de execuções do complete sync orchestrator",
+			Buckets: []float64{1, 5, 10, 30, 60, 120, 300, 600, 1200},
+		},
+		[]string{"strategy", "client_status"},
+	)
+
 	// Métricas específicas do preview de posições
 	b3PositionsPagesTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -486,3 +503,11 @@ func IncClientPolicyRead(source, result string) {
 func IncClientPolicyWrite(result string) { clientPolicyWritesTotal.WithLabelValues(result).Inc() }
 func IncClientPolicyInvalidate()         { clientPolicyInvalidationsTotal.Inc() }
 func IncPolicySkipped(job string)        { policySkippedTotal.WithLabelValues(job).Inc() }
+
+// Complete Sync Orchestrator metrics
+func IncCompleteSyncOrchestrator(status string) {
+	completeSyncOrchestratorTotal.WithLabelValues(status).Inc()
+}
+func ObserveCompleteSyncOrchestrator(strategy, clientStatus string, startedAt time.Time) {
+	completeSyncOrchestratorDuration.WithLabelValues(strategy, clientStatus).Observe(time.Since(startedAt).Seconds())
+}

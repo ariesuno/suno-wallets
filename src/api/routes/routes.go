@@ -16,9 +16,11 @@ import (
 	ingest "suno-wallets/src/application/b3/ingest"
 	appnorm "suno-wallets/src/application/b3/normalize"
 	possvc "suno-wallets/src/application/b3/positions"
+	apprecon "suno-wallets/src/application/b3/reconciliation"
 	reactivationsvc "suno-wallets/src/application/b3/reactivation"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
+	completesync "suno-wallets/src/application/b3/sync"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	cpsvc "suno-wallets/src/application/clientpolicy"
 	opsapp "suno-wallets/src/application/ops"
@@ -134,6 +136,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	repController := b3controllers.NewReportsController(repSvc)
 	// Reconciliation (1.17) — scan e leitura
 	reconRepo := reconrepo.NewRepository(db)
+	reconSvc := apprecon.NewService(reconRepo)
 	reconController := b3controllers.NewReconciliationController(reconRepo)
 	// Manual Ops (1.19)
 	opsRepo := opsinfra.NewOperationsRepository(db)
@@ -180,6 +183,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	syncRepo := syncrepo.NewRepository(db)
 	syncSvc := appsync.NewService(syncRepo, ingestSvc)
 	syncController := b3controllers.NewSyncController(syncSvc)
+	// Complete Sync Orchestrator (fluxo completo inteligente)
+	completeSyncOrch := completesync.NewCompleteSyncOrchestrator(reactivationSvc, e2eOrch, incrementalSvc, reconSvc, syncRepoIncr)
+	completeSyncController := b3controllers.NewCompleteSyncController(completeSyncOrch)
 	walletController := controllers.NewWalletController(walletUseCase)
 
 	// Rotas de saúde (sem middleware de tenant)
@@ -251,6 +257,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			b3Group.POST("/sync/run", syncController.Run)
 			b3Group.GET("/client/status", syncController.Status)
 			b3Group.GET("/client/last-sync", syncController.LastSync)
+			// Complete Sync endpoints (fluxo completo inteligente)
+			b3Group.POST("/sync/complete-ingestion", completeSyncController.ExecuteCompleteSync)
+			b3Group.GET("/sync/status-analysis", completeSyncController.GetSyncStatus)
 			// Admin: reset and refetch E2E
 			b3Group.POST("/admin/reset-and-refetch", adminController.ResetAndRefetch)
 			// Admin: incremental from last

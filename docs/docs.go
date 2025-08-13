@@ -2108,6 +2108,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/b3/sync/complete-ingestion": {
+            "post": {
+                "description": "Executa fluxo completo e inteligente de sincronização B3: analisa automaticamente o status do cliente (novo vs existente), escolhe a estratégia ideal (ingestão histórica completa vs incremental vs reativação híbrida), executa todo o pipeline de ingestão e normalização, e opcionalmente realiza reconciliação. Este é o endpoint unificado para processamento completo de dados B3.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Complete Sync"
+                ],
+                "summary": "Sincronização completa e ingestão B3",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Parâmetros da sincronização completa",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/src_api_controllers_b3.completeSyncRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da sincronização completa",
+                        "schema": {
+                            "$ref": "#/definitions/suno-wallets_src_application_b3_sync.CompleteSyncResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na sincronização",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/b3/sync/run": {
             "post": {
                 "description": "Executa sincronização incremental com a B3 para atualizar dados de transações e posições. Suporta escopo single (CPF específico) ou tenant (todos os CPFs). Inclui controles de força, dry-run e limite.",
@@ -2150,6 +2210,63 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Parâmetros inválidos ou erro na sincronização",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/b3/sync/status-analysis": {
+            "get": {
+                "description": "Analisa o status atual de sincronização de um cliente sem executar nenhuma ação, retornando a estratégia recomendada e informações de última sincronização.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "B3 Complete Sync"
+                ],
+                "summary": "Status de sincronização do cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "status_invest",
+                        "description": "ID do inquilino (tenant)",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "12345678901",
+                        "description": "CPF do cliente (11 dígitos, apenas números)",
+                        "name": "cpf",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status e estratégia recomendada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "CPF inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro na análise",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3439,6 +3556,38 @@ const docTemplate = `{
                 }
             }
         },
+        "src_api_controllers_b3.completeSyncRequest": {
+            "type": "object",
+            "required": [
+                "cpf"
+            ],
+            "properties": {
+                "assetTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "dataTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "includeReconciliation": {
+                    "type": "boolean"
+                }
+            }
+        },
         "src_api_controllers_b3.ingestRequest": {
             "type": "object",
             "required": [
@@ -3594,6 +3743,301 @@ const docTemplate = `{
                 "scope": {
                     "type": "string",
                     "example": "single|tenant"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_e2e.Summary": {
+            "type": "object",
+            "properties": {
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "durationMs": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "finishedAt": {
+                    "type": "string"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "normalized": {
+                    "type": "object",
+                    "properties": {
+                        "errors": {
+                            "type": "integer"
+                        },
+                        "inserted": {
+                            "type": "integer"
+                        },
+                        "skipped": {
+                            "type": "integer"
+                        },
+                        "updated": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "raw": {
+                    "type": "object",
+                    "properties": {
+                        "errors": {
+                            "type": "integer"
+                        },
+                        "monthsProcessed": {
+                            "type": "integer"
+                        },
+                        "pagesProcessed": {
+                            "type": "integer"
+                        },
+                        "saved": {
+                            "type": "integer"
+                        },
+                        "skipped": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "startedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_incremental.Summary": {
+            "type": "object",
+            "properties": {
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "durationMs": {
+                    "type": "integer"
+                },
+                "finishedAt": {
+                    "type": "string"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "positions": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_incremental.TypeSummary"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "transactions": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_incremental.TypeSummary"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_incremental.TypeSummary": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "normalized": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_normalize.Summary"
+                },
+                "raw": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_ingest.Summary"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_ingest.Summary": {
+            "type": "object",
+            "properties": {
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "errors": {
+                    "type": "integer"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "monthsProcessed": {
+                    "type": "integer"
+                },
+                "pagesProcessed": {
+                    "type": "integer"
+                },
+                "saved": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "integer"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_normalize.Summary": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "integer"
+                },
+                "inserted": {
+                    "type": "integer"
+                },
+                "rawProcessed": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "integer"
+                },
+                "updated": {
+                    "type": "integer"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_reactivation.ReactivationPlan": {
+            "type": "object",
+            "properties": {
+                "estimatedMinutes": {
+                    "type": "integer"
+                },
+                "gapDays": {
+                    "type": "integer"
+                },
+                "lastSyncDate": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suno-wallets_src_application_b3_reactivation.ReactivationStep"
+                    }
+                },
+                "strategy": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_reactivation.ReactivationStrategy"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_reactivation.ReactivationStep": {
+            "type": "object",
+            "properties": {
+                "dataTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fromDate": {
+                    "type": "string"
+                },
+                "toDate": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "\"historical_monthly\", \"incremental_daily\"",
+                    "type": "string"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_reactivation.ReactivationStrategy": {
+            "type": "string",
+            "enum": [
+                "FULL_HISTORICAL",
+                "INCREMENTAL_ONLY",
+                "HYBRID_OPTIMIZED"
+            ],
+            "x-enum-comments": {
+                "StrategyFullHistorical": "Cliente novo - histórico completo",
+                "StrategyHybridOptimized": "Gap grande - mix de consolidado + incremental",
+                "StrategyIncrementalOnly": "Gap pequeno - só incremental"
+            },
+            "x-enum-descriptions": [
+                "Cliente novo - histórico completo",
+                "Gap pequeno - só incremental",
+                "Gap grande - mix de consolidado + incremental"
+            ],
+            "x-enum-varnames": [
+                "StrategyFullHistorical",
+                "StrategyIncrementalOnly",
+                "StrategyHybridOptimized"
+            ]
+        },
+        "suno-wallets_src_application_b3_sync.CompleteSyncResult": {
+            "type": "object",
+            "properties": {
+                "clientStatus": {
+                    "description": "new, existing_current, existing_outdated",
+                    "type": "string"
+                },
+                "dataSummary": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_sync.DataSummary"
+                },
+                "durationMs": {
+                    "type": "integer"
+                },
+                "e2eResult": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_e2e.Summary"
+                },
+                "errorMessage": {
+                    "type": "string"
+                },
+                "executionPlan": {
+                    "type": "string"
+                },
+                "finishedAt": {
+                    "type": "string"
+                },
+                "incrementalResult": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_incremental.Summary"
+                },
+                "newDataIngested": {
+                    "type": "boolean"
+                },
+                "processedDataTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "reactivationPlan": {
+                    "$ref": "#/definitions/suno-wallets_src_application_b3_reactivation.ReactivationPlan"
+                },
+                "reconciliationResult": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "suno-wallets_src_application_b3_sync.DataSummary": {
+            "type": "object",
+            "properties": {
+                "inconsistenciesFound": {
+                    "type": "integer"
+                },
+                "positionsNormalized": {
+                    "type": "integer"
+                },
+                "rawRecordsIngested": {
+                    "type": "integer"
+                },
+                "transactionsNormalized": {
+                    "type": "integer"
                 }
             }
         },
