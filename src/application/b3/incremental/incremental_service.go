@@ -11,6 +11,7 @@ import (
 	polsvc "suno-wallets/src/application/clientpolicy"
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
 	"suno-wallets/src/infrastructure/observability"
+	"suno-wallets/src/shared"
 	"suno-wallets/src/shared/helpers"
 )
 
@@ -226,22 +227,9 @@ func (s *Service) attachType(out *Summary, dt string, ts *TypeSummary) {
 }
 
 func monthWindows(start, end time.Time) [][2]time.Time {
-	var out [][2]time.Time
-	cur := time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, time.UTC)
-	last := time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, time.UTC)
-	for !cur.After(last) {
-		next := cur.AddDate(0, 1, 0).Add(-24 * time.Hour)
-		if next.After(end) {
-			next = end
-		}
-		winStart := cur
-		if winStart.Before(start) {
-			winStart = start
-		}
-		out = append(out, [2]time.Time{winStart, next})
-		cur = cur.AddDate(0, 1, 0)
-	}
-	return out
+	// Usar nova lógica de janelas B3 com timezone America/Sao_Paulo
+	windows := shared.GenerateB3MonthlyWindows(start, end)
+	return shared.ConvertToTimeWindows(windows)
 }
 
 func firstOrDefault(list []string, def string) string {

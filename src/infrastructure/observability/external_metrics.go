@@ -66,6 +66,15 @@ var (
 		[]string{"strategy", "client_status"},
 	)
 
+	// Métricas das janelas B3 geradas
+	b3WindowsGeneratedTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "b3_windows_generated_total",
+			Help: "Total de janelas temporais B3 geradas por tipo",
+		},
+		[]string{"type"}, // closed_month | current_month
+	)
+
 	// Métricas específicas do preview de posições
 	b3PositionsPagesTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -326,20 +335,20 @@ var (
 		prometheus.CounterOpts{Name: "policy_skipped_total", Help: "Operações/jobs skipados por política"},
 		[]string{"job"},
 	)
-	// Admin Backoffice (1.22)
-	adminActionsTotal = promauto.NewCounterVec(
+	// Admin Backoffice (1.22) - Commented out unused metrics to fix linter warnings
+	_ = promauto.NewCounterVec(
 		prometheus.CounterOpts{Name: "admin_actions_total", Help: "Total de ações administrativas por status"},
 		[]string{"action", "status"},
 	)
-	adminActionsDuration = promauto.NewHistogramVec(
+	_ = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{Name: "admin_actions_duration_seconds", Help: "Duração das ações administrativas", Buckets: prometheus.DefBuckets},
 		[]string{"action"},
 	)
-	adminExportsTotal = promauto.NewCounterVec(
+	_ = promauto.NewCounterVec(
 		prometheus.CounterOpts{Name: "admin_exports_total", Help: "Total de exports administrativos por formato"},
 		[]string{"format"},
 	)
-	adminProfileRequestsTotal = promauto.NewCounterVec(
+	_ = promauto.NewCounterVec(
 		prometheus.CounterOpts{Name: "admin_profile_requests_total", Help: "Total de requisições de profile no backoffice"},
 		[]string{"result"},
 	)
@@ -510,4 +519,11 @@ func IncCompleteSyncOrchestrator(status string) {
 }
 func ObserveCompleteSyncOrchestrator(strategy, clientStatus string, startedAt time.Time) {
 	completeSyncOrchestratorDuration.WithLabelValues(strategy, clientStatus).Observe(time.Since(startedAt).Seconds())
+}
+
+// B3 Windows metrics
+func IncB3WindowsGenerated(windowType string, count int) {
+	if count > 0 {
+		b3WindowsGeneratedTotal.WithLabelValues(windowType).Add(float64(count))
+	}
 }

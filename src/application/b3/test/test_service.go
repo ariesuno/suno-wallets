@@ -42,31 +42,31 @@ type ConnectionTestResult struct {
 }
 
 type TransactionsSummary struct {
-	TotalRecords    int                    `json:"totalRecords"`
-	TotalPages      int                    `json:"totalPages"`
-	SampleRecords   []interface{}          `json:"sampleRecords"`
-	AssetTypes      map[string]int         `json:"assetTypes"`
-	OperationTypes  map[string]int         `json:"operationTypes"`
-	DateRange       DateRangeInfo          `json:"dateRange"`
-	Tickers         []string               `json:"tickers"`
-	Error           string                 `json:"error,omitempty"`
+	TotalRecords   int            `json:"totalRecords"`
+	TotalPages     int            `json:"totalPages"`
+	SampleRecords  []interface{}  `json:"sampleRecords"`
+	AssetTypes     map[string]int `json:"assetTypes"`
+	OperationTypes map[string]int `json:"operationTypes"`
+	DateRange      DateRangeInfo  `json:"dateRange"`
+	Tickers        []string       `json:"tickers"`
+	Error          string         `json:"error,omitempty"`
 }
 
 type PositionsSummary struct {
-	TotalRecords  int                    `json:"totalRecords"`
-	TotalPages    int                    `json:"totalPages"`
-	SampleRecords []interface{}          `json:"sampleRecords"`
-	AssetTypes    map[string]int         `json:"assetTypes"`
-	DateRange     DateRangeInfo          `json:"dateRange"`
-	Tickers       []string               `json:"tickers"`
-	Error         string                 `json:"error,omitempty"`
+	TotalRecords  int            `json:"totalRecords"`
+	TotalPages    int            `json:"totalPages"`
+	SampleRecords []interface{}  `json:"sampleRecords"`
+	AssetTypes    map[string]int `json:"assetTypes"`
+	DateRange     DateRangeInfo  `json:"dateRange"`
+	Tickers       []string       `json:"tickers"`
+	Error         string         `json:"error,omitempty"`
 }
 
 type DateRangeInfo struct {
-	Start     string `json:"start"`
-	End       string `json:"end"`
-	Earliest  string `json:"earliest,omitempty"`
-	Latest    string `json:"latest,omitempty"`
+	Start    string `json:"start"`
+	End      string `json:"end"`
+	Earliest string `json:"earliest,omitempty"`
+	Latest   string `json:"latest,omitempty"`
 }
 
 type OverallSummary struct {
@@ -85,7 +85,7 @@ func NewService(b3Client *b3Client.B3OfficialClient) *Service {
 
 func (s *Service) TestConnectionAndReport(ctx context.Context, params TestParams) (*TestReport, error) {
 	startTime := time.Now()
-	
+
 	helpers.LogInfo("Iniciando teste de conexão B3", map[string]interface{}{
 		"cpf":       maskCPF(params.CPF),
 		"tenantId":  params.TenantID,
@@ -114,11 +114,11 @@ func (s *Service) TestConnectionAndReport(ctx context.Context, params TestParams
 	report.Summary = s.generateSummary(transactionsResult, positionsResult, time.Since(startTime))
 
 	helpers.LogInfo("Teste de conexão B3 concluído", map[string]interface{}{
-		"cpf":                maskCPF(params.CPF),
-		"totalTransactions":  report.Summary.TotalTransactions,
-		"totalPositions":     report.Summary.TotalPositions,
-		"uniqueTickers":      len(report.Summary.UniqueTickers),
-		"duration":           report.Summary.TestDuration,
+		"cpf":               maskCPF(params.CPF),
+		"totalTransactions": report.Summary.TotalTransactions,
+		"totalPositions":    report.Summary.TotalPositions,
+		"uniqueTickers":     len(report.Summary.UniqueTickers),
+		"duration":          report.Summary.TestDuration,
 	})
 
 	return report, nil
@@ -131,7 +131,7 @@ func (s *Service) testConnection(ctx context.Context) ConnectionTestResult {
 	// Usamos uma consulta mínima de posições como teste de conexão
 	testCPF := "00000000000" // CPF de teste para validar apenas conectividade
 	testDate := "2024-01-01"
-	
+
 	_, err := s.b3Client.GetPositionsV3(ctx, testCPF, testDate, testDate, 1)
 	duration := time.Since(startTime)
 
@@ -155,7 +155,7 @@ func (s *Service) testTransactions(ctx context.Context, params TestParams) Trans
 	// Busca transações do período especificado usando GetTransactionsV2
 	startDate := params.StartDate.Format("2006-01-02")
 	endDate := params.EndDate.Format("2006-01-02")
-	
+
 	resp, err := s.b3Client.GetTransactionsV2(ctx, params.CPF, startDate, endDate, 1)
 	if err != nil {
 		return TransactionsSummary{
@@ -248,7 +248,7 @@ func (s *Service) testPositions(ctx context.Context, params TestParams) Position
 	// Busca posições do período especificado usando GetPositionsV3
 	startDate := params.StartDate.Format("2006-01-02")
 	endDate := params.EndDate.Format("2006-01-02")
-	
+
 	resp, err := s.b3Client.GetPositionsV3(ctx, params.CPF, startDate, endDate, 1)
 	if err != nil {
 		return PositionsSummary{
@@ -368,12 +368,12 @@ func parseJSONResponse(resp *http.Response, target interface{}) error {
 	if resp == nil {
 		return fmt.Errorf("resposta HTTP é nil")
 	}
-	
+
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(target); err != nil {
 		return fmt.Errorf("erro ao decodificar JSON: %w", err)
 	}
-	
+
 	return nil
 }
 

@@ -256,7 +256,7 @@ func (w *SyncWorker) failJob(ctx context.Context, jobID string, errorMsg string)
 		})
 	}
 
-	helpers.LogError("job failed", fmt.Errorf(errorMsg), map[string]interface{}{
+	helpers.LogError("job failed", fmt.Errorf("%s", errorMsg), map[string]interface{}{
 		"workerID": w.workerID,
 		"jobID":    jobID,
 	})

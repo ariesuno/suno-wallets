@@ -12,6 +12,7 @@ import (
 	b3err "suno-wallets/src/infrastructure/b3/errors"
 	"suno-wallets/src/infrastructure/b3/persistence"
 	"suno-wallets/src/infrastructure/observability"
+	"suno-wallets/src/shared"
 	hashx "suno-wallets/src/shared/hash"
 )
 
@@ -43,23 +44,11 @@ type IngestParams struct {
 	DryRun    bool
 }
 
+// monthWindows gera janelas mensais usando a nova lógica B3 com timezone e mês corrente
 func monthWindows(start, end time.Time) [][2]time.Time {
-	var out [][2]time.Time
-	cur := time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, time.UTC)
-	last := time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, time.UTC)
-	for !cur.After(last) {
-		next := cur.AddDate(0, 1, 0).Add(-24 * time.Hour)
-		if next.After(end) {
-			next = end
-		}
-		winStart := cur
-		if winStart.Before(start) {
-			winStart = start
-		}
-		out = append(out, [2]time.Time{winStart, next})
-		cur = cur.AddDate(0, 1, 0)
-	}
-	return out
+	// Usar nova lógica de janelas B3 com timezone America/Sao_Paulo
+	windows := shared.GenerateB3MonthlyWindows(start, end)
+	return shared.ConvertToTimeWindows(windows)
 }
 
 type Summary struct {
@@ -180,12 +169,28 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 			}
 		}
 
-		// marcar mês
+		// marcar mês com period_start e period_end precisos
 		if w[0].Year() == 2025 && w[0].Month() == 8 {
 			fmt.Printf("DEBUG: About to mark August period [%s, %s]\n", w[0].Format("2006-01-02"), w[1].Format("2006-01-02"))
 		}
-		_ = s.repo.MarkMonth(ctx, &persistence.FetchedPeriod{ID: uuid.New(), TenantID: p.TenantID, CPF: p.CPF,
-			DataType: p.DataType, AssetType: p.AssetType, MonthStart: w[0], MonthEnd: w[1], Pages: sum.PagesProcessed, Completed: true})
+
+		// Converter para datas para month_start/month_end (compatibilidade)
+		monthStart := time.Date(w[0].Year(), w[0].Month(), 1, 0, 0, 0, 0, time.UTC)
+		monthEnd := time.Date(w[1].Year(), w[1].Month(), w[1].Day(), 0, 0, 0, 0, time.UTC)
+
+		_ = s.repo.MarkMonth(ctx, &persistence.FetchedPeriod{
+			ID:          uuid.New(),
+			TenantID:    p.TenantID,
+			CPF:         p.CPF,
+			DataType:    p.DataType,
+			AssetType:   p.AssetType,
+			MonthStart:  monthStart,
+			MonthEnd:    monthEnd,
+			PeriodStart: &w[0], // timestamp preciso início
+			PeriodEnd:   &w[1], // timestamp preciso fim
+			Pages:       sum.PagesProcessed,
+			Completed:   true,
+		})
 		observability.IncRawMonthsCompleted(1)
 	}
 
@@ -193,12 +198,4 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 	sum.DryRun = p.DryRun
 	sum.Force = p.Force
 	return sum, nil
-}
-
-// maskCPF mascara CPF mantendo apenas os 3 primeiros dígitos
-func maskCPF(cpf string) string {
-	if len(cpf) < 3 {
-		return "***"
-	}
-	return cpf[:3] + "********"
 }

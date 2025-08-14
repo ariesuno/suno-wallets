@@ -3,7 +3,7 @@ package b3_test
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -23,14 +23,14 @@ type mockB3Client struct {
 func (m *mockB3Client) MakeRequest(ctx context.Context, method, path string, query map[string]string, cpf string, needsAuth bool) (*http.Response, error) {
 	m.lastQuery = query
 	body := bytes.NewBufferString(`{"page":1,"data":[]}`)
-	return &http.Response{StatusCode: 200, Body: ioutil.NopCloser(body)}, nil
+	return &http.Response{StatusCode: 200, Body: io.NopCloser(body)}, nil
 }
 
 func (m *mockB3Client) Paginate(ctx context.Context, method, path string, baseQuery map[string]string, cpf string, needsAuth bool, fetch func(*http.Response) (bool, int, error)) error {
 	// Simula duas páginas
 	for i := 0; i < 2; i++ {
 		body := bytes.NewBufferString(`{"page":1,"hasNext":` + map[bool]string{true: "true", false: "false"}[i == 0] + `,"data":[]}`)
-		resp := &http.Response{StatusCode: 200, Body: ioutil.NopCloser(body)}
+		resp := &http.Response{StatusCode: 200, Body: io.NopCloser(body)}
 		hasNext, _, err := fetch(resp)
 		if err != nil {
 			return err

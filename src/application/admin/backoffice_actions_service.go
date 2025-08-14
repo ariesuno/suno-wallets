@@ -2,7 +2,6 @@ package admin
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,5 +40,3 @@ func (s *ActionsService) Request(ctx context.Context, tenantID, cpf, action, req
 func (s *ActionsService) Confirm(ctx context.Context, id uuid.UUID, token string) error {
 	return s.repo.ConfirmAndRun(ctx, id, token)
 }
-
-func toJSON(m map[string]interface{}) string { b, _ := json.Marshal(m); return string(b) }

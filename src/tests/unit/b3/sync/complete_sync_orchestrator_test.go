@@ -43,11 +43,11 @@ func TestCompleteSyncOrchestrator_ParamsValidation(t *testing.T) {
 func TestCompleteSyncResult_Structure(t *testing.T) {
 	// Teste da estrutura do resultado
 	result := &completesync.CompleteSyncResult{
-		Strategy:          "FULL_HISTORICAL",
-		ClientStatus:      "new",
-		ExecutionPlan:     "complete_historical_ingestion",
-		Success:           true,
-		NewDataIngested:   true,
+		Strategy:           "FULL_HISTORICAL",
+		ClientStatus:       "new",
+		ExecutionPlan:      "complete_historical_ingestion",
+		Success:            true,
+		NewDataIngested:    true,
 		ProcessedDataTypes: []string{"transactions", "positions"},
 		DataSummary: completesync.DataSummary{
 			RawRecordsIngested:     1500,

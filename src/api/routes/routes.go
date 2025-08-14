@@ -20,7 +20,6 @@ import (
 	apprecon "suno-wallets/src/application/b3/reconciliation"
 	repsvc "suno-wallets/src/application/b3/reports"
 	appsync "suno-wallets/src/application/b3/sync"
-	completesync "suno-wallets/src/application/b3/sync"
 	b3svc "suno-wallets/src/application/b3/transactions"
 	cpsvc "suno-wallets/src/application/clientpolicy"
 	opsapp "suno-wallets/src/application/ops"
@@ -36,7 +35,6 @@ import (
 	reconrepo "suno-wallets/src/infrastructure/b3/reconciliation"
 	reprepo "suno-wallets/src/infrastructure/b3/reports"
 	syncrepo "suno-wallets/src/infrastructure/b3/sync"
-	syncrepo2 "suno-wallets/src/infrastructure/b3/sync"
 	cprepo "suno-wallets/src/infrastructure/clientpolicy"
 	"suno-wallets/src/infrastructure/observability"
 	opsinfra "suno-wallets/src/infrastructure/ops"
@@ -180,7 +178,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	resetRepo := e2erepo.NewRepository(db)
 	e2eOrch := appe2e.NewOrchestrator(resetRepo, ingestSvc, normSvc)
 	// incremental service wiring
-	syncRepoIncr := syncrepo2.NewRepository(db)
+	syncRepoIncr := syncrepo.NewRepository(db)
 	incrementalSvc := incrsvc.NewService(syncRepoIncr, ingestSvc, normSvc).WithPolicy(polSvc)
 	adminController := b3controllers.NewAdminController(e2eOrch, incrementalSvc)
 	utilController := b3controllers.NewUtilController(incrementalSvc)
@@ -188,11 +186,11 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	reactivationSvc := reactivationsvc.NewService(syncRepoIncr, ingestSvc, incrementalSvc)
 	reactivationController := b3controllers.NewReactivationController(reactivationSvc)
 	// Sync diário
-	syncRepo := syncrepo.NewRepository(db)
-	syncSvc := appsync.NewService(syncRepo, ingestSvc)
+	syncRepoDaily := syncrepo.NewRepository(db)
+	syncSvc := appsync.NewService(syncRepoDaily, ingestSvc)
 	syncController := b3controllers.NewSyncController(syncSvc)
 	// Complete Sync Orchestrator (fluxo completo inteligente)
-	completeSyncOrch := completesync.NewCompleteSyncOrchestrator(reactivationSvc, e2eOrch, incrementalSvc, reconSvc, syncRepoIncr)
+	completeSyncOrch := appsync.NewCompleteSyncOrchestrator(reactivationSvc, e2eOrch, incrementalSvc, reconSvc, syncRepoIncr)
 	completeSyncController := b3controllers.NewCompleteSyncController(completeSyncOrch)
 
 	// Job Queue para processamento assíncrono (Fase 2)

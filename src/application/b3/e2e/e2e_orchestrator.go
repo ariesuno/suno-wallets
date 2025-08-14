@@ -105,21 +105,6 @@ func (o *Orchestrator) WithConcurrency(maxConcurrent int) *Orchestrator {
 	return o
 }
 
-// ingestJob representa um trabalho de ingestão para o worker pool
-type ingestJob struct {
-	assetType string
-	dataType  string
-	window    [2]time.Time
-	params    Params
-}
-
-// ingestResult representa o resultado de uma ingestão
-type ingestResult struct {
-	job    ingestJob
-	result *appingest.Summary
-	err    error
-}
-
 // Run executa o fluxo fim-a-fim. Mantém idempotência delegando às camadas de ingest/normalize.
 func (o *Orchestrator) Run(ctx context.Context, p Params) (*Summary, error) {
 	started := time.Now()
@@ -333,108 +318,6 @@ func (o *Orchestrator) runDataTypeIngestion(ctx context.Context, p Params, asset
 		Force:     p.Force,
 		DryRun:    false,
 	})
-}
-
-// runParallelIngestion executa ingestão paralela usando worker pool (método antigo mantido para compatibilidade)
-func (o *Orchestrator) runParallelIngestion(ctx context.Context, p Params, sum *Summary, logBase map[string]any) error {
-	// Preparar todos os jobs de ingestão
-	var jobs []ingestJob
-	months := monthWindows(p.Start, p.End)
-
-	for _, assetType := range p.AssetTypes {
-		for _, dataType := range p.DataTypes {
-			for _, w := range months {
-				jobs = append(jobs, ingestJob{
-					assetType: assetType,
-					dataType:  dataType,
-					window:    w,
-					params:    p,
-				})
-			}
-		}
-	}
-
-	// Canal para jobs e resultados
-	jobChan := make(chan ingestJob, len(jobs))
-	resultChan := make(chan ingestResult, len(jobs))
-
-	// Worker pool
-	var wg sync.WaitGroup
-	semaphore := make(chan struct{}, o.maxConcurrentIngests)
-
-	// Start workers
-	for i := 0; i < o.maxConcurrentIngests; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for job := range jobChan {
-				semaphore <- struct{}{} // acquire semaphore
-
-				// Execute ingestion
-				result, err := o.ingest.Ingest(ctx, appingest.IngestParams{
-					TenantID:  job.params.TenantID,
-					CPF:       job.params.CPF,
-					DataType:  job.dataType,
-					AssetType: job.assetType,
-					Start:     job.window[0].Format("2006-01-02"),
-					End:       job.window[1].Format("2006-01-02"),
-					FetchAll:  true,
-					Force:     job.params.Force,
-					DryRun:    false,
-				})
-
-				resultChan <- ingestResult{
-					job:    job,
-					result: result,
-					err:    err,
-				}
-
-				<-semaphore // release semaphore
-			}
-		}()
-	}
-
-	// Send jobs to workers
-	go func() {
-		defer close(jobChan)
-		for _, job := range jobs {
-			jobChan <- job
-		}
-	}()
-
-	// Collect results
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	// Process results
-	var errs []error
-	for result := range resultChan {
-		if result.err != nil {
-			observability.IncE2EError("ingest")
-			helpers.LogError("e2e parallel ingest failed", result.err, merge(logBase, map[string]any{
-				"dataType":  result.job.dataType,
-				"assetType": result.job.assetType,
-				"window":    result.job.window[0].Format("2006-01-02"),
-			}))
-			errs = append(errs, fmt.Errorf("ingest failed for %s/%s: %w", result.job.dataType, result.job.assetType, result.err))
-		} else if result.result != nil {
-			// Accumulate metrics (thread-safe with channels)
-			sum.Raw.Saved += result.result.Saved
-			sum.Raw.Skipped += result.result.Skipped
-			sum.Raw.Errors += result.result.Errors
-			sum.Raw.MonthsProcessed += result.result.MonthsProcessed
-			sum.Raw.PagesProcessed += result.result.PagesProcessed
-		}
-	}
-
-	// Return first error if any occurred
-	if len(errs) > 0 {
-		return errs[0]
-	}
-
-	return nil
 }
 
 // runPipelineNormalization executa normalização em pipeline por tipo

@@ -31,16 +31,18 @@ type RawRecord struct {
 }
 
 type FetchedPeriod struct {
-	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
-	TenantID      string    `gorm:"type:varchar(50);not null;index"`
-	CPF           string    `gorm:"type:varchar(11);not null;index"`
-	DataType      string    `gorm:"type:varchar;not null;index"`
-	AssetType     string    `gorm:"type:varchar;not null;index"`
-	MonthStart    time.Time `gorm:"type:date;not null;index"`
-	MonthEnd      time.Time `gorm:"type:date;not null"`
-	Pages         int       `gorm:"not null"`
-	Completed     bool      `gorm:"not null;default:false"`
-	LastFetchedAt time.Time `gorm:"type:timestamptz;not null;default:now()"`
+	ID            uuid.UUID  `gorm:"type:uuid;primaryKey"`
+	TenantID      string     `gorm:"type:varchar(50);not null;index"`
+	CPF           string     `gorm:"type:varchar(11);not null;index"`
+	DataType      string     `gorm:"type:varchar;not null;index"`
+	AssetType     string     `gorm:"type:varchar;not null;index"`
+	MonthStart    time.Time  `gorm:"type:date;not null;index"`
+	MonthEnd      time.Time  `gorm:"type:date;not null"`
+	PeriodStart   *time.Time `gorm:"type:timestamptz"`
+	PeriodEnd     *time.Time `gorm:"type:timestamptz"`
+	Pages         int        `gorm:"not null"`
+	Completed     bool       `gorm:"not null;default:false"`
+	LastFetchedAt time.Time  `gorm:"type:timestamptz;not null;default:now()"`
 }
 
 type RawRepository interface {
@@ -71,19 +73,24 @@ func (r *rawRepositoryImpl) UpsertRaw(ctx context.Context, rec *RawRecord) error
 func (r *rawRepositoryImpl) MarkMonth(ctx context.Context, p *FetchedPeriod) error {
 	return r.db.WithContext(ctx).Exec(`
         INSERT INTO b3_fetched_periods (
-            id, tenant_id, cpf, data_type, asset_type, month_start, month_end, pages, completed, last_fetched_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now())
+            id, tenant_id, cpf, data_type, asset_type, month_start, month_end, period_start, period_end, pages, completed, last_fetched_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())
         ON CONFLICT (tenant_id, cpf, data_type, asset_type, month_start)
-        DO UPDATE SET pages = EXCLUDED.pages, completed = EXCLUDED.completed, last_fetched_at = now()
+        DO UPDATE SET 
+            period_start = EXCLUDED.period_start, 
+            period_end = EXCLUDED.period_end,
+            pages = EXCLUDED.pages, 
+            completed = EXCLUDED.completed, 
+            last_fetched_at = now()
     `,
-		p.ID, p.TenantID, p.CPF, p.DataType, p.AssetType, p.MonthStart, p.MonthEnd, p.Pages, p.Completed,
+		p.ID, p.TenantID, p.CPF, p.DataType, p.AssetType, p.MonthStart, p.MonthEnd, p.PeriodStart, p.PeriodEnd, p.Pages, p.Completed,
 	).Error
 }
 
 func (r *rawRepositoryImpl) GetMonth(ctx context.Context, tenantID string, cpf, dataType, assetType string, monthStart time.Time) (*FetchedPeriod, error) {
 	var m FetchedPeriod
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT id, tenant_id, cpf, data_type, asset_type, month_start, month_end, pages, completed, last_fetched_at
+		`SELECT id, tenant_id, cpf, data_type, asset_type, month_start, month_end, period_start, period_end, pages, completed, last_fetched_at
          FROM b3_fetched_periods
          WHERE tenant_id = ? AND cpf = ? AND data_type = ? AND asset_type = ? AND month_start = ?`,
 		tenantID, cpf, dataType, assetType, monthStart,

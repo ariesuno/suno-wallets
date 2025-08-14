@@ -2,8 +2,6 @@ package clientpolicy
 
 import (
 	"context"
-	"os"
-	"strconv"
 	dom "suno-wallets/src/domain/clientpolicy"
 	obs "suno-wallets/src/infrastructure/observability"
 )
@@ -17,15 +15,6 @@ type Service struct {
 
 func NewService(repo dom.Repository, cache dom.Cache) *Service {
 	return &Service{repo: repo, cache: cache}
-}
-
-func ttlSeconds() int {
-	if v := os.Getenv("CLIENT_POLICY_TTL_SECONDS"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			return n
-		}
-	}
-	return 60
 }
 
 func (s *Service) GetMode(ctx context.Context, tenantID, cpf string) dom.Mode {

@@ -1,7 +1,6 @@
 run:
   timeout: 5m
   modules-download-mode: readonly
-  allow-parallel-runners: true
 
 linters:
   enable:
@@ -22,32 +21,6 @@ linters-settings:
     simplify: true
   goimports:
     local-prefixes: suno-wallets
-  revive:
-    min-confidence: 0
-  govet:
-    enable:
-      - assign
-      - atomic
-      - bools
-      - buildtag
-      - copylocks
-      - httpresponse
-      - loopclosure
-      - lostcancel
-      - nilfunc
-      - printf
-      - shift
-      - stdmethods
-      - structtag
-      - tests
-      - unmarshal
-      - unreachable
-      - unsafeptr
-      - unusedresult
-    disable:
-      - fieldalignment
-  misspell:
-    locale: US
 
 issues:
   exclude-use-default: true
@@ -59,7 +32,4 @@ issues:
     - "comment on exported .* should be of the form"
 
 output:
-  formats:
-    - format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+  format: colored-line-number
