@@ -26,7 +26,8 @@ type clientCredentialsImpl struct {
 
 func NewClientCredentials(cfg *b3cfg.B3Config, httpClient *http.Client) ClientCredentialsProvider {
 	if httpClient == nil {
-		httpClient = &http.Client{Timeout: cfg.Timeout}
+		// Usar timeout muito alto para OAuth2 (problemas de conectividade Docker)
+		httpClient = &http.Client{Timeout: 180 * time.Second}
 	}
 	return &clientCredentialsImpl{cfg: cfg, client: httpClient, refreshSkew: 30 * time.Second}
 }
@@ -53,9 +54,22 @@ func (c *clientCredentialsImpl) GetToken(ctx context.Context) (*TokenResponse, e
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.SetBasicAuth(c.cfg.ClientID, c.cfg.ClientSecret)
 
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("OAuth request failed: %w", err)
+	// Retry logic para problemas de conectividade Docker
+	var resp *http.Response
+	maxRetries := 3
+	for i := 0; i < maxRetries; i++ {
+		resp, err = c.client.Do(req)
+		if err == nil {
+			break
+		}
+
+		// Se é o último retry, falhar
+		if i == maxRetries-1 {
+			return nil, fmt.Errorf("OAuth request failed after %d retries: %w", maxRetries, err)
+		}
+
+		// Aguardar antes do próximo retry
+		time.Sleep(time.Duration(i+1) * 5 * time.Second)
 	}
 	defer resp.Body.Close()
 

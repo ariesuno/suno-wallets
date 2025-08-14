@@ -38,6 +38,8 @@ COPY --from=builder /app/main .
 # Copiar arquivos de configuração se existirem
 COPY --from=builder /app/.env* ./
 
+
+
 # Mudar para usuário não-root
 USER appuser
 

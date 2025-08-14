@@ -20,7 +20,10 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - GIN_MODE=release
-      - B3_TIMEOUT_SECONDS=30
+      - B3_TIMEOUT_SECONDS=120
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=localhost,127.0.0.1,postgres,redis
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,7 +36,11 @@ services:
       - 1.1.1.1
       - 208.67.222.222
     extra_hosts:
-      - "login.microsoftonline.com:20.190.173.1"
+      - "login.microsoftonline.com:20.190.173.129"
+      - "login.mso.msidentity.com:20.190.173.129"
+      - "ak.privatelink.msidentity.com:20.190.173.129"
+      - "www.tm.a.prd.aadg.trafficmanager.net:20.190.173.129"
+      - "investidor.b3.com.br:191.233.25.233"
     restart: unless-stopped
 
   prometheus:

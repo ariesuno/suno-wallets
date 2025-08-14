@@ -124,9 +124,19 @@ func (s *Service) testConnection(ctx context.Context, cpf string) ConnectionTest
 	startTime := time.Now()
 	testDate := "2024-01-01"
 
-	_, err := s.b3Client.GetPositionsV3(ctx, cpf, testDate, testDate, 1)
+	// Criar contexto com timeout específico para teste
+	timeoutCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
+	defer cancel()
+
+	_, err := s.b3Client.GetPositionsV3(timeoutCtx, cpf, testDate, testDate, 1)
 	duration := time.Since(startTime)
 	if err != nil {
+		// Log mais detalhado do erro
+		helpers.LogError("Falha no teste de conexão B3", err, map[string]interface{}{
+			"cpf":      maskCPF(cpf),
+			"duration": duration.String(),
+			"testDate": testDate,
+		})
 		return ConnectionTestResult{AuthenticationOK: false, APIReachable: false, ResponseTime: duration.String(), Error: err.Error()}
 	}
 	return ConnectionTestResult{AuthenticationOK: true, APIReachable: true, ResponseTime: duration.String()}

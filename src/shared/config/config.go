@@ -104,7 +104,7 @@ func Load() *Config {
 		B3CertP12Path:    getEnv("B3_CERT_P12_PATH", "certs/b3_certificate12filepath.p12"),
 		B3CertPassphrase: getEnv("B3_CERT_PASSPHRASE", ""),
 		B3LegacyCertPath: getEnv("B3_LEGACY_CERT_PATH", "certs/b3_certificatefilepath.cer"),
-		B3TimeoutSeconds: getEnvInt("B3_TIMEOUT_SECONDS", 10),
+		B3TimeoutSeconds: getEnvInt("B3_TIMEOUT_SECONDS", 300), // 5 minutos default
 		B3MaxRetries:     getEnvInt("B3_MAX_RETRIES", 3),
 		B3InitialBackoff: getEnvInt("B3_INITIAL_BACKOFF_MS", 200),
 		B3MaxBackoff:     getEnvInt("B3_MAX_BACKOFF_MS", 2000),
