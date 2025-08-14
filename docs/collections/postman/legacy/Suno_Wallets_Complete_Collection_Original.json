@@ -1,0 +1,2437 @@
+{
+    "info": {
+        "name": "Suno Wallets - Collection Completa",
+        "description": "Collection unificada com todos os endpoints da API Suno Wallets organizados por funcionalidade",
+        "version": "2.0.0",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "description": "URL base da API",
+            "type": "string"
+        },
+        {
+            "key": "tenantId",
+            "value": "status_invest",
+            "description": "ID do tenant para testes",
+            "type": "string"
+        },
+        {
+            "key": "testCpf",
+            "value": "12345678901",
+            "description": "CPF para testes",
+            "type": "string"
+        },
+        {
+            "key": "adminSecret",
+            "value": "",
+            "description": "Secret para operações administrativas",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "🔍 Observabilidade",
+            "description": "Endpoints de saúde, métricas e observabilidade",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Verificação básica de saúde da aplicação"
+                    }
+                },
+                {
+                    "name": "Readiness Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/ready",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "ready"
+                            ]
+                        },
+                        "description": "Verifica se a aplicação está pronta para receber tráfego"
+                    }
+                },
+                {
+                    "name": "Liveness Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/live",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "live"
+                            ]
+                        },
+                        "description": "Verifica se a aplicação está viva"
+                    }
+                },
+                {
+                    "name": "Health Live (Detailed)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health/live",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "health",
+                                "live"
+                            ]
+                        },
+                        "description": "Verificação detalhada de liveness"
+                    }
+                },
+                {
+                    "name": "Health Ready (Detailed)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health/ready",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "health",
+                                "ready"
+                            ]
+                        },
+                        "description": "Verificação detalhada de readiness"
+                    }
+                },
+                {
+                    "name": "Health Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health/details",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "health",
+                                "details"
+                            ]
+                        },
+                        "description": "Detalhes completos de saúde do sistema"
+                    }
+                },
+                {
+                    "name": "Metrics (Prometheus)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/metrics",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Métricas do Prometheus"
+                    }
+                },
+                {
+                    "name": "Swagger Documentation",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/swagger/index.html",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "swagger",
+                                "index.html"
+                            ]
+                        },
+                        "description": "Documentação Swagger da API"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "👛 Carteiras",
+            "description": "Gestão de carteiras digitais",
+            "item": [
+                {
+                    "name": "Criar Carteira",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Minha Carteira Principal\",\n  \"description\": \"Carteira para uso pessoal\",\n  \"type\": \"personal\",\n  \"currency\": \"BRL\",\n  \"is_default\": true,\n  \"owner_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"owner_type\": \"user\",\n  \"allow_debit\": true,\n  \"daily_limit\": 100000,\n  \"monthly_limit\": 1000000,\n  \"created_by\": \"550e8400-e29b-41d4-a716-446655440003\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets"
+                            ]
+                        },
+                        "description": "Cria uma nova carteira"
+                    }
+                },
+                {
+                    "name": "Listar Carteiras",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Lista carteiras com paginação"
+                    }
+                },
+                {
+                    "name": "Obter Carteira por ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/:walletId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                ":walletId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "walletId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                                }
+                            ]
+                        },
+                        "description": "Obtém uma carteira específica por ID"
+                    }
+                },
+                {
+                    "name": "Obter Carteiras por Proprietário",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/owner/:ownerId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                "owner",
+                                ":ownerId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "ownerId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440002"
+                                }
+                            ]
+                        },
+                        "description": "Lista carteiras de um proprietário específico"
+                    }
+                },
+                {
+                    "name": "Atualizar Carteira",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Carteira Atualizada\",\n  \"description\": \"Nova descrição da carteira\",\n  \"status\": \"active\",\n  \"daily_limit\": 150000,\n  \"allow_debit\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/:walletId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                ":walletId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "walletId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                                }
+                            ]
+                        },
+                        "description": "Atualiza uma carteira existente"
+                    }
+                },
+                {
+                    "name": "Excluir Carteira",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/wallets/:walletId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "wallets",
+                                ":walletId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "walletId",
+                                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                                }
+                            ]
+                        },
+                        "description": "Exclui uma carteira"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔐 B3 - Autenticação & Conectividade",
+            "description": "Endpoints de teste e conectividade com B3",
+            "item": [
+                {
+                    "name": "Health Auth B3",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/health/auth",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "health",
+                                "auth"
+                            ]
+                        },
+                        "description": "Verifica autenticação com B3"
+                    }
+                },
+                {
+                    "name": "Teste de Conexão B3",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/test/connection",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "test",
+                                "connection"
+                            ]
+                        },
+                        "description": "Testa conectividade com a API B3"
+                    }
+                },
+                {
+                    "name": "Validação Rápida de CPF",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/test/cpf-quick?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "test",
+                                "cpf-quick"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Validação rápida de CPF sem dependências externas"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📊 B3 - Dados & Preview",
+            "description": "Fetch de dados B3 em modo preview",
+            "item": [
+                {
+                    "name": "Preview Transações",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/fetch/transactions/preview?cpf={{testCpf}}&start=2024-01-01&end=2024-01-31&assetType=equity&page=1&fetchAllPages=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "fetch",
+                                "transactions",
+                                "preview"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "start",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "end",
+                                    "value": "2024-01-31"
+                                },
+                                {
+                                    "key": "assetType",
+                                    "value": "equity"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "fetchAllPages",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Preview de transações equity sem persistência"
+                    }
+                },
+                {
+                    "name": "Preview Transações (Alias Legacy)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/transactions/{{testCpf}}?start=2024-01-01&end=2024-01-31&assetType=equity",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "transactions",
+                                "{{testCpf}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "start",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "end",
+                                    "value": "2024-01-31"
+                                },
+                                {
+                                    "key": "assetType",
+                                    "value": "equity"
+                                }
+                            ]
+                        },
+                        "description": "Alias compatível com versão anterior"
+                    }
+                },
+                {
+                    "name": "Preview Posições",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/fetch/positions/preview?cpf={{testCpf}}&start=2024-01-01&end=2024-01-31&assetType=equity&page=1&fetchAllPages=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "fetch",
+                                "positions",
+                                "preview"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "start",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "end",
+                                    "value": "2024-01-31"
+                                },
+                                {
+                                    "key": "assetType",
+                                    "value": "equity"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "fetchAllPages",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Preview de posições equity sem persistência"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "⚙️ B3 - Ingestão & Normalização",
+            "description": "Operações de ingestão e normalização de dados B3",
+            "item": [
+                {
+                    "name": "Ingestão Histórica RAW",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataType\": \"positions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2024-01-01\",\n  \"end\": \"2024-03-31\",\n  \"fetchAllPages\": true,\n  \"force\": false,\n  \"dryRun\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/fetch/historical",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "fetch",
+                                "historical"
+                            ]
+                        },
+                        "description": "Ingestão de dados históricos com persistência"
+                    }
+                },
+                {
+                    "name": "Executar Normalização",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataType\": \"transactions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2023-01-01\",\n  \"end\": \"2023-01-31\",\n  \"force\": false,\n  \"dryRun\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/normalize/run",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "normalize",
+                                "run"
+                            ]
+                        },
+                        "description": "Executa normalização de dados RAW"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔄 B3 - Sincronização",
+            "description": "Operações de sincronização básica e avançada",
+            "item": [
+                {
+                    "name": "Sincronização Básica",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"scope\": \"single\",\n  \"cpf\": \"{{testCpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"force\": false,\n  \"dryRun\": true,\n  \"limit\": 100\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/run",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "sync",
+                                "run"
+                            ]
+                        },
+                        "description": "Executa sincronização diária básica"
+                    }
+                },
+                {
+                    "name": "Status do Cliente",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/status?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Obtém status atual de sincronização do cliente"
+                    }
+                },
+                {
+                    "name": "Última Sincronização",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/last-sync?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "last-sync"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Informações da última sincronização do cliente"
+                    }
+                },
+                {
+                    "name": "Janela de Sincronização",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/sync-window?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "sync-window"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Inspeção da janela de sincronização sem execução"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🎯 B3 - Sincronização Completa",
+            "description": "Orquestração inteligente de sincronização completa",
+            "item": [
+                {
+                    "name": "Sincronização Completa",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "sync",
+                                "complete-ingestion"
+                            ]
+                        },
+                        "description": "Fluxo completo e inteligente de sincronização"
+                    }
+                },
+                {
+                    "name": "Análise de Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "sync",
+                                "status-analysis"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Análise de status sem executar ações"
+                    }
+                },
+                {
+                    "name": "Dry Run Sincronização Completa",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": true,\n  \"force\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "sync",
+                                "complete-ingestion"
+                            ]
+                        },
+                        "description": "Simulação de sincronização completa"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "⚡ B3 - Processamento Assíncrono",
+            "description": "Jobs assíncronos e worker pool",
+            "item": [
+                {
+                    "name": "Enfileirar Sincronização Completa",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"priority\": \"normal\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/async/sync/complete-ingestion",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "async",
+                                "sync",
+                                "complete-ingestion"
+                            ]
+                        },
+                        "description": "Adiciona job de sincronização à fila assíncrona"
+                    }
+                },
+                {
+                    "name": "Status do Job",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/async/jobs/:jobId/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "async",
+                                "jobs",
+                                ":jobId",
+                                "status"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "jobId",
+                                    "value": "job-uuid-here"
+                                }
+                            ]
+                        },
+                        "description": "Verifica status de um job específico"
+                    }
+                },
+                {
+                    "name": "Listar Jobs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/async/jobs?status=pending&limit=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "async",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "pending"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Lista jobs na fila assíncrona"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔧 B3 - Administração",
+            "description": "Operações administrativas B3",
+            "item": [
+                {
+                    "name": "Reset e Refetch E2E",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"startOverride\": \"2024-01-01\",\n  \"endOverride\": \"2024-03-31\",\n  \"force\": false,\n  \"dryRun\": true,\n  \"mode\": \"archive\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/admin/reset-and-refetch",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "admin",
+                                "reset-and-refetch"
+                            ]
+                        },
+                        "description": "Reset completo com nova ingestão (admin)"
+                    }
+                },
+                {
+                    "name": "Incremental desde Última Sync",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"since\": null,\n  \"endOverride\": \"2024-03-31\",\n  \"dryRun\": true,\n  \"force\": false,\n  \"concurrency\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/admin/incremental-from-last",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "admin",
+                                "incremental-from-last"
+                            ]
+                        },
+                        "description": "Sincronização incremental forçada (admin)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔄 B3 - Reativação",
+            "description": "Serviços de reativação inteligente",
+            "item": [
+                {
+                    "name": "Analisar Reativação",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"targetGapDays\": 30,\n  \"maxHistoricalDays\": 365,\n  \"strategy\": \"HYBRID\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/admin/reactivation/analyze",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "admin",
+                                "reactivation",
+                                "analyze"
+                            ]
+                        },
+                        "description": "Análise de estratégia de reativação"
+                    }
+                },
+                {
+                    "name": "Executar Reativação",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"targetGapDays\": 30,\n  \"maxHistoricalDays\": 365,\n  \"strategy\": \"HYBRID\",\n  \"dryRun\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/admin/reactivation/execute",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "admin",
+                                "reactivation",
+                                "execute"
+                            ]
+                        },
+                        "description": "Executa processo de reativação híbrida"
+                    }
+                },
+                {
+                    "name": "Status de Reativação",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/reactivation/status?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "reactivation",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Status público de reativação do cliente"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📈 B3 - Relatórios",
+            "description": "Relatórios e consultas de dados B3",
+            "item": [
+                {
+                    "name": "Intervalo de Datas RAW",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/raw-date-range?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "raw-date-range"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Intervalo de datas disponível nos dados RAW"
+                    }
+                },
+                {
+                    "name": "Resumo Financeiro",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/summary?cpf={{testCpf}}&from=2024-01-01&to=2024-12-31",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "summary"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "from",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2024-12-31"
+                                }
+                            ]
+                        },
+                        "description": "Resumo financeiro do período especificado"
+                    }
+                },
+                {
+                    "name": "Lista de Tickers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/client/tickers?cpf={{testCpf}}&from=2024-01-01&to=2024-12-31&limit=100&offset=0",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "client",
+                                "tickers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "from",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2024-12-31"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "100"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "0"
+                                }
+                            ]
+                        },
+                        "description": "Lista de tickers negociados no período"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔍 B3 - Reconciliação",
+            "description": "Detecção e correção de inconsistências",
+            "item": [
+                {
+                    "name": "Scan de Inconsistências",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"from\": \"2024-01-01\",\n  \"to\": \"2024-12-31\",\n  \"dryRun\": true,\n  \"maxSamplesPerType\": 5,\n  \"concurrency\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/reconciliation/scan",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "reconciliation",
+                                "scan"
+                            ]
+                        },
+                        "description": "Escaneia inconsistências entre dados RAW e normalizados"
+                    }
+                },
+                {
+                    "name": "Listar Inconsistências",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/reconciliation/inconsistencies?cpf={{testCpf}}&status=OPEN",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "reconciliation",
+                                "inconsistencies"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "OPEN"
+                                }
+                            ]
+                        },
+                        "description": "Lista inconsistências encontradas"
+                    }
+                },
+                {
+                    "name": "Obter Inconsistência",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/reconciliation/inconsistencies/:inconsistencyId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "reconciliation",
+                                "inconsistencies",
+                                ":inconsistencyId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "inconsistencyId",
+                                    "value": "00000000-0000-0000-0000-000000000000"
+                                }
+                            ]
+                        },
+                        "description": "Detalhes de uma inconsistência específica"
+                    }
+                },
+                {
+                    "name": "Auto-fix Geral",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dryRun\": true,\n  \"maxFixes\": 10\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/reconciliation/auto-fix",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "reconciliation",
+                                "auto-fix"
+                            ]
+                        },
+                        "description": "Correção automática de inconsistências"
+                    }
+                },
+                {
+                    "name": "Auto-fix por ID",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"dryRun\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/b3/reconciliation/auto-fix/:inconsistencyId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "b3",
+                                "reconciliation",
+                                "auto-fix",
+                                ":inconsistencyId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "inconsistencyId",
+                                    "value": "00000000-0000-0000-0000-000000000000"
+                                }
+                            ]
+                        },
+                        "description": "Correção automática de inconsistência específica"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🛠️ Operações Manuais",
+            "description": "Gestão de operações manuais",
+            "item": [
+                {
+                    "name": "Criar Operação Manual",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"ticker\": \"PETR4\",\n  \"assetType\": \"equity\",\n  \"operationDate\": \"2024-01-15\",\n  \"operationType\": \"BUY\",\n  \"quantity\": 100,\n  \"unitPrice\": 25.50,\n  \"currency\": \"BRL\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/manual",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "manual"
+                            ]
+                        },
+                        "description": "Cria nova operação manual"
+                    }
+                },
+                {
+                    "name": "Listar Operações Manuais",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/manual?cpf={{testCpf}}&pageSize=50",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "manual"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Lista operações manuais do cliente"
+                    }
+                },
+                {
+                    "name": "Atualizar Operação Manual",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"ticker\": \"PETR4\",\n  \"quantity\": 150,\n  \"unitPrice\": 26.00\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/manual/:operationId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "manual",
+                                ":operationId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "operationId",
+                                    "value": "00000000-0000-0000-0000-000000000000"
+                                }
+                            ]
+                        },
+                        "description": "Atualiza operação manual existente"
+                    }
+                },
+                {
+                    "name": "Excluir Operação Manual",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/manual/:operationId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "manual",
+                                ":operationId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "operationId",
+                                    "value": "00000000-0000-0000-0000-000000000000"
+                                }
+                            ]
+                        },
+                        "description": "Remove operação manual"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔄 Deduplicação",
+            "description": "Detecção e resolução de duplicatas",
+            "item": [
+                {
+                    "name": "Scan de Duplicatas",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"scoreThreshold\": 0.8,\n  \"maxCandidates\": 100\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/dedup/scan",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "dedup",
+                                "scan"
+                            ]
+                        },
+                        "description": "Escaneia possíveis duplicatas"
+                    }
+                },
+                {
+                    "name": "Listar Candidatos a Duplicata",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/dedup/candidates?cpf={{testCpf}}&status=PENDING",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "dedup",
+                                "candidates"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "PENDING"
+                                }
+                            ]
+                        },
+                        "description": "Lista candidatos a duplicata pendentes"
+                    }
+                },
+                {
+                    "name": "Resolver Duplicata",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"candidateId\": \"{{candidateId}}\",\n  \"action\": \"MERGE\",\n  \"reason\": \"Operações idênticas confirmadas\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/dedup/resolve",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "dedup",
+                                "resolve"
+                            ]
+                        },
+                        "description": "Resolve candidato a duplicata (merge/ignore)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📊 Timeline & Sumários",
+            "description": "Timeline operacional e sumários de reconciliação",
+            "item": [
+                {
+                    "name": "Timeline Operacional",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/timeline?cpf={{testCpf}}&pageSize=100",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "timeline"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "100"
+                                }
+                            ]
+                        },
+                        "description": "Timeline consolidada de operações"
+                    }
+                },
+                {
+                    "name": "Exportar Timeline",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/timeline/export?cpf={{testCpf}}&format=json",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "timeline",
+                                "export"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "format",
+                                    "value": "json"
+                                }
+                            ]
+                        },
+                        "description": "Exporta timeline em diferentes formatos"
+                    }
+                },
+                {
+                    "name": "Sumário de Reconciliação",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/ops/reconciliation/summary?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "ops",
+                                "reconciliation",
+                                "summary"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Sumário estatístico de reconciliação"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "⚙️ Políticas de Cliente",
+            "description": "Gestão de políticas de fonte de dados",
+            "item": [
+                {
+                    "name": "Obter Política",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/client/policy?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "client",
+                                "policy"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Obtém política atual do cliente"
+                    }
+                },
+                {
+                    "name": "Definir/Atualizar Política",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"mode\": \"HYBRID\",\n  \"reason\": \"Habilitar dados manuais + B3\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/client/policy",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "client",
+                                "policy"
+                            ]
+                        },
+                        "description": "Define ou atualiza política do cliente"
+                    }
+                },
+                {
+                    "name": "Auditoria de Política",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/client/policy/audit?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "client",
+                                "policy",
+                                "audit"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Histórico de mudanças na política"
+                    }
+                },
+                {
+                    "name": "Dry Run de Política",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"newMode\": \"MANUAL_ONLY\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/client/policy/dry-run",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "client",
+                                "policy",
+                                "dry-run"
+                            ]
+                        },
+                        "description": "Simula impacto de mudança de política"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🏢 Backoffice Admin",
+            "description": "Operações administrativas de backoffice",
+            "item": [
+                {
+                    "name": "Perfil de Cliente",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/profile?cpf={{testCpf}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "profile"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                }
+                            ]
+                        },
+                        "description": "Perfil consolidado do cliente"
+                    }
+                },
+                {
+                    "name": "Busca Avançada",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/search?query=123456",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "123456"
+                                }
+                            ]
+                        },
+                        "description": "Busca avançada por múltiplos critérios"
+                    }
+                },
+                {
+                    "name": "Listar Ações Admin",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/actions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "actions"
+                            ]
+                        },
+                        "description": "Lista ações administrativas pendentes/concluídas"
+                    }
+                },
+                {
+                    "name": "Obter Ação Admin",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/actions/:actionId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "actions",
+                                ":actionId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "actionId",
+                                    "value": "00000000-0000-0000-0000-000000000000"
+                                }
+                            ]
+                        },
+                        "description": "Detalhes de uma ação administrativa específica"
+                    }
+                },
+                {
+                    "name": "Exportar Ledger",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/export/ledger?cpf={{testCpf}}&format=csv",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "export",
+                                "ledger"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cpf",
+                                    "value": "{{testCpf}}"
+                                },
+                                {
+                                    "key": "format",
+                                    "value": "csv"
+                                }
+                            ]
+                        },
+                        "description": "Exporta ledger completo do cliente"
+                    }
+                },
+                {
+                    "name": "Solicitar Ação Admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"actionType\": \"RESET_USER_DATA\",\n  \"cpf\": \"{{testCpf}}\",\n  \"params\": {\n    \"mode\": \"archive\",\n    \"confirm\": \"YES\"\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/actions/request",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "actions",
+                                "request"
+                            ]
+                        },
+                        "description": "Solicita nova ação administrativa"
+                    }
+                },
+                {
+                    "name": "Confirmar Ação Admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Tenant-ID",
+                                "value": "{{tenantId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"actionId\": \"{{actionId}}\",\n  \"confirmToken\": \"{{confirmToken}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/backoffice/actions/confirm",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "backoffice",
+                                "actions",
+                                "confirm"
+                            ]
+                        },
+                        "description": "Confirma execução de ação administrativa"
+                    }
+                }
+            ]
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Script global para todas as requisições",
+                    "console.log('Executando requisição para:', pm.request.url.toString());"
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Testes globais para todas as respostas",
+                    "pm.test('Status code is not 5xx', function () {",
+                    "    pm.response.to.not.have.status(500);",
+                    "    pm.response.to.not.have.status(501);",
+                    "    pm.response.to.not.have.status(502);",
+                    "    pm.response.to.not.have.status(503);",
+                    "    pm.response.to.not.have.status(504);",
+                    "});",
+                    "",
+                    "pm.test('Response time is less than 30s', function () {",
+                    "    pm.expect(pm.response.responseTime).to.be.below(30000);",
+                    "});"
+                ]
+            }
+        }
+    ]
+}
