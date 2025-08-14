@@ -106,25 +106,18 @@ func (s *SystemOperationsService) AutoFix(ctx context.Context, tenantID string, 
 	for _, inc := range incs {
 		switch inc.Type {
 		case "OPENING_BALANCE_MISSING":
-			// calcular data e quantidade
-			firstDate := ""
-			if inc.SampleDates != nil {
-				if v, ok := inc.SampleDates["first_position_date"].(string); ok {
-					firstDate = v
-				}
+			// calcular data e quantidade usando campos normalizados
+			opDate := time.Now().Format("2006-01-02") // default
+			if inc.FirstPositionDate != nil {
+				opDate = inc.FirstPositionDate.Format("2006-01-02")
 			}
-			opDate := firstDate
-			if opDate == "" {
-				opDate = time.Now().Format("2006-01-02")
-			}
+
 			var posQty, netTx float64
-			if inc.Details != nil {
-				if v, ok := inc.Details["position_qty"].(float64); ok {
-					posQty = v
-				}
-				if v, ok := inc.Details["net_tx_until_first_position"].(float64); ok {
-					netTx = v
-				}
+			if inc.PositionQuantity != nil {
+				posQty = *inc.PositionQuantity
+			}
+			if inc.NetTransactionsQuantity != nil {
+				netTx = *inc.NetTransactionsQuantity
 			}
 			qty := posQty - netTx
 			if qty < 0 {

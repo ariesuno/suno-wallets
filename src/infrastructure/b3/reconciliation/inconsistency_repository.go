@@ -309,14 +309,63 @@ func (r *Repository) UpsertFindings(ctx context.Context, tenantID string, cpf st
 	for _, f := range findings {
 		samplesJSON, _ := json.Marshal(f.Samples)
 		detailsJSON, _ := json.Marshal(f.Details)
+
+		// Extrair campos normalizados dos JSONs
+		var firstTxDate, firstPositionDate *string
+		var firstTxSide *string
+		var minCumQty, positionQty, netTxQty *float64
+
+		// Extrair de Samples
+		if f.Samples != nil {
+			if v, ok := f.Samples["first_tx_date"].(string); ok && v != "" {
+				firstTxDate = &v
+			}
+			if v, ok := f.Samples["first_tx_side"].(string); ok && v != "" {
+				side := strings.ToUpper(v)
+				firstTxSide = &side
+			}
+			if v, ok := f.Samples["min_cum_qty"].(float64); ok {
+				minCumQty = &v
+			}
+			if v, ok := f.Samples["first_position_date"].(string); ok && v != "" {
+				firstPositionDate = &v
+			}
+		}
+
+		// Extrair de Details
+		if f.Details != nil {
+			if v, ok := f.Details["position_qty"].(float64); ok {
+				positionQty = &v
+			}
+			if v, ok := f.Details["net_tx_until_first_position"].(float64); ok {
+				netTxQty = &v
+			}
+		}
+
 		// garantir ID em bancos sem default (ex.: SQLite)
 		newID := uuid.New().String()
 		if err := r.db.WithContext(ctx).Exec(`
-      INSERT INTO b3_inconsistencies (id, tenant_id, cpf, ticker, type, status, severity, affected_period_start, affected_period_end, sample_dates, details, dedupe_hash, created_by_version, created_by)
-      VALUES (?,?,?,?,?, 'OPEN', ?, NULL, NULL, ?, ?, ?, 'v1.17', 'recon')
+      INSERT INTO b3_inconsistencies (
+        id, tenant_id, cpf, ticker, type, status, severity, 
+        affected_period_start, affected_period_end, 
+        sample_dates, details, dedupe_hash, created_by_version, created_by,
+        first_transaction_date, first_transaction_side, min_cumulative_quantity,
+        first_position_date, position_quantity, net_transactions_quantity
+      )
+      VALUES (?,?,?,?,?, 'OPEN', ?, NULL, NULL, ?, ?, ?, 'v1.19', 'recon', ?,?,?,?,?,?)
       ON CONFLICT (tenant_id, cpf, ticker, type, dedupe_hash)
-      DO UPDATE SET last_detected_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP`,
-			newID, tenantID, cpf, f.Ticker, f.Type, f.Severity, string(samplesJSON), string(detailsJSON), f.DedupeHash,
+      DO UPDATE SET 
+        last_detected_at = CURRENT_TIMESTAMP, 
+        updated_at = CURRENT_TIMESTAMP,
+        first_transaction_date = EXCLUDED.first_transaction_date,
+        first_transaction_side = EXCLUDED.first_transaction_side,
+        min_cumulative_quantity = EXCLUDED.min_cumulative_quantity,
+        first_position_date = EXCLUDED.first_position_date,
+        position_quantity = EXCLUDED.position_quantity,
+        net_transactions_quantity = EXCLUDED.net_transactions_quantity`,
+			newID, tenantID, cpf, f.Ticker, f.Type, f.Severity,
+			string(samplesJSON), string(detailsJSON), f.DedupeHash,
+			firstTxDate, firstTxSide, minCumQty, firstPositionDate, positionQty, netTxQty,
 		).Error; err != nil {
 			return err
 		}
@@ -326,7 +375,11 @@ func (r *Repository) UpsertFindings(ctx context.Context, tenantID string, cpf st
 
 // Implementações de leitura (list e get)
 func (r *Repository) ListInconsistencies(ctx context.Context, tenantID string, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]apprecon.Inconsistency, error) {
-	qb := r.db.WithContext(ctx).Table("b3_inconsistencies").Select("id, tenant_id, cpf, ticker, type, status, severity, updated_at").Where("tenant_id = ?", tenantID)
+	qb := r.db.WithContext(ctx).Table("b3_inconsistencies").Select(`
+		id, tenant_id, cpf, ticker, type, status, severity, updated_at,
+		first_transaction_date, first_transaction_side, min_cumulative_quantity,
+		first_position_date, position_quantity, net_transactions_quantity
+	`).Where("tenant_id = ?", tenantID)
 	if cpf != "" {
 		qb = qb.Where("cpf = ?", cpf)
 	}
@@ -347,14 +400,20 @@ func (r *Repository) ListInconsistencies(ctx context.Context, tenantID string, c
 	}
 	offset := (page - 1) * pageSize
 	type listRow struct {
-		ID        uuid.UUID
-		TenantID  string
-		CPF       string
-		Ticker    string
-		Type      string
-		Status    string
-		Severity  int
-		UpdatedAt time.Time
+		ID                      uuid.UUID
+		TenantID                string
+		CPF                     string
+		Ticker                  string
+		Type                    string
+		Status                  string
+		Severity                int
+		UpdatedAt               time.Time
+		FirstTransactionDate    *time.Time `gorm:"column:first_transaction_date"`
+		FirstTransactionSide    *string    `gorm:"column:first_transaction_side"`
+		MinCumulativeQuantity   *float64   `gorm:"column:min_cumulative_quantity"`
+		FirstPositionDate       *time.Time `gorm:"column:first_position_date"`
+		PositionQuantity        *float64   `gorm:"column:position_quantity"`
+		NetTransactionsQuantity *float64   `gorm:"column:net_transactions_quantity"`
 	}
 	var tmp []listRow
 	if err := qb.Order("updated_at DESC").Limit(pageSize).Offset(offset).Scan(&tmp).Error; err != nil {
@@ -371,6 +430,13 @@ func (r *Repository) ListInconsistencies(ctx context.Context, tenantID string, c
 			Status:    r0.Status,
 			Severity:  r0.Severity,
 			UpdatedAt: r0.UpdatedAt,
+			// Campos normalizados
+			FirstTransactionDate:    r0.FirstTransactionDate,
+			FirstTransactionSide:    r0.FirstTransactionSide,
+			MinCumulativeQuantity:   r0.MinCumulativeQuantity,
+			FirstPositionDate:       r0.FirstPositionDate,
+			PositionQuantity:        r0.PositionQuantity,
+			NetTransactionsQuantity: r0.NetTransactionsQuantity,
 		})
 	}
 	return out, nil
@@ -391,12 +457,21 @@ func (r *Repository) GetInconsistency(ctx context.Context, tenantID string, id u
 		LastDetectedAt  time.Time
 		SampleDatesJSON string
 		DetailsJSON     string
+		// Campos normalizados
+		FirstTransactionDate    *time.Time `gorm:"column:first_transaction_date"`
+		FirstTransactionSide    *string    `gorm:"column:first_transaction_side"`
+		MinCumulativeQuantity   *float64   `gorm:"column:min_cumulative_quantity"`
+		FirstPositionDate       *time.Time `gorm:"column:first_position_date"`
+		PositionQuantity        *float64   `gorm:"column:position_quantity"`
+		NetTransactionsQuantity *float64   `gorm:"column:net_transactions_quantity"`
 	}
 	var rrow dbrow
 	if err := r.db.WithContext(ctx).Raw(`
         SELECT id, tenant_id, cpf, ticker, type, status, severity, updated_at, first_detected_at, last_detected_at,
                COALESCE(CAST(sample_dates AS TEXT), '{}') AS sample_dates_json,
-               COALESCE(CAST(details AS TEXT), '{}') AS details_json
+               COALESCE(CAST(details AS TEXT), '{}') AS details_json,
+               first_transaction_date, first_transaction_side, min_cumulative_quantity,
+               first_position_date, position_quantity, net_transactions_quantity
         FROM b3_inconsistencies WHERE tenant_id = ? AND id = ?`, tenantID, id).Scan(&rrow).Error; err != nil {
 		return nil, err
 	}
@@ -415,8 +490,15 @@ func (r *Repository) GetInconsistency(ctx context.Context, tenantID string, id u
 		UpdatedAt:       rrow.UpdatedAt,
 		FirstDetectedAt: rrow.FirstDetectedAt,
 		LastDetectedAt:  rrow.LastDetectedAt,
-		SampleDates:     samples,
-		Details:         details,
+		SampleDates:     samples, // DEPRECATED: mantido para compatibilidade
+		Details:         details, // DEPRECATED: mantido para compatibilidade
+		// Campos normalizados
+		FirstTransactionDate:    rrow.FirstTransactionDate,
+		FirstTransactionSide:    rrow.FirstTransactionSide,
+		MinCumulativeQuantity:   rrow.MinCumulativeQuantity,
+		FirstPositionDate:       rrow.FirstPositionDate,
+		PositionQuantity:        rrow.PositionQuantity,
+		NetTransactionsQuantity: rrow.NetTransactionsQuantity,
 	}
 	return out, nil
 }

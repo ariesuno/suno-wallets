@@ -263,6 +263,8 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			b3Group.GET("/health/auth", b3Controller.HealthAuth)
 			// Teste de conectividade B3
 			b3Group.GET("/test/connection", testController.TestConnection)
+			// Teste rápido de CPF sem dependências externas
+			b3Group.GET("/test/cpf-quick", testController.QuickValidateCPF)
 			// Preview de transações v2 (equity)
 			b3Group.GET("/fetch/transactions/preview", transactionsController.FetchTransactionsPreview)
 			// Alias compatível com v_p_1_7 (sem persistência, apenas proxy/preview)

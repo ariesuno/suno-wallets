@@ -150,8 +150,16 @@ type Inconsistency struct {
 	// Campos adicionais para o GET por id
 	FirstDetectedAt time.Time
 	LastDetectedAt  time.Time
-	SampleDates     map[string]interface{}
-	Details         map[string]interface{}
+	SampleDates     map[string]interface{} // DEPRECATED: Usar campos normalizados abaixo
+	Details         map[string]interface{} // DEPRECATED: Usar campos normalizados abaixo
+
+	// Campos normalizados extraídos dos JSONs (evita parsing manual)
+	FirstTransactionDate    *time.Time `json:"firstTransactionDate,omitempty"`
+	FirstTransactionSide    *string    `json:"firstTransactionSide,omitempty"`
+	MinCumulativeQuantity   *float64   `json:"minCumulativeQuantity,omitempty"`
+	FirstPositionDate       *time.Time `json:"firstPositionDate,omitempty"`
+	PositionQuantity        *float64   `json:"positionQuantity,omitempty"`
+	NetTransactionsQuantity *float64   `json:"netTransactionsQuantity,omitempty"`
 }
 
 func (s *Service) List(ctx context.Context, tenantID string, cpf, status, typ, ticker string, from, to *time.Time, page, pageSize int) ([]Inconsistency, error) {

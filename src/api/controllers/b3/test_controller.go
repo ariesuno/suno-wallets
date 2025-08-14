@@ -90,3 +90,41 @@ func (c *TestController) TestConnection(ctx *gin.Context) {
 		"report": result,
 	})
 }
+
+// QuickValidateCPF realiza validação básica de CPF sem conectar à B3
+// @Summary Validação rápida de CPF (sem conexão B3)
+// @Description Valida formato do CPF e retorna status básico sem fazer requisições externas
+// @Tags Test
+// @Accept json
+// @Produce json
+// @Param X-Tenant-ID header string true "ID do inquilino (tenant)" example(status_invest)
+// @Param cpf query string true "CPF do cliente (11 dígitos, apenas números)" example(33680115881)
+// @Success 200 {object} map[string]interface{} "CPF válido"
+// @Failure 400 {object} map[string]string "CPF inválido"
+// @Router /b3/test/cpf-quick [get]
+func (c *TestController) QuickValidateCPF(ctx *gin.Context) {
+	tenantID := middlewares.MustGetTenantName(ctx)
+	cpf := ctx.Query("cpf")
+
+	// Validação do CPF
+	if err := validation.ValidateCPF(cpf); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"valid":  false,
+			"error":  err.Error(),
+			"cpf":    maskCPF(cpf),
+			"tenant": tenantID,
+		})
+		return
+	}
+
+	// Retornar resposta de sucesso sem tentar conectar à B3
+	ctx.JSON(http.StatusOK, gin.H{
+		"valid":       true,
+		"cpf":         maskCPF(cpf),
+		"tenant":      tenantID,
+		"validatedAt": time.Now().UTC(),
+		"method":      "format_validation",
+		"note":        "CPF com formato válido - conexão B3 não testada",
+		"suggestion":  "Use /b3/sync/status-analysis para análise mais detalhada",
+	})
+}

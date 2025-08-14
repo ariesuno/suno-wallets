@@ -20,6 +20,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - GIN_MODE=release
+      - B3_TIMEOUT_SECONDS=30
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,6 +28,12 @@ services:
         condition: service_healthy
     networks:
       - suno-network
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+      - 208.67.222.222
+    extra_hosts:
+      - "login.microsoftonline.com:20.190.173.1"
     restart: unless-stopped
 
   prometheus:
@@ -63,7 +70,7 @@ services:
     image: grafana/loki:2.9.0
     ports:
       - "3100:3100"
-    command: ["-config.file=/etc/loki/local-config.yaml"]
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
     networks:
       - suno-network
 
@@ -72,7 +79,7 @@ services:
     volumes:
       - ./misc/promtail-config.yml:/etc/promtail/config.yml:ro
       - ./logs:/var/log/app
-    command: ["--config.file=/etc/promtail/config.yml"]
+    command: [ "--config.file=/etc/promtail/config.yml" ]
     networks:
       - suno-network
     depends_on:
