@@ -108,11 +108,29 @@ As collections anteriores foram consolidadas em uma única collection organizada
 2. Selecione o arquivo `Suno_Wallets_Complete_Collection.json`
 3. A collection será importada com todas as pastas organizadas
 
-> **Nota**: Se você encontrar problemas de importação, verifique se está usando a versão mais recente do Postman. O arquivo foi corrigido para seguir exatamente o formato esperado pelo Postman v2.1.0.
+### 2. Configurar Ambiente (IMPORTANTE)
 
-### 2. Configurar Variáveis
+**Para que as variáveis sejam preenchidas automaticamente, você DEVE importar um ambiente:**
 
-A collection inclui variáveis predefinidas que você pode personalizar:
+1. Vá em **Environments** no Postman (ícone de engrenagem)
+2. Clique em **Import** 
+3. Selecione um dos arquivos de ambiente:
+   - `Local.postman_environment.json` - Para desenvolvimento local
+   - `Development.postman_environment.json` - Para ambiente de dev
+   - `Production.postman_environment.json` - Para produção
+4. **Ative o ambiente** clicando no dropdown no canto superior direito
+5. Selecione o ambiente importado (ex: "Suno Wallets - Local")
+
+> **⚠️ IMPORTANTE**: Sem um ambiente ativo, as variáveis como `{{baseUrl}}` e `{{tenantId}}` não serão substituídas!
+
+### 3. Verificar/Ajustar Variáveis
+
+Após importar o ambiente, você pode verificar e ajustar as variáveis conforme necessário:
+
+1. No ambiente ativo, clique no ícone de "olho" 👁️ para ver as variáveis
+2. Clique em **Edit** para modificar os valores se necessário
+
+As variáveis incluídas são:
 
 ```json
 {
@@ -123,7 +141,7 @@ A collection inclui variáveis predefinidas que você pode personalizar:
 }
 ```
 
-### 3. Criar Ambientes
+### 4. Ambientes Disponíveis
 
 Recomenda-se criar ambientes específicos para cada contexto:
 

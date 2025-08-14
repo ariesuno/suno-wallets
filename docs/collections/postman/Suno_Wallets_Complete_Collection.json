@@ -3,8 +3,7 @@
 		"_postman_id": "suno-wallets-complete-collection",
 		"name": "Suno Wallets - Collection Completa",
 		"description": "Collection unificada com todos os endpoints da API Suno Wallets organizados por funcionalidade",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "suno-wallets"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
@@ -15,140 +14,64 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"health"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/health"
+					}
 				},
 				{
 					"name": "Readiness Check",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/ready",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"ready"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/ready"
+					}
 				},
 				{
 					"name": "Liveness Check",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/live",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"live"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/live"
+					}
 				},
 				{
 					"name": "Health Live (Detailed)",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health/live",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"health",
-								"live"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/health/live"
+					}
 				},
 				{
 					"name": "Health Ready (Detailed)",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health/ready",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"health",
-								"ready"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/health/ready"
+					}
 				},
 				{
 					"name": "Health Details",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health/details",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"health",
-								"details"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/health/details"
+					}
 				},
 				{
 					"name": "Metrics (Prometheus)",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/metrics",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"metrics"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/metrics"
+					}
 				},
 				{
 					"name": "Swagger Documentation",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/swagger/index.html",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"swagger",
-								"index.html"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/swagger/index.html"
+					}
 				}
 			]
 		},
@@ -171,26 +94,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Minha Carteira Principal\",\n  \"description\": \"Carteira para uso pessoal\",\n  \"type\": \"personal\",\n  \"currency\": \"BRL\",\n  \"is_default\": true,\n  \"owner_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"owner_type\": \"user\",\n  \"allow_debit\": true,\n  \"daily_limit\": 100000,\n  \"monthly_limit\": 1000000,\n  \"created_by\": \"550e8400-e29b-41d4-a716-446655440003\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"name\": \"Minha Carteira Principal\",\n  \"description\": \"Carteira para uso pessoal\",\n  \"type\": \"personal\",\n  \"currency\": \"BRL\",\n  \"is_default\": true,\n  \"owner_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"owner_type\": \"user\",\n  \"allow_debit\": true,\n  \"daily_limit\": 100000,\n  \"monthly_limit\": 1000000,\n  \"created_by\": \"550e8400-e29b-41d4-a716-446655440003\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/wallets",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"wallets"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/wallets"
+					}
 				},
 				{
 					"name": "Listar Carteiras",
@@ -202,29 +109,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/wallets?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"wallets"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/wallets?page=1&limit=10"
+					}
 				},
 				{
 					"name": "Obter Carteira por ID",
@@ -236,26 +122,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/wallets/:walletId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"wallets",
-								":walletId"
-							],
-							"variable": [
-								{
-									"key": "walletId",
-									"value": "550e8400-e29b-41d4-a716-446655440000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/wallets/550e8400-e29b-41d4-a716-446655440000"
+					}
 				},
 				{
 					"name": "Obter Carteiras por Proprietário",
@@ -267,27 +135,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/wallets/owner/:ownerId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"wallets",
-								"owner",
-								":ownerId"
-							],
-							"variable": [
-								{
-									"key": "ownerId",
-									"value": "550e8400-e29b-41d4-a716-446655440002"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/wallets/owner/550e8400-e29b-41d4-a716-446655440002"
+					}
 				},
 				{
 					"name": "Atualizar Carteira",
@@ -305,33 +154,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Carteira Atualizada\",\n  \"description\": \"Nova descrição da carteira\",\n  \"status\": \"active\",\n  \"daily_limit\": 150000,\n  \"allow_debit\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"name\": \"Carteira Atualizada\",\n  \"description\": \"Nova descrição da carteira\",\n  \"status\": \"active\",\n  \"daily_limit\": 150000,\n  \"allow_debit\": true\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/wallets/:walletId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"wallets",
-								":walletId"
-							],
-							"variable": [
-								{
-									"key": "walletId",
-									"value": "550e8400-e29b-41d4-a716-446655440000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/wallets/550e8400-e29b-41d4-a716-446655440000"
+					}
 				},
 				{
 					"name": "Excluir Carteira",
@@ -343,26 +169,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/wallets/:walletId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"wallets",
-								":walletId"
-							],
-							"variable": [
-								{
-									"key": "walletId",
-									"value": "550e8400-e29b-41d4-a716-446655440000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/wallets/550e8400-e29b-41d4-a716-446655440000"
+					}
 				}
 			]
 		},
@@ -379,21 +187,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/health/auth",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"health",
-								"auth"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/health/auth"
+					}
 				},
 				{
 					"name": "Teste de Conexão B3",
@@ -405,21 +200,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/test/connection",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"test",
-								"connection"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/test/connection"
+					}
 				},
 				{
 					"name": "Validação Rápida de CPF",
@@ -431,27 +213,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/test/cpf-quick?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"test",
-								"cpf-quick"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/test/cpf-quick?cpf={{testCpf}}"
+					}
 				}
 			]
 		},
@@ -468,48 +231,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/fetch/transactions/preview?cpf={{testCpf}}&start=2024-01-01&end=2024-01-31&assetType=equity&page=1&fetchAllPages=false",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"fetch",
-								"transactions",
-								"preview"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "start",
-									"value": "2024-01-01"
-								},
-								{
-									"key": "end",
-									"value": "2024-01-31"
-								},
-								{
-									"key": "assetType",
-									"value": "equity"
-								},
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "fetchAllPages",
-									"value": "false"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/fetch/transactions/preview?cpf={{testCpf}}&start=2024-01-01&end=2024-01-31&assetType=equity&page=1&fetchAllPages=false"
+					}
 				},
 				{
 					"name": "Preview Transações (Alias Legacy)",
@@ -521,35 +244,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/transactions/{{testCpf}}?start=2024-01-01&end=2024-01-31&assetType=equity",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"transactions",
-								"{{testCpf}}"
-							],
-							"query": [
-								{
-									"key": "start",
-									"value": "2024-01-01"
-								},
-								{
-									"key": "end",
-									"value": "2024-01-31"
-								},
-								{
-									"key": "assetType",
-									"value": "equity"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/transactions/{{testCpf}}?start=2024-01-01&end=2024-01-31&assetType=equity"
+					}
 				},
 				{
 					"name": "Preview Posições",
@@ -561,48 +257,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/fetch/positions/preview?cpf={{testCpf}}&start=2024-01-01&end=2024-01-31&assetType=equity&page=1&fetchAllPages=false",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"fetch",
-								"positions",
-								"preview"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "start",
-									"value": "2024-01-01"
-								},
-								{
-									"key": "end",
-									"value": "2024-01-31"
-								},
-								{
-									"key": "assetType",
-									"value": "equity"
-								},
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "fetchAllPages",
-									"value": "false"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/fetch/positions/preview?cpf={{testCpf}}&start=2024-01-01&end=2024-01-31&assetType=equity&page=1&fetchAllPages=false"
+					}
 				}
 			]
 		},
@@ -625,28 +281,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataType\": \"positions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2024-01-01\",\n  \"end\": \"2024-03-31\",\n  \"fetchAllPages\": true,\n  \"force\": false,\n  \"dryRun\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataType\": \"positions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2024-01-01\",\n  \"end\": \"2024-03-31\",\n  \"fetchAllPages\": true,\n  \"force\": false,\n  \"dryRun\": true\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/fetch/historical",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"fetch",
-								"historical"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/fetch/historical"
+					}
 				},
 				{
 					"name": "Executar Normalização",
@@ -664,28 +302,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataType\": \"transactions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2023-01-01\",\n  \"end\": \"2023-01-31\",\n  \"force\": false,\n  \"dryRun\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataType\": \"transactions\",\n  \"assetType\": \"equity\",\n  \"start\": \"2023-01-01\",\n  \"end\": \"2023-01-31\",\n  \"force\": false,\n  \"dryRun\": true\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/normalize/run",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"normalize",
-								"run"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/normalize/run"
+					}
 				}
 			]
 		},
@@ -708,28 +328,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"scope\": \"single\",\n  \"cpf\": \"{{testCpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"force\": false,\n  \"dryRun\": true,\n  \"limit\": 100\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"scope\": \"single\",\n  \"cpf\": \"{{testCpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"force\": false,\n  \"dryRun\": true,\n  \"limit\": 100\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/sync/run",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"sync",
-								"run"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/sync/run"
+					}
 				},
 				{
 					"name": "Status do Cliente",
@@ -741,27 +343,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/status?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"status"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/status?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Última Sincronização",
@@ -773,27 +356,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/last-sync?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"last-sync"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/last-sync?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Janela de Sincronização",
@@ -805,27 +369,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/sync-window?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"sync-window"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/sync-window?cpf={{testCpf}}"
+					}
 				}
 			]
 		},
@@ -848,28 +393,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"dryRun\": false,\n  \"force\": false\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"sync",
-								"complete-ingestion"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion"
+					}
 				},
 				{
 					"name": "Análise de Status",
@@ -881,27 +408,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"sync",
-								"status-analysis"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/sync/status-analysis?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Dry Run Sincronização Completa",
@@ -919,28 +427,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": true,\n  \"force\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": false,\n  \"dryRun\": true,\n  \"force\": false\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"sync",
-								"complete-ingestion"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/sync/complete-ingestion"
+					}
 				}
 			]
 		},
@@ -963,29 +453,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"priority\": \"normal\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"includeReconciliation\": true,\n  \"priority\": \"normal\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/async/sync/complete-ingestion",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"async",
-								"sync",
-								"complete-ingestion"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/async/sync/complete-ingestion"
+					}
 				},
 				{
 					"name": "Status do Job",
@@ -997,29 +468,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/async/jobs/:jobId/status",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"async",
-								"jobs",
-								":jobId",
-								"status"
-							],
-							"variable": [
-								{
-									"key": "jobId",
-									"value": "job-uuid-here"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/async/jobs/job-uuid-here/status"
+					}
 				},
 				{
 					"name": "Listar Jobs",
@@ -1031,31 +481,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/async/jobs?status=pending&limit=20",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"async",
-								"jobs"
-							],
-							"query": [
-								{
-									"key": "status",
-									"value": "pending"
-								},
-								{
-									"key": "limit",
-									"value": "20"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/async/jobs?status=pending&limit=20"
+					}
 				}
 			]
 		},
@@ -1078,28 +505,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"startOverride\": \"2024-01-01\",\n  \"endOverride\": \"2024-03-31\",\n  \"force\": false,\n  \"dryRun\": true,\n  \"mode\": \"archive\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"assetTypes\": [\"equity\"],\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"startOverride\": \"2024-01-01\",\n  \"endOverride\": \"2024-03-31\",\n  \"force\": false,\n  \"dryRun\": true,\n  \"mode\": \"archive\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/admin/reset-and-refetch",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"admin",
-								"reset-and-refetch"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/admin/reset-and-refetch"
+					}
 				},
 				{
 					"name": "Incremental desde Última Sync",
@@ -1117,28 +526,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"since\": null,\n  \"endOverride\": \"2024-03-31\",\n  \"dryRun\": true,\n  \"force\": false,\n  \"concurrency\": 2\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dataTypes\": [\"transactions\", \"positions\"],\n  \"assetTypes\": [\"equity\"],\n  \"since\": null,\n  \"endOverride\": \"2024-03-31\",\n  \"dryRun\": true,\n  \"force\": false,\n  \"concurrency\": 2\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/admin/incremental-from-last",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"admin",
-								"incremental-from-last"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/admin/incremental-from-last"
+					}
 				}
 			]
 		},
@@ -1161,29 +552,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"targetGapDays\": 30,\n  \"maxHistoricalDays\": 365,\n  \"strategy\": \"HYBRID\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"targetGapDays\": 30,\n  \"maxHistoricalDays\": 365,\n  \"strategy\": \"HYBRID\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/admin/reactivation/analyze",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"admin",
-								"reactivation",
-								"analyze"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/admin/reactivation/analyze"
+					}
 				},
 				{
 					"name": "Executar Reativação",
@@ -1201,29 +573,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"targetGapDays\": 30,\n  \"maxHistoricalDays\": 365,\n  \"strategy\": \"HYBRID\",\n  \"dryRun\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"targetGapDays\": 30,\n  \"maxHistoricalDays\": 365,\n  \"strategy\": \"HYBRID\",\n  \"dryRun\": true\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/admin/reactivation/execute",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"admin",
-								"reactivation",
-								"execute"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/admin/reactivation/execute"
+					}
 				},
 				{
 					"name": "Status de Reativação",
@@ -1235,28 +588,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/reactivation/status?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"reactivation",
-								"status"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/reactivation/status?cpf={{testCpf}}"
+					}
 				}
 			]
 		},
@@ -1273,27 +606,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/raw-date-range?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"raw-date-range"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/raw-date-range?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Resumo Financeiro",
@@ -1305,35 +619,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/summary?cpf={{testCpf}}&from=2024-01-01&to=2024-12-31",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"summary"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "from",
-									"value": "2024-01-01"
-								},
-								{
-									"key": "to",
-									"value": "2024-12-31"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/summary?cpf={{testCpf}}&from=2024-01-01&to=2024-12-31"
+					}
 				},
 				{
 					"name": "Lista de Tickers",
@@ -1345,43 +632,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/client/tickers?cpf={{testCpf}}&from=2024-01-01&to=2024-12-31&limit=100&offset=0",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"client",
-								"tickers"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "from",
-									"value": "2024-01-01"
-								},
-								{
-									"key": "to",
-									"value": "2024-12-31"
-								},
-								{
-									"key": "limit",
-									"value": "100"
-								},
-								{
-									"key": "offset",
-									"value": "0"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/client/tickers?cpf={{testCpf}}&from=2024-01-01&to=2024-12-31&limit=100&offset=0"
+					}
 				}
 			]
 		},
@@ -1404,28 +656,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"from\": \"2024-01-01\",\n  \"to\": \"2024-12-31\",\n  \"dryRun\": true,\n  \"maxSamplesPerType\": 5,\n  \"concurrency\": 2\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"from\": \"2024-01-01\",\n  \"to\": \"2024-12-31\",\n  \"dryRun\": true,\n  \"maxSamplesPerType\": 5,\n  \"concurrency\": 2\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/reconciliation/scan",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"reconciliation",
-								"scan"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/reconciliation/scan"
+					}
 				},
 				{
 					"name": "Listar Inconsistências",
@@ -1437,31 +671,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/reconciliation/inconsistencies?cpf={{testCpf}}&status=OPEN",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"reconciliation",
-								"inconsistencies"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "status",
-									"value": "OPEN"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/reconciliation/inconsistencies?cpf={{testCpf}}&status=OPEN"
+					}
 				},
 				{
 					"name": "Obter Inconsistência",
@@ -1473,28 +684,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/reconciliation/inconsistencies/:inconsistencyId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"reconciliation",
-								"inconsistencies",
-								":inconsistencyId"
-							],
-							"variable": [
-								{
-									"key": "inconsistencyId",
-									"value": "00000000-0000-0000-0000-000000000000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/reconciliation/inconsistencies/00000000-0000-0000-0000-000000000000"
+					}
 				},
 				{
 					"name": "Auto-fix Geral",
@@ -1512,28 +703,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dryRun\": true,\n  \"maxFixes\": 10\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"dryRun\": true,\n  \"maxFixes\": 10\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/reconciliation/auto-fix",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"reconciliation",
-								"auto-fix"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/reconciliation/auto-fix"
+					}
 				},
 				{
 					"name": "Auto-fix por ID",
@@ -1551,35 +724,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"dryRun\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"dryRun\": true\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/b3/reconciliation/auto-fix/:inconsistencyId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"b3",
-								"reconciliation",
-								"auto-fix",
-								":inconsistencyId"
-							],
-							"variable": [
-								{
-									"key": "inconsistencyId",
-									"value": "00000000-0000-0000-0000-000000000000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/b3/reconciliation/auto-fix/00000000-0000-0000-0000-000000000000"
+					}
 				}
 			]
 		},
@@ -1602,27 +750,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"ticker\": \"PETR4\",\n  \"assetType\": \"equity\",\n  \"operationDate\": \"2024-01-15\",\n  \"operationType\": \"BUY\",\n  \"quantity\": 100,\n  \"unitPrice\": 25.50,\n  \"currency\": \"BRL\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"ticker\": \"PETR4\",\n  \"assetType\": \"equity\",\n  \"operationDate\": \"2024-01-15\",\n  \"operationType\": \"BUY\",\n  \"quantity\": 100,\n  \"unitPrice\": 25.50,\n  \"currency\": \"BRL\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/manual",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"manual"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/manual"
+					}
 				},
 				{
 					"name": "Listar Operações Manuais",
@@ -1634,30 +765,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/manual?cpf={{testCpf}}&pageSize=50",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"manual"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "pageSize",
-									"value": "50"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/manual?cpf={{testCpf}}&pageSize=50"
+					}
 				},
 				{
 					"name": "Atualizar Operação Manual",
@@ -1675,34 +784,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"ticker\": \"PETR4\",\n  \"quantity\": 150,\n  \"unitPrice\": 26.00\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"ticker\": \"PETR4\",\n  \"quantity\": 150,\n  \"unitPrice\": 26.00\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/manual/:operationId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"manual",
-								":operationId"
-							],
-							"variable": [
-								{
-									"key": "operationId",
-									"value": "00000000-0000-0000-0000-000000000000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/manual/00000000-0000-0000-0000-000000000000"
+					}
 				},
 				{
 					"name": "Excluir Operação Manual",
@@ -1714,27 +799,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/manual/:operationId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"manual",
-								":operationId"
-							],
-							"variable": [
-								{
-									"key": "operationId",
-									"value": "00000000-0000-0000-0000-000000000000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/manual/00000000-0000-0000-0000-000000000000"
+					}
 				}
 			]
 		},
@@ -1757,28 +823,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"scoreThreshold\": 0.8,\n  \"maxCandidates\": 100\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"scoreThreshold\": 0.8,\n  \"maxCandidates\": 100\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/dedup/scan",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"dedup",
-								"scan"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/dedup/scan"
+					}
 				},
 				{
 					"name": "Listar Candidatos a Duplicata",
@@ -1790,31 +838,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/dedup/candidates?cpf={{testCpf}}&status=PENDING",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"dedup",
-								"candidates"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "status",
-									"value": "PENDING"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/dedup/candidates?cpf={{testCpf}}&status=PENDING"
+					}
 				},
 				{
 					"name": "Resolver Duplicata",
@@ -1832,28 +857,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"candidateId\": \"{{candidateId}}\",\n  \"action\": \"MERGE\",\n  \"reason\": \"Operações idênticas confirmadas\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"candidateId\": \"{{candidateId}}\",\n  \"action\": \"MERGE\",\n  \"reason\": \"Operações idênticas confirmadas\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/dedup/resolve",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"dedup",
-								"resolve"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/dedup/resolve"
+					}
 				}
 			]
 		},
@@ -1870,30 +877,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/timeline?cpf={{testCpf}}&pageSize=100",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"timeline"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "pageSize",
-									"value": "100"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/timeline?cpf={{testCpf}}&pageSize=100"
+					}
 				},
 				{
 					"name": "Exportar Timeline",
@@ -1905,31 +890,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/timeline/export?cpf={{testCpf}}&format=json",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"timeline",
-								"export"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "format",
-									"value": "json"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/timeline/export?cpf={{testCpf}}&format=json"
+					}
 				},
 				{
 					"name": "Sumário de Reconciliação",
@@ -1941,27 +903,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/ops/reconciliation/summary?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"ops",
-								"reconciliation",
-								"summary"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/ops/reconciliation/summary?cpf={{testCpf}}"
+					}
 				}
 			]
 		},
@@ -1978,27 +921,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/client/policy?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"client",
-								"policy"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/client/policy?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Definir/Atualizar Política",
@@ -2016,28 +940,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"mode\": \"HYBRID\",\n  \"reason\": \"Habilitar dados manuais + B3\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"mode\": \"HYBRID\",\n  \"reason\": \"Habilitar dados manuais + B3\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/client/policy",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"client",
-								"policy"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/client/policy"
+					}
 				},
 				{
 					"name": "Auditoria de Política",
@@ -2049,28 +955,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/client/policy/audit?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"client",
-								"policy",
-								"audit"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/client/policy/audit?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Dry Run de Política",
@@ -2088,29 +974,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"newMode\": \"MANUAL_ONLY\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"cpf\": \"{{testCpf}}\",\n  \"newMode\": \"MANUAL_ONLY\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/client/policy/dry-run",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"client",
-								"policy",
-								"dry-run"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/client/policy/dry-run"
+					}
 				}
 			]
 		},
@@ -2127,27 +994,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/profile?cpf={{testCpf}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"profile"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/profile?cpf={{testCpf}}"
+					}
 				},
 				{
 					"name": "Busca Avançada",
@@ -2159,27 +1007,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/search?query=123456",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"search"
-							],
-							"query": [
-								{
-									"key": "query",
-									"value": "123456"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/search?query=123456"
+					}
 				},
 				{
 					"name": "Listar Ações Admin",
@@ -2191,21 +1020,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/actions",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"actions"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/actions"
+					}
 				},
 				{
 					"name": "Obter Ação Admin",
@@ -2217,28 +1033,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/actions/:actionId",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"actions",
-								":actionId"
-							],
-							"variable": [
-								{
-									"key": "actionId",
-									"value": "00000000-0000-0000-0000-000000000000"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/actions/00000000-0000-0000-0000-000000000000"
+					}
 				},
 				{
 					"name": "Exportar Ledger",
@@ -2250,32 +1046,8 @@
 								"value": "{{tenantId}}"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/export/ledger?cpf={{testCpf}}&format=csv",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"export",
-								"ledger"
-							],
-							"query": [
-								{
-									"key": "cpf",
-									"value": "{{testCpf}}"
-								},
-								{
-									"key": "format",
-									"value": "csv"
-								}
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/export/ledger?cpf={{testCpf}}&format=csv"
+					}
 				},
 				{
 					"name": "Solicitar Ação Admin",
@@ -2293,29 +1065,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"actionType\": \"RESET_USER_DATA\",\n  \"cpf\": \"{{testCpf}}\",\n  \"params\": {\n    \"mode\": \"archive\",\n    \"confirm\": \"YES\"\n  }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"actionType\": \"RESET_USER_DATA\",\n  \"cpf\": \"{{testCpf}}\",\n  \"params\": {\n    \"mode\": \"archive\",\n    \"confirm\": \"YES\"\n  }\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/actions/request",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"actions",
-								"request"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/actions/request"
+					}
 				},
 				{
 					"name": "Confirmar Ação Admin",
@@ -2333,29 +1086,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"actionId\": \"{{actionId}}\",\n  \"confirmToken\": \"{{confirmToken}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n  \"actionId\": \"{{actionId}}\",\n  \"confirmToken\": \"{{confirmToken}}\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/backoffice/actions/confirm",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"backoffice",
-								"actions",
-								"confirm"
-							]
-						}
-					},
-					"response": []
+						"url": "{{baseUrl}}/api/v1/admin/backoffice/actions/confirm"
+					}
 				}
 			]
 		}
@@ -2379,6 +1113,21 @@
 		{
 			"key": "adminSecret",
 			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "candidateId",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "actionId",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "confirmToken",
+			"value": "confirm-token-123",
 			"type": "string"
 		}
 	]
