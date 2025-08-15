@@ -4,19 +4,24 @@ import (
 	"net/http"
 	"time"
 
+	"suno-wallets/src/infrastructure/data"
+
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // HealthController controller para verificações de saúde
 type HealthController struct {
-	db *gorm.DB
+	db          *gorm.DB
+	redisClient *redis.Client
 }
 
 // NewHealthController cria uma nova instância do controller de saúde
-func NewHealthController(db *gorm.DB) *HealthController {
+func NewHealthController(db *gorm.DB, redisClient *redis.Client) *HealthController {
 	return &HealthController{
-		db: db,
+		db:          db,
+		redisClient: redisClient,
 	}
 }
 
@@ -55,8 +60,17 @@ func (ctrl *HealthController) HealthCheck(c *gin.Context) {
 		response.Services["database"] = "ok"
 	}
 
-	// TODO: Adicionar verificação do Redis quando implementado
-	// response.Services["redis"] = "ok"
+	// Verificar conexão com Redis
+	if ctrl.redisClient != nil {
+		if err := data.PingRedis(c.Request.Context(), ctrl.redisClient); err != nil {
+			response.Status = "error"
+			response.Services["redis"] = "error: " + err.Error()
+		} else {
+			response.Services["redis"] = "ok"
+		}
+	} else {
+		response.Services["redis"] = "not configured"
+	}
 
 	// Determinar status HTTP
 	statusCode := http.StatusOK

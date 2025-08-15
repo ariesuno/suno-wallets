@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"suno-wallets/src/api/controllers/common"
 	"suno-wallets/src/api/middlewares"
 	"suno-wallets/src/application/dtos"
 	"suno-wallets/src/application/usecases"
 	"suno-wallets/src/domain/entities"
-	"suno-wallets/src/shared/helpers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -47,16 +47,7 @@ func (ctrl *WalletController) CreateWallet(c *gin.Context) {
 
 	var req dtos.CreateWalletRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		helpers.LogWarn("Dados inválidos para criação de carteira", map[string]interface{}{
-			"tenant_id": tenantID,
-			"error":     err.Error(),
-		})
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_REQUEST",
-			"message": "Dados de entrada inválidos",
-			"details": err.Error(),
-		})
+		common.HandleValidationError(c, err, "Dados inválidos para criação de carteira")
 		return
 	}
 
@@ -70,7 +61,9 @@ func (ctrl *WalletController) CreateWallet(c *gin.Context) {
 
 	wallet, err := ctrl.walletUseCase.CreateWallet(c.Request.Context(), &req)
 	if err != nil {
-		ctrl.handleError(c, err, "Falha ao criar carteira")
+		common.HandleError(c, err, "Falha ao criar carteira", map[string]interface{}{
+			"tenant_id": tenantID,
+		})
 		return
 	}
 
@@ -97,16 +90,16 @@ func (ctrl *WalletController) GetWallet(c *gin.Context) {
 
 	walletID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_WALLET_ID",
-			"message": "ID da carteira inválido",
-		})
+		common.HandleBadRequest(c, "ID da carteira inválido", err.Error())
 		return
 	}
 
 	wallet, err := ctrl.walletUseCase.GetWalletByID(c.Request.Context(), walletID, tenantID)
 	if err != nil {
-		ctrl.handleError(c, err, "Falha ao buscar carteira")
+		common.HandleError(c, err, "Falha ao buscar carteira", map[string]interface{}{
+			"tenant_id": tenantID,
+			"wallet_id": walletID,
+		})
 		return
 	}
 
@@ -132,16 +125,16 @@ func (ctrl *WalletController) GetWalletsByOwner(c *gin.Context) {
 
 	ownerID, err := uuid.Parse(c.Param("owner_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_OWNER_ID",
-			"message": "ID do proprietário inválido",
-		})
+		common.HandleBadRequest(c, "ID do proprietário inválido", err.Error())
 		return
 	}
 
 	wallets, err := ctrl.walletUseCase.GetWalletsByOwner(c.Request.Context(), ownerID, tenantID)
 	if err != nil {
-		ctrl.handleError(c, err, "Falha ao buscar carteiras por proprietário")
+		common.HandleError(c, err, "Falha ao buscar carteiras por proprietário", map[string]interface{}{
+			"tenant_id": tenantID,
+			"owner_id":  ownerID,
+		})
 		return
 	}
 
@@ -179,17 +172,7 @@ func (ctrl *WalletController) UpdateWallet(c *gin.Context) {
 
 	var req dtos.UpdateWalletRequest
 	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
-		helpers.LogWarn("Dados inválidos para atualização de carteira", map[string]interface{}{
-			"tenant_id": tenantID,
-			"wallet_id": walletID,
-			"error":     bindErr.Error(),
-		})
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_REQUEST",
-			"message": "Dados de entrada inválidos",
-			"details": bindErr.Error(),
-		})
+		common.HandleValidationError(c, bindErr, "Dados inválidos para atualização de carteira")
 		return
 	}
 
@@ -203,7 +186,10 @@ func (ctrl *WalletController) UpdateWallet(c *gin.Context) {
 
 	wallet, err := ctrl.walletUseCase.UpdateWallet(c.Request.Context(), &req)
 	if err != nil {
-		ctrl.handleError(c, err, "Falha ao atualizar carteira")
+		common.HandleError(c, err, "Falha ao atualizar carteira", map[string]interface{}{
+			"tenant_id": tenantID,
+			"wallet_id": walletID,
+		})
 		return
 	}
 
@@ -239,7 +225,10 @@ func (ctrl *WalletController) DeleteWallet(c *gin.Context) {
 
 	err = ctrl.walletUseCase.DeleteWallet(c.Request.Context(), walletID, tenantID)
 	if err != nil {
-		ctrl.handleError(c, err, "Falha ao deletar carteira")
+		common.HandleError(c, err, "Falha ao deletar carteira", map[string]interface{}{
+			"tenant_id": tenantID,
+			"wallet_id": walletID,
+		})
 		return
 	}
 
@@ -311,69 +300,11 @@ func (ctrl *WalletController) ListWallets(c *gin.Context) {
 
 	response, err := ctrl.walletUseCase.ListWallets(c.Request.Context(), &req)
 	if err != nil {
-		ctrl.handleError(c, err, "Falha ao listar carteiras")
+		common.HandleError(c, err, "Falha ao listar carteiras", map[string]interface{}{
+			"tenant_id": tenantID,
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response)
-}
-
-// handleError trata erros de forma padronizada
-func (ctrl *WalletController) handleError(c *gin.Context, err error, message string) {
-	helpers.LogError(message, err, map[string]interface{}{
-		"path":   c.Request.URL.Path,
-		"method": c.Request.Method,
-	})
-
-	// Verificar tipo de erro
-	if entities.IsValidationError(err) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "VALIDATION_ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
-
-	if entities.IsNotFoundError(err) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":   "NOT_FOUND",
-			"message": err.Error(),
-		})
-		return
-	}
-
-	if entities.IsBusinessError(err) {
-		businessErr := err.(entities.BusinessError)
-		statusCode := http.StatusBadRequest
-
-		// Mapear códigos específicos para status HTTP apropriados
-		switch businessErr.Code {
-		case "DUPLICATE_DEFAULT_WALLET":
-			statusCode = http.StatusConflict
-		case "INSUFFICIENT_BALANCE":
-			statusCode = http.StatusBadRequest
-		case "UNAUTHORIZED_ACCESS":
-			statusCode = http.StatusForbidden
-		}
-
-		c.JSON(statusCode, gin.H{
-			"error":   businessErr.Code,
-			"message": businessErr.Message,
-		})
-		return
-	}
-
-	if entities.IsConflictError(err) {
-		c.JSON(http.StatusConflict, gin.H{
-			"error":   "CONFLICT",
-			"message": err.Error(),
-		})
-		return
-	}
-
-	// Erro genérico
-	c.JSON(http.StatusInternalServerError, gin.H{
-		"error":   "INTERNAL_ERROR",
-		"message": "Erro interno do servidor",
-	})
 }

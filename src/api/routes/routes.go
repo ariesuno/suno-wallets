@@ -78,15 +78,15 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	walletRepo := repositories.NewWalletRepository(db)
 	walletUseCase := usecases.NewWalletUseCase(walletRepo)
 
-	// Inicializar controllers
-	healthController := controllers.NewHealthController(db)
-
 	// Inicializar Redis client
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisHost + ":" + cfg.RedisPort,
 		Password: cfg.RedisPassword,
 		DB:       cfg.RedisDB,
 	})
+
+	// Inicializar controllers
+	healthController := controllers.NewHealthController(db, redisClient)
 
 	// Configurar middleware de idempotência (24h TTL)
 	idempotencyMiddleware := middlewares.NewIdempotencyMiddleware(redisClient, 24*time.Hour)
