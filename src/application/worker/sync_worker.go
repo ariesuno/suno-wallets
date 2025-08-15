@@ -139,8 +139,30 @@ func (w *SyncWorker) processCompleteSyncJob(ctx context.Context, job *queue.Job)
 		return
 	}
 
-	// Atualizar progresso: iniciando
+	// Setup heartbeat ticker para manter job vivo
+	heartbeatTicker := time.NewTicker(30 * time.Second)
+	defer heartbeatTicker.Stop()
+
+	// Goroutine para enviar heartbeats
+	heartbeatCtx, cancelHeartbeat := context.WithCancel(ctx)
+	defer cancelHeartbeat()
+
+	go func() {
+		for {
+			select {
+			case <-heartbeatCtx.Done():
+				return
+			case <-heartbeatTicker.C:
+				if redisQueue, ok := w.jobQueue.(*queue.RedisJobQueue); ok {
+					_ = redisQueue.Heartbeat(ctx, job.ID, w.workerID)
+				}
+			}
+		}
+	}()
+
+	// Atualizar progresso e marcar como parcial: iniciando
 	w.updateProgress(ctx, job.ID, 0.1)
+	w.markPartial(ctx, job.ID, 0.1)
 
 	// Executar sincronização
 	result, err := w.syncOrchestrator.ExecuteCompleteSync(ctx, *params)
@@ -243,6 +265,20 @@ func (w *SyncWorker) updateProgress(ctx context.Context, jobID string, progress 
 			"jobID":    jobID,
 			"progress": progress,
 		})
+	}
+}
+
+// markPartial marca um job como parcialmente processado
+func (w *SyncWorker) markPartial(ctx context.Context, jobID string, progress float64) {
+	if redisQueue, ok := w.jobQueue.(*queue.RedisJobQueue); ok {
+		if err := redisQueue.MarkPartial(ctx, jobID, w.workerID, progress); err != nil {
+			// Log mas não falha o job por isso
+			helpers.LogError("failed to mark job as partial", err, map[string]interface{}{
+				"workerID": w.workerID,
+				"jobID":    jobID,
+				"progress": progress,
+			})
+		}
 	}
 }
 

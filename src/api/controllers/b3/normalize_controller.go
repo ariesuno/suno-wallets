@@ -8,14 +8,15 @@ import (
 
 	"suno-wallets/src/api/middlewares"
 	appnorm "suno-wallets/src/application/b3/normalize"
+	"suno-wallets/src/shared/helpers"
 	"suno-wallets/src/shared/validation"
 )
 
 // Comentários em pt-BR: controller para normalização de RAW
 
-type NormalizeController struct{ svc *appnorm.Service }
+type NormalizeController struct{ svc *appnorm.LegacyService }
 
-func NewNormalizeController(svc *appnorm.Service) *NormalizeController {
+func NewNormalizeController(svc *appnorm.LegacyService) *NormalizeController {
 	return &NormalizeController{svc: svc}
 }
 
@@ -42,6 +43,13 @@ type normalizeRequest struct {
 // @Router /b3/normalize/run [post]
 func (c *NormalizeController) Run(ctx *gin.Context) {
 	tenantName := middlewares.MustGetTenantName(ctx)
+
+	// Log temporário para debug
+	helpers.LogInfo("normalize controller starting", map[string]interface{}{
+		"tenantName": tenantName,
+		"method":     ctx.Request.Method,
+		"path":       ctx.Request.URL.Path,
+	})
 
 	var req normalizeRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -72,10 +80,31 @@ func (c *NormalizeController) Run(ctx *gin.Context) {
 	startT, _ := time.Parse("2006-01-02", req.Start)
 	endT, _ := time.Parse("2006-01-02", req.End)
 
+	helpers.LogInfo("normalize controller calling service", map[string]interface{}{
+		"tenantID":  tenantName,
+		"cpf":       req.CPF[:3] + "*******",
+		"dataType":  req.DataType,
+		"assetType": req.AssetType,
+		"force":     req.Force,
+		"dryRun":    req.DryRun,
+	})
+
 	sum, err := c.svc.Run(ctx, appnorm.RunParams{TenantID: tenantName, CPF: req.CPF, DataType: req.DataType, AssetType: req.AssetType, Start: startT, End: endT, Force: req.Force, DryRun: req.DryRun})
 	if err != nil {
+		helpers.LogError("normalize controller service error", err, map[string]interface{}{
+			"tenantID": tenantName,
+			"cpf":      req.CPF[:3] + "*******",
+		})
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	helpers.LogInfo("normalize controller service completed", map[string]interface{}{
+		"inserted":     sum.Inserted,
+		"updated":      sum.Updated,
+		"errors":       sum.Errors,
+		"rawProcessed": sum.RawProcessed,
+	})
+
 	ctx.JSON(http.StatusOK, gin.H{"inserted": sum.Inserted, "updated": sum.Updated, "skipped": sum.Skipped, "errors": sum.Errors, "rawProcessed": sum.RawProcessed})
 }

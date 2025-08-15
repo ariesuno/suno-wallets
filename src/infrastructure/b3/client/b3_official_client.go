@@ -79,7 +79,8 @@ func buildTLSConfig(cfg *b3cfg.B3Config) (*tls.Config, error) {
 	var certificates [][]byte
 
 	for _, block := range blocks {
-		if block.Type == "PRIVATE KEY" || block.Type == "RSA PRIVATE KEY" {
+		switch block.Type {
+		case "PRIVATE KEY", "RSA PRIVATE KEY":
 			privateKey, err = x509.ParsePKCS8PrivateKey(block.Bytes)
 			if err != nil {
 				// Try RSA if PKCS8 fails
@@ -88,7 +89,7 @@ func buildTLSConfig(cfg *b3cfg.B3Config) (*tls.Config, error) {
 					return nil, fmt.Errorf("erro ao parsear chave privada: %w", err)
 				}
 			}
-		} else if block.Type == "CERTIFICATE" {
+		case "CERTIFICATE":
 			certificates = append(certificates, block.Bytes)
 		}
 	}

@@ -3,6 +3,7 @@ package normalize
 import (
 	"context"
 	"suno-wallets/src/infrastructure/b3/persistence"
+	"suno-wallets/src/shared/helpers"
 	"time"
 
 	"github.com/google/uuid"
@@ -196,14 +197,34 @@ func (r *normalizedRepositoryImpl) executeBatchPositions(ctx context.Context, ba
 // Seleciona RAW pendente (sem normalized_at) dentro do período, ou tudo se force=true
 func (r *normalizedRepositoryImpl) SelectPendingRaw(ctx context.Context, tenantID string, cpf, dataType, assetType string, start, end time.Time, force bool) ([]persistence.RawRecord, error) {
 	var rows []persistence.RawRecord
+
+	// Converter timestamps para dates para comparação correta
+	startDate := start.Format("2006-01-02")
+	endDate := end.Format("2006-01-02")
+
 	qb := r.db.WithContext(ctx).Table("b3_raw_data_client").
-		Where("tenant_id = ? AND cpf = ? AND data_type = ? AND asset_type = ? AND period_start >= ? AND period_end <= ?", tenantID, cpf, dataType, assetType, start, end)
+		Where("tenant_id = ? AND cpf = ? AND data_type = ? AND asset_type = ? AND period_start >= ? AND period_end <= ?",
+			tenantID, cpf, dataType, assetType, startDate, endDate)
+
 	if !force {
 		qb = qb.Where("(normalized_at IS NULL OR normalized_count = 0)")
 	}
+
 	if err := qb.Order("period_start, page").Scan(&rows).Error; err != nil {
 		return nil, err
 	}
+
+	helpers.LogInfo("SelectPendingRaw query executed", map[string]interface{}{
+		"tenantID":  tenantID,
+		"cpf":       cpf[:3] + "*******",
+		"dataType":  dataType,
+		"assetType": assetType,
+		"startDate": startDate,
+		"endDate":   endDate,
+		"force":     force,
+		"found":     len(rows),
+	})
+
 	return rows, nil
 }
 

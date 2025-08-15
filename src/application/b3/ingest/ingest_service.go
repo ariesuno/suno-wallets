@@ -115,7 +115,7 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 
 		pageNum := 1
 		fetch := func(hr *http.Response) (bool, int, error) {
-			defer hr.Body.Close()
+			defer func() { _ = hr.Body.Close() }()
 			var generic interface{}
 			if err := json.NewDecoder(hr.Body).Decode(&generic); err != nil {
 				generic = map[string]any{"raw": "decode_error"}

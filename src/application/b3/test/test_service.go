@@ -166,7 +166,7 @@ func (s *Service) testTransactions(ctx context.Context, params TestParams) Trans
 			},
 		}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Parse da resposta JSON
 	var transactionsData struct {
@@ -259,7 +259,7 @@ func (s *Service) testPositions(ctx context.Context, params TestParams) Position
 			},
 		}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Parse da resposta JSON
 	var positionsData struct {

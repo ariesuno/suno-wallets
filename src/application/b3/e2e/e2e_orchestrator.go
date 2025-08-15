@@ -78,7 +78,7 @@ type NormalizePort interface {
 	Run(ctx context.Context, p appnorm.RunParams) (*appnorm.Summary, error)
 }
 
-func NewOrchestrator(resetRepo ResetRepository, ingestSvc *appingest.Service, normSvc *appnorm.Service) *Orchestrator {
+func NewOrchestrator(resetRepo ResetRepository, ingestSvc *appingest.Service, normSvc *appnorm.LegacyService) *Orchestrator {
 	return &Orchestrator{
 		resetRepo:            resetRepo,
 		ingest:               ingestSvc,

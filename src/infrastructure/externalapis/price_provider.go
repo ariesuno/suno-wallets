@@ -49,7 +49,7 @@ func (p *PriceProvider) GetHealth(ctx context.Context) error {
 		statusLabel = "network_error"
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		statusLabel = "http_" + http.StatusText(resp.StatusCode)
 		return errors.New("external service unhealthy")

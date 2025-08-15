@@ -131,14 +131,15 @@ func (r *DedupRepo) ResolveMerge(ctx context.Context, tenantID uuid.UUID, candid
 		suppressed = p.Candidate
 		if len(ops) == 2 {
 			// escolher conforme prefer
-			if prefer == "USER_MANUAL" {
+			switch prefer {
+			case "USER_MANUAL":
 				// achar manual
 				if ops[0].Source == "USER_MANUAL" {
 					preferred, suppressed = ops[0].ID, ops[1].ID
 				} else if ops[1].Source == "USER_MANUAL" {
 					preferred, suppressed = ops[1].ID, ops[0].ID
 				}
-			} else if prefer == "B3_RAW" {
+			case "B3_RAW":
 				if ops[0].Source == "B3_RAW" {
 					preferred, suppressed = ops[0].ID, ops[1].ID
 				} else if ops[1].Source == "B3_RAW" {

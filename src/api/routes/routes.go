@@ -88,6 +88,9 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		DB:       cfg.RedisDB,
 	})
 
+	// Configurar middleware de idempotência (24h TTL)
+	idempotencyMiddleware := middlewares.NewIdempotencyMiddleware(redisClient, 24*time.Hour)
+
 	// Observability health (liveness/readiness/details) sem tenant
 	obsHealth := obsctl.NewHealthController(db, redisClient)
 	// B3 client + service
@@ -135,7 +138,7 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	ingestController := b3controllers.NewIngestController(ingestSvc)
 	// Normalize
 	normRepo := normrepo.NewNormalizedRepository(db)
-	normSvc := appnorm.NewService(normRepo)
+	normSvc := appnorm.NewLegacyService(normRepo)
 	// Reports (somente leitura)
 	repRepo := reprepo.NewRepository(db)
 	repSvc := repsvc.NewService(repRepo)
@@ -243,14 +246,14 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		admin.GET("/backoffice/export/ledger", backofficeController.ExportLedger)
 		admin.POST("/backoffice/actions/request", backofficeController.RequestAction)
 		admin.POST("/backoffice/actions/confirm", backofficeController.ConfirmAction)
-		// Rotas de carteiras
+		// Rotas de carteiras (com idempotência em operações críticas)
 		walletsGroup := apiV1.Group("/wallets")
 		{
-			walletsGroup.POST("", walletController.CreateWallet)
+			walletsGroup.POST("", idempotencyMiddleware.Handler(), walletController.CreateWallet)
 			walletsGroup.GET("", walletController.ListWallets)
 			walletsGroup.GET("/:id", walletController.GetWallet)
-			walletsGroup.PUT("/:id", walletController.UpdateWallet)
-			walletsGroup.DELETE("/:id", walletController.DeleteWallet)
+			walletsGroup.PUT("/:id", idempotencyMiddleware.Handler(), walletController.UpdateWallet)
+			walletsGroup.DELETE("/:id", idempotencyMiddleware.Handler(), walletController.DeleteWallet)
 			walletsGroup.GET("/owner/:owner_id", walletController.GetWalletsByOwner)
 		}
 		// B3
@@ -275,32 +278,32 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			})
 			// Preview de posições v3 (equity)
 			b3Group.GET("/fetch/positions/preview", positionsController.FetchPositionsPreview)
-			// RAW historical ingest
-			b3Group.POST("/fetch/historical", ingestController.PostHistorical)
-			// Normalization run
-			b3Group.POST("/normalize/run", normController.Run)
-			// Sync endpoints
-			b3Group.POST("/sync/run", syncController.Run)
+			// RAW historical ingest (com idempotência)
+			b3Group.POST("/fetch/historical", idempotencyMiddleware.Handler(), ingestController.PostHistorical)
+			// Normalization run (com idempotência restaurada)
+			b3Group.POST("/normalize/run", idempotencyMiddleware.Handler(), normController.Run)
+			// Sync endpoints (com idempotência)
+			b3Group.POST("/sync/run", idempotencyMiddleware.Handler(), syncController.Run)
 			b3Group.GET("/client/status", syncController.Status)
 			b3Group.GET("/client/last-sync", syncController.LastSync)
-			// Complete Sync endpoints (fluxo completo inteligente)
-			b3Group.POST("/sync/complete-ingestion", completeSyncController.ExecuteCompleteSync)
+			// Complete Sync endpoints (fluxo completo inteligente - com idempotência)
+			b3Group.POST("/sync/complete-ingestion", idempotencyMiddleware.Handler(), completeSyncController.ExecuteCompleteSync)
 			b3Group.GET("/sync/status-analysis", completeSyncController.GetSyncStatus)
 
-			// Async endpoints (Fase 2 - processamento assíncrono)
+			// Async endpoints (Fase 2 - processamento assíncrono com idempotência)
 			asyncGroup := b3Group.Group("/async")
 			{
-				asyncGroup.POST("/sync/complete-ingestion", asyncSyncController.QueueCompleteSync)
+				asyncGroup.POST("/sync/complete-ingestion", idempotencyMiddleware.Handler(), asyncSyncController.QueueCompleteSync)
 				asyncGroup.GET("/jobs/:jobId/status", asyncSyncController.GetJobStatus)
 				asyncGroup.GET("/jobs", asyncSyncController.ListJobs)
 			}
-			// Admin: reset and refetch E2E
-			b3Group.POST("/admin/reset-and-refetch", adminController.ResetAndRefetch)
-			// Admin: incremental from last
-			b3Group.POST("/admin/incremental-from-last", adminController.IncrementalFromLast)
-			// Admin: reactivation service (smart historical sync)
-			b3Group.POST("/admin/reactivation/analyze", reactivationController.AnalyzeReactivation)
-			b3Group.POST("/admin/reactivation/execute", reactivationController.ExecuteReactivation)
+			// Admin: reset and refetch E2E (com idempotência)
+			b3Group.POST("/admin/reset-and-refetch", idempotencyMiddleware.Handler(), adminController.ResetAndRefetch)
+			// Admin: incremental from last (com idempotência)
+			b3Group.POST("/admin/incremental-from-last", idempotencyMiddleware.Handler(), adminController.IncrementalFromLast)
+			// Admin: reactivation service (smart historical sync - com idempotência)
+			b3Group.POST("/admin/reactivation/analyze", idempotencyMiddleware.Handler(), reactivationController.AnalyzeReactivation)
+			b3Group.POST("/admin/reactivation/execute", idempotencyMiddleware.Handler(), reactivationController.ExecuteReactivation)
 			// Public (autenticado): sync window inspection (somente leitura)
 			b3Group.GET("/client/sync-window", utilController.SyncWindow)
 			// Public: reactivation status
@@ -325,12 +328,12 @@ func SetupRoutes(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			af.POST("/auto-fix", autoFixController.AutoFix)
 			af.POST("/auto-fix/:id", autoFixController.AutoFixByID)
 
-			// Manual Ops endpoints
+			// Manual Ops endpoints (com idempotência em operações críticas)
 			opsGroup := apiV1.Group("/ops")
 			opsGroup.Use(middlewares.RateLimitMiddleware(120, time.Minute))
-			opsGroup.POST("/manual", manualOpsController.Create)
-			opsGroup.PUT("/manual/:id", manualOpsController.Update)
-			opsGroup.DELETE("/manual/:id", manualOpsController.Delete)
+			opsGroup.POST("/manual", idempotencyMiddleware.Handler(), manualOpsController.Create)
+			opsGroup.PUT("/manual/:id", idempotencyMiddleware.Handler(), manualOpsController.Update)
+			opsGroup.DELETE("/manual/:id", idempotencyMiddleware.Handler(), manualOpsController.Delete)
 			opsGroup.GET("/manual", manualOpsController.List)
 			// Timeline & Summary endpoints
 			opsGroup.GET("/timeline", timelineController.Get)

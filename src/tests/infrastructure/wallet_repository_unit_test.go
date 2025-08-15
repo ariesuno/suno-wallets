@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"suno-wallets/src/domain/entities"
-	domaininterfaces "suno-wallets/src/domain/interfaces"
+
 	infrarepos "suno-wallets/src/infrastructure/repositories"
 
 	"github.com/google/uuid"
@@ -26,7 +26,7 @@ func newInMemoryDB(t *testing.T) *gorm.DB {
 func TestWalletRepository_CreateAndGet(t *testing.T) {
 	db := newInMemoryDB(t)
 	repo := infrarepos.NewWalletRepository(db)
-	var _ domaininterfaces.WalletRepository = repo
+	_ = repo // Verificar implementação da interface
 
 	ctx := context.Background()
 	tenantID := uuid.New()

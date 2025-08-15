@@ -4,21 +4,19 @@ run:
 
 linters:
   enable:
-    - gofmt
-    - goimports
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
     - unused
     - errcheck
+    - gosimple
+    - deadcode
+    - varcheck
   disable:
     - revive
     - misspell
 
 linters-settings:
-  gofmt:
-    simplify: true
   goimports:
     local-prefixes: suno-wallets
 

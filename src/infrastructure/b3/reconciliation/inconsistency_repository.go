@@ -47,7 +47,7 @@ func makeLockKey(tenantID string, cpf string) int64 {
 
 // TryAcquireLock tenta adquirir lock por (tenant, cpf). Em Postgres usa advisory lock; em SQLite é no-op (sempre true)
 func (r *Repository) TryAcquireLock(ctx context.Context, tenantID string, cpf string, ttlSeconds int) (bool, error) {
-	switch r.db.Dialector.Name() {
+	switch r.db.Name() {
 	case "postgres":
 		key := makeLockKey(tenantID, cpf)
 		var ok bool
@@ -63,7 +63,7 @@ func (r *Repository) TryAcquireLock(ctx context.Context, tenantID string, cpf st
 
 // ReleaseLock libera advisory lock quando suportado
 func (r *Repository) ReleaseLock(ctx context.Context, tenantID string, cpf string) error {
-	switch r.db.Dialector.Name() {
+	switch r.db.Name() {
 	case "postgres":
 		key := makeLockKey(tenantID, cpf)
 		// ignorar resultado booleano

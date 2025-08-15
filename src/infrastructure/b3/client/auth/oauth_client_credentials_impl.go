@@ -71,7 +71,7 @@ func (c *clientCredentialsImpl) GetToken(ctx context.Context) (*TokenResponse, e
 		// Aguardar antes do próximo retry
 		time.Sleep(time.Duration(i+1) * 5 * time.Second)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		// Ler o corpo da resposta para obter detalhes do erro

@@ -149,7 +149,7 @@ func (s *Service) testTransactions(ctx context.Context, params TestParams) Trans
 	if err != nil {
 		return TransactionsSummary{Error: err.Error(), DateRange: DateRangeInfo{Start: startDate, End: endDate}}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	// Usar estrutura B3 correta
 	var transactionsData struct {
 		Data struct {
@@ -230,7 +230,7 @@ func (s *Service) testPositions(ctx context.Context, params TestParams) Position
 	if err != nil {
 		return PositionsSummary{Error: err.Error(), DateRange: DateRangeInfo{Start: startDate, End: endDate}}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	var positionsData struct {
 		Data []map[string]interface{} `json:"data"`
 		Meta map[string]interface{}   `json:"meta"`

@@ -62,7 +62,7 @@ func (c *HTTPClient) do(ctx context.Context, method, path string, payload any, c
 				return 0, nil, err
 			}
 		} else {
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			data, _ := io.ReadAll(resp.Body)
 			if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
 				time.Sleep(backoff)
