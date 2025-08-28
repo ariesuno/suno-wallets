@@ -60,7 +60,7 @@ func (c *CompleteSyncController) ExecuteCompleteSync(ctx *gin.Context) {
 
 	// Aplicar defaults seguindo padrões do projeto
 	if len(req.AssetTypes) == 0 {
-		req.AssetTypes = []string{"equity"}
+		req.AssetTypes = []string{"equities", "fixed-income", "treasury-bonds", "derivatives"}
 	}
 	if len(req.DataTypes) == 0 {
 		req.DataTypes = []string{"transactions", "positions"}
@@ -115,7 +115,7 @@ func (c *CompleteSyncController) GetSyncStatus(ctx *gin.Context) {
 	params := completesync.CompleteSyncParams{
 		TenantID:              tenantID,
 		CPF:                   cpf,
-		AssetTypes:            []string{"equity"},
+		AssetTypes:            []string{"equities", "fixed-income", "treasury-bonds", "derivatives"},
 		DataTypes:             []string{"transactions", "positions"},
 		IncludeReconciliation: false,
 		DryRun:                true, // Sempre dry run para análise

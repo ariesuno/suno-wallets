@@ -88,9 +88,9 @@ func (c *AdminController) ResetAndRefetch(ctx *gin.Context) {
 		}
 	}
 
-	// defaults
+	// defaults - processar todos os tipos de ativo B3
 	if len(req.AssetTypes) == 0 {
-		req.AssetTypes = []string{"equity"}
+		req.AssetTypes = []string{"equities", "fixed-income", "treasury-bonds", "derivatives"}
 	}
 	if len(req.DataTypes) == 0 {
 		req.DataTypes = []string{"transactions", "positions"}

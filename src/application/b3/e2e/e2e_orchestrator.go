@@ -236,6 +236,13 @@ func maskCPF(cpf string) string {
 // 1. Primeiro executa transações (se não houver, não precisa buscar posições)
 // 2. Depois executa posições apenas se houver transações
 func (o *Orchestrator) runPrioritizedIngestion(ctx context.Context, p Params, sum *Summary, logBase map[string]any) error {
+	// Debug crítico para confirmar que chegou até aqui
+	helpers.LogInfo("🔍 E2E DEBUG: runPrioritizedIngestion STARTED", map[string]any{
+		"asset_types": p.AssetTypes,
+		"data_types":  p.DataTypes,
+		"cpf_masked":  p.CPF[:3] + "***",
+	})
+
 	// Etapa 1: Buscar transações primeiro
 	hasTransactions := false
 	for _, assetType := range p.AssetTypes {
@@ -285,6 +292,13 @@ func (o *Orchestrator) runPrioritizedIngestion(ctx context.Context, p Params, su
 
 // runDataTypeIngestion executa ingestão para um tipo de dados específico
 func (o *Orchestrator) runDataTypeIngestion(ctx context.Context, p Params, assetType, dataType string, logBase map[string]any) (*appingest.Summary, error) {
+	// Debug crítico para confirmar que esta função é chamada
+	helpers.LogInfo("🔍 E2E DEBUG: runDataTypeIngestion called", map[string]any{
+		"asset_type": assetType,
+		"data_type":  dataType,
+		"cpf_masked": p.CPF[:3] + "***",
+	})
+
 	var start, end string
 
 	// Para posições, usar apenas o dia anterior (otimização)
@@ -307,7 +321,16 @@ func (o *Orchestrator) runDataTypeIngestion(ctx context.Context, p Params, asset
 		}))
 	}
 
-	return o.ingest.Ingest(ctx, appingest.IngestParams{
+	// Debug crítico antes de chamar ingest
+	helpers.LogInfo("🔍 E2E DEBUG: About to call ingest.Ingest", map[string]any{
+		"asset_type": assetType,
+		"data_type":  dataType,
+		"start":      start,
+		"end":        end,
+		"cpf_masked": p.CPF[:3] + "***",
+	})
+
+	result, err := o.ingest.Ingest(ctx, appingest.IngestParams{
 		TenantID:  p.TenantID,
 		CPF:       p.CPF,
 		DataType:  dataType,
@@ -318,6 +341,16 @@ func (o *Orchestrator) runDataTypeIngestion(ctx context.Context, p Params, asset
 		Force:     p.Force,
 		DryRun:    false,
 	})
+
+	// Debug crítico após chamar ingest
+	helpers.LogInfo("🔍 E2E DEBUG: ingest.Ingest returned", map[string]any{
+		"asset_type": assetType,
+		"data_type":  dataType,
+		"error":      err,
+		"result":     result != nil,
+	})
+
+	return result, err
 }
 
 // runPipelineNormalization executa normalização em pipeline por tipo

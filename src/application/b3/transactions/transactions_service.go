@@ -3,7 +3,6 @@ package transactions
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -59,14 +58,26 @@ func (s *transactionsServiceImpl) PreviewTransactions(ctx context.Context, req *
 	if assetType == "" {
 		assetType = "equity"
 	}
+
+	// CORREÇÃO: Usar endpoints específicos da B3 em vez de hardcoded v2
+	var path string
 	switch assetType {
-	case "equity":
-		// suportado
+	case "equity", "equities":
+		// Para compatibility, manter v2 para equities por enquanto
+		path = fmt.Sprintf("/assets-trading/v2/investors/%s", req.CPF)
+	case "fixed-income", "fixed_income":
+		path = fmt.Sprintf("/fixed-income/investors/%s", req.CPF)
+	case "treasury-bonds", "treasury_bonds":
+		path = fmt.Sprintf("/treasury-bonds/investors/%s", req.CPF)
+	case "derivatives":
+		path = fmt.Sprintf("/derivatives/investors/%s", req.CPF)
+	case "securities-lending", "securities_lending":
+		path = fmt.Sprintf("/securities-lending/investors/%s", req.CPF)
 	default:
-		return nil, errors.New("assetType not implemented")
+		return nil, fmt.Errorf("assetType '%s' not supported", assetType)
 	}
 
-	path := fmt.Sprintf("/assets-trading/v2/%s/%s", assetType, req.CPF)
+	fmt.Printf("🔍 TRANSACTIONS DEBUG: AssetType='%s' -> Path='%s'\n", assetType, path)
 	baseQuery := map[string]string{
 		"referenceStartDate": req.Start,
 		"referenceEndDate":   req.End,

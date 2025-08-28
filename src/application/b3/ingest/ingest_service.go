@@ -5,15 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
+	"suno-wallets/src/domain/enums"
 	b3err "suno-wallets/src/infrastructure/b3/errors"
 	"suno-wallets/src/infrastructure/b3/persistence"
 	"suno-wallets/src/infrastructure/observability"
 	"suno-wallets/src/shared"
 	hashx "suno-wallets/src/shared/hash"
+	"suno-wallets/src/shared/helpers"
 )
 
 // Comentários em pt-BR: serviço de ingestão histórica de RAW (transações v2 / posições v3)
@@ -32,11 +35,38 @@ func NewService(client B3Client, repo persistence.RawRepository) *Service {
 	return &Service{client: client, repo: repo}
 }
 
+// parseAssetType converte string para B3AssetType, com fallback para equity
+func (s *Service) parseAssetType(assetTypeStr string) enums.B3AssetType {
+	// Normalizar entrada
+	normalized := strings.ToLower(strings.TrimSpace(assetTypeStr))
+
+	// Mapear strings conhecidas para B3AssetType
+	switch normalized {
+	case "equity", "equities", "stock", "stocks":
+		return enums.B3AssetTypeEquities
+	case "fixed-income", "fixed_income", "fixedincome", "bond", "bonds":
+		return enums.B3AssetTypeFixedIncome
+	case "treasury-bonds", "treasury_bonds", "treasurybonds", "tesouro", "treasury":
+		return enums.B3AssetTypeTreasuryBonds
+	case "derivatives", "derivative", "options", "futures":
+		return enums.B3AssetTypeDerivatives
+	case "securities-lending", "securities_lending", "securitieslending", "emprestimo":
+		return enums.B3AssetTypeSecuritiesLending
+	default:
+		// Tentar parse direto
+		if b3Type, valid := enums.ParseB3AssetType(normalized); valid {
+			return b3Type
+		}
+		// Fallback para equities (compatibilidade)
+		return enums.B3AssetTypeEquities
+	}
+}
+
 type IngestParams struct {
 	TenantID  string
 	CPF       string
 	DataType  string // transactions | positions
-	AssetType string // equity
+	AssetType string // equity (legacy), ou B3AssetType específico
 	Start     string // YYYY-MM-DD
 	End       string // YYYY-MM-DD
 	FetchAll  bool
@@ -64,6 +94,15 @@ type Summary struct {
 func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) {
 	// validações simples delegadas aos validadores existentes serão feitas no controller
 	sum := &Summary{}
+
+	// Debug crítico para investigação de endpoints
+	helpers.LogInfo("🔍 INGEST DEBUG: Starting ingest", map[string]interface{}{
+		"asset_type": p.AssetType,
+		"data_type":  p.DataType,
+		"cpf_masked": p.CPF[:3] + "***",
+		"start":      p.Start,
+		"end":        p.End,
+	})
 	startT, _ := time.Parse("2006-01-02", p.Start)
 	endT, _ := time.Parse("2006-01-02", p.End)
 
@@ -104,13 +143,32 @@ func (s *Service) Ingest(ctx context.Context, p IngestParams) (*Summary, error) 
 			continue
 		}
 
-		// preparar rota
+		// preparar rota baseada no tipo de ativo
 		var path string
+		b3AssetType := s.parseAssetType(p.AssetType)
+
+		// Debug crítico para verificar parsing e endpoint
+		helpers.LogInfo("🔍 INGEST DEBUG: Asset type parsing", map[string]interface{}{
+			"original_asset_type": p.AssetType,
+			"parsed_b3_type":      string(b3AssetType),
+			"data_type":           p.DataType,
+		})
+
 		if p.DataType == "positions" {
-			path = fmt.Sprintf("/position/v3/equities/investors/%s", p.CPF)
+			path = b3AssetType.GetPositionsEndpoint() + "/" + p.CPF
 		} else {
-			path = fmt.Sprintf("/assets-trading/v2/investors/%s", p.CPF)
+			// CORREÇÃO: Usar endpoints específicos para TODOS os tipos
+			// Não mais fallback para v2 - usar sempre endpoints específicos
+			path = b3AssetType.GetAPIEndpoint() + "/" + p.CPF
 		}
+
+		// Debug crítico para verificar endpoint gerado
+		helpers.LogInfo("🔍 INGEST DEBUG: Generated endpoint", map[string]interface{}{
+			"generated_path": path,
+			"asset_type":     string(b3AssetType),
+			"data_type":      p.DataType,
+			"cpf_masked":     p.CPF[:3] + "***",
+		})
 		baseQuery := map[string]string{"referenceStartDate": w[0].Format("2006-01-02"), "referenceEndDate": w[1].Format("2006-01-02")}
 
 		pageNum := 1
