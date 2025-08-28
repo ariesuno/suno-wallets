@@ -23,6 +23,7 @@ type Repository interface {
 	ListActions(ctx context.Context, tenantID, cpf, action, status string, page, pageSize int) ([]map[string]interface{}, error)
 	GetAction(ctx context.Context, tenantID string, id uuid.UUID) (map[string]interface{}, error)
 	ExportLedger(ctx context.Context, tenantID, cpf string, excludeB3 bool, limit int) ([]map[string]interface{}, error)
+	ExportLedgerStream(ctx context.Context, tenantID, cpf string, excludeB3 bool, limit int, callback func([]map[string]interface{}) error) error
 }
 
 type QueryService struct{ repo Repository }
@@ -47,4 +48,8 @@ func (s *QueryService) GetAction(ctx context.Context, tenantID string, id uuid.U
 
 func (s *QueryService) ExportLedger(ctx context.Context, tenantID, cpf string, excludeB3 bool, limit int) ([]map[string]interface{}, error) {
 	return s.repo.ExportLedger(ctx, tenantID, cpf, excludeB3, limit)
+}
+
+func (s *QueryService) ExportLedgerStream(ctx context.Context, tenantID, cpf string, excludeB3 bool, limit int, callback func([]map[string]interface{}) error) error {
+	return s.repo.ExportLedgerStream(ctx, tenantID, cpf, excludeB3, limit, callback)
 }

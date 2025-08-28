@@ -335,20 +335,20 @@ var (
 		prometheus.CounterOpts{Name: "policy_skipped_total", Help: "Operações/jobs skipados por política"},
 		[]string{"job"},
 	)
-	// Admin Backoffice (1.22) - Commented out unused metrics to fix linter warnings
-	_ = promauto.NewCounterVec(
+	// Admin Backoffice (1.22) - Métricas ativadas
+	adminActionsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{Name: "admin_actions_total", Help: "Total de ações administrativas por status"},
 		[]string{"action", "status"},
 	)
-	_ = promauto.NewHistogramVec(
+	adminActionsDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{Name: "admin_actions_duration_seconds", Help: "Duração das ações administrativas", Buckets: prometheus.DefBuckets},
 		[]string{"action"},
 	)
-	_ = promauto.NewCounterVec(
+	adminExportsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{Name: "admin_exports_total", Help: "Total de exports administrativos por formato"},
 		[]string{"format"},
 	)
-	_ = promauto.NewCounterVec(
+	adminProfileRequestsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{Name: "admin_profile_requests_total", Help: "Total de requisições de profile no backoffice"},
 		[]string{"result"},
 	)
@@ -422,6 +422,20 @@ func ObserveSync(clients, success, failed, newRaw int, startedAt time.Time) {
 		b3SyncNewRawTotal.Add(float64(newRaw))
 	}
 	b3SyncDuration.Observe(time.Since(startedAt).Seconds())
+}
+
+// Funções de Admin Backoffice (1.22)
+func ObserveAdminAction(action, status string, start time.Time) {
+	adminActionsTotal.WithLabelValues(action, status).Inc()
+	adminActionsDuration.WithLabelValues(action).Observe(time.Since(start).Seconds())
+}
+
+func IncAdminExport(format string) {
+	adminExportsTotal.WithLabelValues(format).Inc()
+}
+
+func IncAdminProfileRequest(result string) {
+	adminProfileRequestsTotal.WithLabelValues(result).Inc()
 }
 
 // ObserveE2ERun registra agregados de execução do E2E
